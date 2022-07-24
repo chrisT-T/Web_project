@@ -2,6 +2,7 @@
   <div>
     <h1> {{ status }} </h1>
     <div id="terminal"></div>
+    <button id='runbtn' @click='runPython'> Run Python in Terminal </button>
   </div>
 </template>
 
@@ -9,6 +10,7 @@
 import { Vue } from 'vue-class-component'
 import { Terminal } from 'xterm'
 import io from 'socket.io-client'
+import axios from 'axios'
 
 export default class webTerminal extends Vue {
   term = new Terminal()
@@ -36,6 +38,10 @@ export default class webTerminal extends Vue {
     this.socket.on('connect', () => {
       this.status = 'connected'
     })
+  }
+
+  runPython () {
+    axios.post('http://127.0.0.1:5000/run', { path: './test.py' })
   }
 
   mounted () {

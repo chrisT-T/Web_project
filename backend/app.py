@@ -1,5 +1,5 @@
 import argparse
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from flask_socketio import SocketIO
 from flask_cors import CORS
 import pty
@@ -23,10 +23,6 @@ app.config['cmd'] = 'bash'
 
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-@app.route("/")
-def index():
-    return render_template("index.html")
-
 @socketio.on("pty-input", namespace="/pty")
 def pty_input(data):
     if app.config['fd']:
@@ -43,6 +39,10 @@ def forward_pty_output():
                 output = os.read(app.config["fd"], max_read_bytes).decode()
                 socketio.emit("pty-output", {"output": output}, namespace="/pty")
 
+@app.route('/run', methods=['POST'])
+def run():
+    data = request.get_json()
+    os.write(app.config['fd'], 'python3 test.py\n'.encode())
 
 @socketio.on("connect", namespace='/pty')
 def connect() :
