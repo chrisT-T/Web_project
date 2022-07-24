@@ -3,6 +3,7 @@
     <h1> {{ status }} </h1>
     <div id="terminal"></div>
     <button id='runbtn' @click='runPython'> Run ./test.py in Terminal </button>
+    <button id='runbtn' @click='runPdb'> Run ./test.py in Terminal (Debug mode) </button>
   </div>
 </template>
 
@@ -42,6 +43,10 @@ export default class webTerminal extends Vue {
 
   runPython () {
     axios.post('http://127.0.0.1:5000/run', { path: './test.py' })
+  }
+
+  runPdb () {
+    axios.post('http://127.0.0.1:5000/runpdb', { path: './test.py', breakPointList: [] })
   }
 
   mounted () {

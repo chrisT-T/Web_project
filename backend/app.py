@@ -44,6 +44,11 @@ def run():
     data = request.get_json()
     os.write(app.config['fd'], f"python3 { data.get('path') } \n".encode())
 
+@app.route('/runpdb', methods=['POST'])
+def runpdb():
+    data = request.get_json()
+    os.write(app.config['fd'], f"python3 -m pdb { data.get('path') } \n".encode())
+
 @socketio.on("connect", namespace='/pty')
 def connect() :
     print('new client')
