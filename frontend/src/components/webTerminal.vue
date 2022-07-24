@@ -2,7 +2,7 @@
   <div>
     <h1> {{ status }} </h1>
     <div id="terminal"></div>
-    <button id='runbtn' @click='runPython'> Run Python in Terminal </button>
+    <button id='runbtn' @click='runPython'> Run ./test.py in Terminal </button>
   </div>
 </template>
 

@@ -42,7 +42,7 @@ def forward_pty_output():
 @app.route('/run', methods=['POST'])
 def run():
     data = request.get_json()
-    os.write(app.config['fd'], 'python3 test.py\n'.encode())
+    os.write(app.config['fd'], f"python3 { data.get('path') } \n".encode())
 
 @socketio.on("connect", namespace='/pty')
 def connect() :
