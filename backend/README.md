@@ -9,3 +9,14 @@
   + 保存文件/项目
   + 打开文件/项目
   + 文件树保存形式：文件？   `backend/secure`
+
+
+
+> 文件上传以表单形式  必须要设置好请求头
+>
+> ```html
+> <form action="http://localhost:7787/files" enctype="multipart/form-data" method="POST">
+>   <input name="file" type="file" id="file">
+>   <input type="submit" value="提交">
+> </form>
+> ```
