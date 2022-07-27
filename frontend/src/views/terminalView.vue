@@ -1,6 +1,9 @@
 <template>
-  <h1>Web terminal</h1>
-  <web-terminal />
+  <div>
+    <h1>Web terminal</h1>
+    <web-terminal termName='term'/>
+    <web-terminal termName='newTerm'/>
+  </div>
 </template>
 
 <script lang="ts">

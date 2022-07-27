@@ -8,15 +8,25 @@
 </template>
 
 <script lang="ts">
-import { Vue } from 'vue-class-component'
+import { Vue, prop } from 'vue-class-component'
 import { Terminal } from 'xterm'
 import io from 'socket.io-client'
 import axios from 'axios'
 
-export default class webTerminal extends Vue {
+class webTerminalProps {
+  termName: string = prop({
+    required: true
+  })
+}
+
+export default class webTerminal extends Vue.with(webTerminalProps) {
   term = new Terminal()
   status = 'disconnected'
-  socket = io('http://127.0.0.1:5000/pty')
+  socket = io('http://127.0.0.1:5000/pty', {
+    auth: {
+      token: this.termName
+    }
+  })
 
   initTerminal () {
     this.term = new Terminal({
@@ -29,24 +39,27 @@ export default class webTerminal extends Vue {
     this.term.writeln('This is the online terminal')
 
     this.term.onData((data) => {
-      this.socket.emit('pty-input', { input: data })
+      this.socket.emit('pty-input', { input: data, token: this.termName })
     })
 
-    this.socket.on('pty-output', (data: {'output': string}) => {
-      this.term.write(data.output)
+    this.socket.on('pty-output', (data: {'output': string, 'token': string}) => {
+      console.log(data.token)
+      if (data.token === this.termName) {
+        this.term.write(data.output)
+      }
     })
 
     this.socket.on('connect', () => {
-      this.status = 'connected'
+      this.status = this.termName
     })
   }
 
   runPython () {
-    axios.post('http://127.0.0.1:5000/run', { path: './test.py' })
+    axios.post('http://127.0.0.1:5000/run', { token: this.termName, path: './test.py' })
   }
 
   runPdb () {
-    axios.post('http://127.0.0.1:5000/runpdb', { path: './test.py', breakPointList: [] })
+    axios.post('http://127.0.0.1:5000/runpdb', { token: this.termName, path: './test.py', breakPointList: [] })
   }
 
   mounted () {
