@@ -1,4 +1,5 @@
 import argparse
+from crypt import methods
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO
 from flask_cors import CORS
@@ -49,6 +50,11 @@ def run():
 def runpdb():
     data = request.get_json()
     os.write(app.config['fd'][data.get('token')], f"python3 -m pdb { data.get('path') } \n".encode())
+
+@app.route('/pdbN', methods=['POST'])
+def pdbN():
+    data = request.get_json()
+    os.write(app.config['fd'][data.get('token')], f"n \n".encode())
 
 @socketio.on("connect", namespace='/pty')
 def connect(data) :
