@@ -67,9 +67,29 @@ def delete(username):
     else: 
         return "error input"
 
+# 新建文件夹
+@app.route('./mkdir/<username>', method = "POST")
+def mkdir(username):
+    src = request.get_json()['src']
+    if fileFunc.mkdir(src):
+        path_list = fileFunc.walk(username)
+        return jsonify({'path_list': path_list})
+    else:
+        return "文件夹名字重复"
+
+# 新建文件
+@app.route('./touch/<username>', method = "POST")
+def touch(username):
+    src = request.get_json()['src']
+    if fileFunc.touch(src):
+        path_list = fileFunc.walk(username)
+        return jsonify({'path_list': path_list})
+    else:
+        return "文件名字重复"
+
 
 # 前端向后端上传文件
-@app.route('/upload<username>', method = "POST")
+@app.route('/upload/<username>', method = "POST")
 def upload_file(username):
     src = request.get_json()['src']
     text = request.get_json()['text']

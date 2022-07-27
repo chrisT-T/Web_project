@@ -17,9 +17,11 @@ def mkdir(path: String):
         # open(path+"dir.txt", 'w').close()
         print ("create new folder: "+path)
         print ("----------------------")
+        return True
     else:
         print (path + " the folder has existed")
         print ("----------------------")
+        return False
 
 # 新建文件
 def touch(path: String):
@@ -106,6 +108,6 @@ def download(src: String):
 # rename("xiaoming", "xiaolan")
 # walk("xiaoming/")
 # mkdir("xiaolan")
-# deleteFolder("xiaoming/testdir")
+# deleteFolder("xiaoming")
 # upload('xiaolan/b.txt', "123456\nalfah\naop39\naljeloia")
 # download("xiaolan/b.txt")
