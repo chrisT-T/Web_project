@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
-from msilib.schema import File
 import os, shutil
 from tokenize import String
 from pathlib import Path
@@ -21,7 +20,14 @@ def mkdir(path: String):
     else:
         print (path + " the folder has existed")
         print ("----------------------")
-    
+
+# 新建文件
+def touch(path: String):
+    path = os.path.join(FILE_PATH, path)
+    open(path, 'w').close()
+
+
+
 # 返回文件目录 参数从用户名层开始
 def walk(path: String):
     path = os.path.join(FILE_PATH, path)
@@ -45,7 +51,7 @@ def rename(src: String, dst: String):
         print ("文件不存在")
         return False
 
-# 删除文件(夹)
+# 删除文件夹
 def deleteFolder(src: String):
     src = os.path.join(FILE_PATH, src)
     try:
@@ -53,10 +59,19 @@ def deleteFolder(src: String):
     except OSError as e:
         print("Error: %s - %s." % (e.filename, e.strerror)) 
 
+# 删除文件
+def deleteFile(src: String):
+    src = os.path.join(FILE_PATH, src)
+    if os.path.exists(src):
+        os.remove(src)
+    else:
+        print ("the file does not exist")
+    
+
 
 # mkdir("xiaoming/")
 # walk('')
-# rename("xiaoming", "xiaohong")
+rename("xiaoming", "xiaolan")
 # walk("xiaoming/")
 # mkdir("xiaolan")
-deleteFolder("xiaoming")
+# deleteFolder("xiaoming/testdir")

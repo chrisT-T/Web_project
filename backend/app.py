@@ -57,9 +57,9 @@ def delete(username):
     src = request.get_json()['src']
     type = request.get_json()['type']
     if type == "folder":
-        pass
+        fileFunc.deleteFolder(src)
     elif type == "file":
-        pass
+        fileFunc.deleteFile(src)
     else: 
         return "error input"
 
@@ -74,6 +74,8 @@ def upload_file():
 @app.route('/download/<filename>', method = "GET")
 def download_file(filename):
     pass
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)
