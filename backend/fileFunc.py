@@ -67,11 +67,45 @@ def deleteFile(src: String):
     else:
         print ("the file does not exist")
     
+# 上传文件
+def upload(src: String, text: String):
+    src = os.path.join(FILE_PATH, src)
+    if os.path.exists(src):
+        try:
+            file = open(src, 'w')
+            file.write(text)
+            file.close()
+            return True
+        except:
+            print ("文件形式错误")
+            return False
+    else:
+        print ("文件不存在")
+        return False
+
+# 下载文件
+def download(src: String):
+    src = os.path.join(FILE_PATH, src)
+    if os.path.exists(src):
+        try:
+            file = open(src, 'r')
+            data = file.read()
+            file.close()
+            # print(data)
+            return True, data
+        except:
+            print ("文件形式错误")
+            return False, None
+    else:
+        print ("文件不存在")
+        return False, None
 
 
 # mkdir("xiaoming/")
 # walk('')
-rename("xiaoming", "xiaolan")
+# rename("xiaoming", "xiaolan")
 # walk("xiaoming/")
 # mkdir("xiaolan")
 # deleteFolder("xiaoming/testdir")
+# upload('xiaolan/b.txt', "123456\nalfah\naop39\naljeloia")
+# download("xiaolan/b.txt")

@@ -58,24 +58,41 @@ def delete(username):
     type = request.get_json()['type']
     if type == "folder":
         fileFunc.deleteFolder(src)
+        path_list = fileFunc.walk(username)
+        return jsonify({'path_list': path_list})
     elif type == "file":
         fileFunc.deleteFile(src)
+        path_list = fileFunc.walk(username)
+        return jsonify({'path_list': path_list})
     else: 
         return "error input"
 
 
 # 前端向后端上传文件
-@app.route('/upload', method = "POST")
-def upload_file():
-    pass
+@app.route('/upload<username>', method = "POST")
+def upload_file(username):
+    src = request.get_json()['src']
+    text = request.get_json()['text']
+    if fileFunc.upload(src, text):
+        path_list = fileFunc.walk(username)
+        return jsonify({'path_list': path_list})
+    else:
+        return "Failed to upload file"
 
 # 前端从后端下载文件
 # 前端以get形式提供文件路径   xiaoming/file.txt
-@app.route('/download/<filename>', method = "GET")
-def download_file(filename):
-    pass
-
-
+@app.route('/download/<username>', method = "GET")
+def download_file(username):
+    src = request.get_json()['src']
+    flag, text = fileFunc.download(src)
+    if flag:
+        path_list = fileFunc.walk(username)
+        return jsonify({
+            'path_list': path_list,
+            'text': text,
+                        })
+    else:
+        return "Failed to download file"
 
 if __name__ == "__main__":
     app.run(debug=True)
