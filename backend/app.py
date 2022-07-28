@@ -1,5 +1,6 @@
 import argparse
-from crypt import methods
+import pdb
+import multiprocessing
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO
 from flask_cors import CORS
@@ -7,12 +8,7 @@ import pty
 import os
 import subprocess
 import select
-import termios
-import struct
-import fcntl
-import shlex
-import logging
-import sys
+
 
 app = Flask(__name__, template_folder='.')
 CORS(app, resources=r'/*')
@@ -73,7 +69,49 @@ def connect(data) :
         app.config['fd'][token] = fd
         app.config['child_pid'][token] = child_pid
         socketio.start_background_task(target=forward_pty_output)
-        
+
+input_server = input_client = output_client = output_server = None
+pdbtoken = None
+
+def forward_pdb_output():
+    max_read_bytes = 1024 * 20
+    while True:
+        socketio.sleep(0.01)
+        if output_client != None:
+            print(output_client)
+            output = os.read(output_client, max_read_bytes).decode()
+            print(output)
+            socketio.emit("pdb-output", {"consoleOutput": output, 'token': pdbtoken}, namespace="/pdb")
+
+@socketio.on("pdb-input", namespace="/pdb")
+def pty_input(data):
+    if input_client != None:
+        print(data['input'])
+        os.write(input_client, data['input'].encode())
+
+@socketio.on("connect", namespace='/pdb')
+def pdb_connect(data):
+    token = data['token']
+    
+    global input_server, output_server, output_client, input_client, pdbtoken
+    pdbtoken = token
+
+    if input_server != None:
+        return
+
+    input_server, input_client = os.pipe()
+    output_client, output_server = os.pipe()
+
+    def run_pdb_process(input_fd, output_fd):
+        pdb_instance = pdb.Pdb(stdin=os.fdopen(input_fd, 'r'), stdout=os.fdopen(output_fd, 'w'))
+        pdb.Pdb._runscript(pdb_instance, './test.py')
+        print('pdb finish')
+    p = multiprocessing.Process(target=run_pdb_process, args=(input_server, output_server), daemon=True)
+    p.start()
+    socketio.start_background_task(target=forward_pdb_output)
+
+
+
 
 if __name__ == "__main__":
     socketio.run(app, port=5000, host='127.0.0.1')
