@@ -1,9 +1,7 @@
 from distutils.log import error
 import json
-from flask import Flask, jsonify 
+from flask import Flask, jsonify, request
 from flask_cors import CORS
-from importlib_metadata import method_cache
-from requests import RequestException, request
 from . import fileFunc, userInfo
 
 app = Flask(__name__)
@@ -41,6 +39,7 @@ def signup():
 
 
 # 前端请求登陆 发送请求 
+# 可以不注销上个账号直接登陆 上个账号会被挤掉
 # 参数：用户名userName、密码userPassword 
 '''
 userfile\xiaoming\dir.txt
@@ -75,6 +74,16 @@ def login():
         }
         return jsonify(data)
 
+
+# 注销
+@app.route('/logout/<username>', method = "POST")
+def logout(username):
+    if username != userInfo.currentUser():
+        raise error
+
+    userInfo.setCurUser('')
+    return "succeed logout"
+
 # 重命名文件（夹）
 # 前端json形式传入 
 # 路径从用户名开始   xiaoming/...  
@@ -103,6 +112,9 @@ def rename(username):
 # 删除文件(夹)
 @app.route('./delete/<username>', method = "POST")
 def delete(username):
+    if username != userInfo.currentUser():
+        raise error
+
     src = request.get_json()['src']
     type = request.get_json()['type']
     if type == "folder":
@@ -146,6 +158,9 @@ def delete(username):
 # 新建文件夹
 @app.route('./mkdir/<username>', method = "POST")
 def mkdir(username):
+    if username != userInfo.currentUser():
+        raise error
+
     src = request.get_json()['src']
     if fileFunc.mkdir(src):
         path_list = fileFunc.walk(username)
@@ -165,6 +180,9 @@ def mkdir(username):
 # 新建文件
 @app.route('./touch/<username>', method = "POST")
 def touch(username):
+    if username != userInfo.currentUser():
+        raise error
+
     src = request.get_json()['src']
     if fileFunc.touch(src):
         path_list = fileFunc.walk(username)
@@ -209,9 +227,29 @@ def download_file(username):
         
 
 # 返回前端当前路径一级目录
+# 传入参数必须是文件夹路径
 @app.route('/show/<username>', method = "POST")
 def show(username):
-    pass
+    if username != userInfo.currentUser():
+        raise error
+    
+    src = request.get_json()['src']
+    flag, outputList = fileFunc.walkone(src)
+    if flag:
+        data = {
+            'filelist': outputList,
+            'flag': True,
+            'message': None
+        }
+        return jsonify(data)
+    else:
+        data = {
+            'flag': False,
+            'message': "Path error"
+        }
+        return jsonify(data)
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)

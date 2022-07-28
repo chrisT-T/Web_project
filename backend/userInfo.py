@@ -2,7 +2,7 @@
 from tokenize import String
 
 user_list = []
-cur_user = None
+cur_user = ''
 
 # 用户名密码是否输入正确
 def isCorrect(username: String, userpassword: String):

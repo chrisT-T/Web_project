@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
+from genericpath import isfile
 import os, shutil
 import re
 from tokenize import String
@@ -108,13 +109,42 @@ def download(src: String):
         print ("文件不存在")
         return False, None
 
+# 输出指定路径一级目录
+# 传入参数src必须是目录名 若是文件名直接返回错误
+def walkone(src: String):
+    src = os.path.join(FILE_PATH, src)
+    if os.path.isfile(src):
+        return False
+
+    if os.path.exists(src):
+        dirs = os.listdir(src)
+        tmp_list = []
+        for dir in dirs:
+            path = os.path.join(src, dir)
+            tmp_dict = {}
+            tmp_dict['name'] = dir
+            # 是目录
+            if os.path.isdir(path):
+                tmp_dict['type'] = "folder"
+            # 是文件
+            elif os.path.isfile(path):
+                tmp_dict['type'] = "file"
+            tmp_list.append(tmp_dict)
+
+        # print (tmp_list)
+        return True, tmp_list
+    else:
+        print ("路径错误")
+        return False, None
+
 
 # mkdir("xiaoming/")
 # walk('')
 # rename("xiaoming", "xiaolan")
 # walk("xiaoming/")
 # mkdir("xiaolan")
-deleteFolder("xiaohong")
+# deleteFolder("xiaohong")
 # touch('xiaolan/b.py')
 # upload('xiaolan/b.py', "123456\nalfah\naop39\naljeloia")
 # download("xiaolan/b.txt")
+walkone("xiaolan/b.py")
