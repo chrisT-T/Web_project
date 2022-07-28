@@ -5,6 +5,13 @@
 <script lang="ts">
 import * as monaco from 'monaco-editor'
 import { Options, Vue } from 'vue-class-component'
+import { buildWorkerDefinition } from 'monaco-editor-workers'
+
+import { MonacoLanguageClient, CloseAction, ErrorAction, MonacoServices, MessageTransports } from 'monaco-languageclient'
+import { toSocket, WebSocketMessageReader, WebSocketMessageWriter } from 'vscode-ws-jsonrpc'
+import normalizeUrl from 'normalize-url'
+import { StandaloneServices } from 'vscode/services'
+import getMessageServiceOverride from 'vscode/service-override/messages'
 
 @Options({
   props: {
@@ -80,11 +87,61 @@ export default class MonacoEditor extends Vue {
     }
   }
 
+  createLanguageClient (transports: MessageTransports): MonacoLanguageClient {
+    return new MonacoLanguageClient({
+      name: 'Sample Language Client',
+      clientOptions: {
+        // use a language id as a document selector
+        documentSelector: ['python'],
+        // disable the default error handler
+        errorHandler: {
+          error: () => ({ action: ErrorAction.Continue }),
+          closed: () => ({ action: CloseAction.DoNotRestart })
+        }
+      },
+      // create a language client connection from the JSON RPC connection on demand
+      connectionProvider: {
+        get: () => {
+          return Promise.resolve(transports)
+        }
+      }
+    })
+  }
+
+  createUrl (hostname: string, port: number, path: string): string {
+    const protocol = location.protocol === 'https:' ? 'wss' : 'ws'
+    return normalizeUrl(`${protocol}://${hostname}:${port}${path}`)
+  }
+
   mounted () {
+    // StandaloneServices.initialize({
+    //   ...getMessageServiceOverride(document.body)
+    // })
+    // buildWorkerDefinition('dist', new URL('', window.location.href).href, false)
+
     const breakpointClassName = 'monaco-editor-breakpoint'
     const shadowBreakpointClassName = 'monaco-editor-breakpoint-shadow'
     console.log('mounted')
     this.editor = monaco.editor.create(this.$refs.editor as HTMLElement, this.editorOption)
+
+    // for lint service
+    // install the service
+    MonacoServices.install()
+
+    // create websocket
+    const url = this.createUrl('localhost', 3000, '/')
+    const webSocket = new WebSocket(url)
+
+    // define the connection(websocket) to the language server
+    webSocket.onopen = () => {
+      const socket = toSocket(webSocket)
+      const reader = new WebSocketMessageReader(socket)
+      const writer = new WebSocketMessageWriter(socket)
+      const languageClient = this.createLanguageClient({ reader, writer })
+      languageClient.start()
+      reader.onClose(() => languageClient.stop())
+    }
+
     // set shadow on move
     this.editor.onMouseMove(e => {
       const { target } = e
@@ -99,7 +156,7 @@ export default class MonacoEditor extends Vue {
       }
     })
     // clear shadow on leave
-    this.editor.onMouseLeave(e => {
+    this.editor.onMouseLeave(() => {
       this.clearAllDecorationbyClass(shadowBreakpointClassName)
     })
     // set breakpoint property to the editor
