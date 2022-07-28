@@ -21,3 +21,18 @@
 >   <input type="submit" value="提交">
 > </form>
 > ```
+
+
+
+## 问题
+
++ 需要二进制形式传输文件   目前图片无法传输
++ 注册功能、注销功能
++ 退出后端已有文件应清空
++ 返回前端当前路径一级目录
+
+
+
+返回前端一个bool值flag，表示请求是否成功；一个str值message表示错误讯息
+
+flag为true时，message为空；flag为false时，message指出具体错误（如文件不存在，文件名重复。。。）

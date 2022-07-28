@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 import os, shutil
+import re
 from tokenize import String
 from pathlib import Path
 
@@ -56,25 +57,30 @@ def rename(src: String, dst: String):
 # 删除文件夹
 def deleteFolder(src: String):
     src = os.path.join(FILE_PATH, src)
-    try:
+    if os.path.exists(src):
         shutil.rmtree(src)
-    except OSError as e:
-        print("Error: %s - %s." % (e.filename, e.strerror)) 
+        return True
+    else:
+        return False
 
 # 删除文件
 def deleteFile(src: String):
     src = os.path.join(FILE_PATH, src)
     if os.path.exists(src):
         os.remove(src)
+        return True
     else:
         print ("the file does not exist")
+        return False
     
+
+# 问题： 目前只支持文本文件
 # 上传文件
 def upload(src: String, text: String):
     src = os.path.join(FILE_PATH, src)
     if os.path.exists(src):
         try:
-            file = open(src, 'w')
+            file = open(src, 'w', encoding='utf-8')
             file.write(text)
             file.close()
             return True
@@ -108,6 +114,7 @@ def download(src: String):
 # rename("xiaoming", "xiaolan")
 # walk("xiaoming/")
 # mkdir("xiaolan")
-# deleteFolder("xiaoming")
-# upload('xiaolan/b.txt', "123456\nalfah\naop39\naljeloia")
+deleteFolder("xiaohong")
+# touch('xiaolan/b.py')
+# upload('xiaolan/b.py', "123456\nalfah\naop39\naljeloia")
 # download("xiaolan/b.txt")
