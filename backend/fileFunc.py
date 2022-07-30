@@ -1,10 +1,10 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
-from genericpath import isfile
 import os, shutil
 import re
 from tokenize import String
 from pathlib import Path
+from typing import List
 
 # 文件根目录
 FILE_PATH = "userfile/"
@@ -100,7 +100,7 @@ def download(src: String):
             file = open(src, 'r')
             data = file.read()
             file.close()
-            # print(data)
+            print(data)
             return True, data
         except:
             print ("文件形式错误")
@@ -114,6 +114,7 @@ def download(src: String):
 def walkone(src: String):
     src = os.path.join(FILE_PATH, src)
     if os.path.isfile(src):
+        print ("格式错误")
         return False
 
     if os.path.exists(src):
@@ -138,6 +139,68 @@ def walkone(src: String):
         return False, None
 
 
+
+# 获取最外层tree数据结构
+def getTreeData(username: String, folder_list: List):
+    
+    tmp_list = []
+    flag, level0_list = walkone(username)
+    if not flag:
+        return False
+
+    i = 1
+    for f in level0_list:
+        tmp_dict = {}
+        tmp_dict['name'] = f['name']
+        tmp_dict['id'] = str(i) * 3
+        if f['type'] == 'file':
+            tmp_dict['isLeaf'] = True
+        elif f['type'] == 'folder':
+            tmp_dict['isLeaf'] = False
+            tmp_dict['path'] = os.path.join(username, tmp_dict['name'])
+            folder_list.append(tmp_dict)  # 将文件夹加入文件夹列表
+
+        tmp_list.append(tmp_dict)
+        i += 1
+
+    # print (tmp_list)
+    return True, tmp_list
+
+
+# 根据id查询对应层级tree数据
+def getTreeChildData(id: String, folder_list: List):
+    # print (folder_list)
+    tmp_list = []
+    for folder in folder_list:
+        # 找到目标文件夹
+        if folder['id'] == id:
+            
+            flag, level_list = walkone(folder['path'])
+            if not flag:
+                return False
+
+            i = 1
+            for f in level_list:
+                tmp_dict = {}
+                tmp_dict['name'] = f['name']
+                tmp_dict['id'] = id + '-' + str(i) * 3
+                if f['type'] == 'file':
+                    tmp_dict['isLeaf'] = True
+                elif f['type'] == 'folder':
+                    tmp_dict['isLeaf'] = False
+                    tmp_dict['path'] = os.path.join(folder['path'], tmp_dict['name'])
+                    folder_list.append(tmp_dict)  # 将文件夹加入文件夹列表
+
+                tmp_list.append(tmp_dict)
+                i += 1
+
+    # print (tmp_list)
+    return True, tmp_list
+
+
+
+
+
 # mkdir("xiaoming/")
 # walk('')
 # rename("xiaoming", "xiaolan")
@@ -145,6 +208,17 @@ def walkone(src: String):
 # mkdir("xiaolan")
 # deleteFolder("xiaohong")
 # touch('xiaolan/b.py')
-# upload('xiaolan/b.py', "123456\nalfah\naop39\naljeloia")
-# download("xiaolan/b.txt")
-walkone("xiaolan/b.py")
+# upload('xiaolan/b.py', 
+# """
+# def myhelloworld():
+#     # 成功
+#     print ("hello world")
+
+# myhelloworld()
+# """)
+# download("xiaolan/b.py")
+# walkone("xiaolan/b.py")
+# l = []
+# getTreeData("xiaolan", l)
+# getTreeChildData("444", l)
+# getTreeChildData("444-333", l)

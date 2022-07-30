@@ -11,6 +11,13 @@ CORS(app, supports_credentials=True)
 def hello_world():
     return 'Hello World!'
 
+
+
+# 全局变量 记录当前用户文件夹
+folder_list = []
+
+
+
 # 注册
 @app.route('/signup', method = ["POST", "GET"])
 def signup():
@@ -60,7 +67,7 @@ def login():
     if userInfo.isCorrect(user, password):  
         userInfo.setCurUser(user)  
         # 成功登陆  
-        path_list = fileFunc.walk(user)
+        flag, path_list = fileFunc.walkone(user)
         data = {
             'path_list': path_list,
             'flag': True,
@@ -82,6 +89,7 @@ def logout(username):
         raise error
 
     userInfo.setCurUser('')
+    folder_list.clear()
     return "succeed logout"
 
 # 重命名文件（夹）
@@ -206,9 +214,18 @@ def upload_file(username):
     text = request.get_json()['text']
     if fileFunc.upload(src, text):
         path_list = fileFunc.walk(username)
-        return jsonify({'path_list': path_list})
+        data = {
+            'path_list': path_list,
+            'flag': True,
+            'message': None
+        }
+        return jsonify(data)
     else:
-        return "Failed to upload file"
+        data = {
+            'flag': False,
+            'message': "The file does not exist"
+        }
+        return jsonify(data)
 
 # 前端从后端下载文件
 # 前端以get形式提供文件路径   xiaoming/file.txt
@@ -218,12 +235,19 @@ def download_file(username):
     flag, text = fileFunc.download(src)
     if flag:
         path_list = fileFunc.walk(username)
-        return jsonify({
+        data = {
             'path_list': path_list,
             'text': text,
-                        })
+            'flag': True,
+            'message': None
+        }
+        return jsonify(data)
     else:
-        return "Failed to download file"
+        data = {
+            'flag': False,
+            'message': "The file does not exist"
+        }
+        return jsonify(data)
         
 
 # 返回前端当前路径一级目录
@@ -249,6 +273,50 @@ def show(username):
         }
         return jsonify(data)
 
+
+# 获取最外层tree数据结构
+@app.route('/getTreeData/<username>', method = "GET")
+def getTreeData(username):
+    if username != userInfo.currentUser():
+        raise error
+
+    flag, path_list = fileFunc.getTreeData(username, folder_list)
+    if flag:
+        obj = {
+            'code': 0,
+            'data': path_list,
+            'flag': True,
+            'message': None
+        }
+    else:
+        obj = {
+            'flag': False,
+            'message': "Failed to get"
+        }
+    return jsonify(obj)
+
+
+# 根据id查询对应层级tree数据
+@app.route('/getTreeChildData/<username>', method = "GET")
+def getTreeChildData(username):
+    if username != userInfo.currentUser():
+        raise error
+
+    id = request.args.get('id')
+    flag, path_list = fileFunc.getTreeChildData(id, folder_list)
+    if flag:
+        obj = {
+            'code': 0,
+            'data': path_list,
+            'flag': True,
+            'message': None
+        }
+    else:
+        obj = {
+            'flag': False,
+            'message': "Failed to get"
+        }
+    return jsonify(obj)
 
 
 if __name__ == "__main__":
