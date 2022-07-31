@@ -4,6 +4,8 @@ import pandas as pd
 from openpyxl import load_workbook
 import os
 
+cur_user = ''
+
 # 用户名密码是否输入正确
 def isCorrect(username: String, userpassword: String):
     if not os.path.exists("./userInfo.xlsx"):
