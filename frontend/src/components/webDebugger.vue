@@ -4,7 +4,7 @@
     <div id = "debugConsole">
       <p>{{ consoleOutput }}</p>
     </div>
-    <button @click="pdbN"> n command </button>
+    <button @click="getData"> n command </button>
     <button @click="setbreak"> b command </button>
     <input type="text" name="command" id="command" v-model="command">
     <button @click="send">send command </button>
@@ -50,7 +50,7 @@ export default class webDebugger extends Vue.with(webDebuggerProps) {
   }
 
   send () {
-    axios.post(this.baseUrl + '/cmd', { token: this.debuggerName, cmd: this.command })
+    axios.post(this.baseUrl + '/pdb/runcmd', { token: this.debuggerName, cmd: this.command })
   }
 
   pdbN () {
@@ -58,7 +58,11 @@ export default class webDebugger extends Vue.with(webDebuggerProps) {
   }
 
   setbreak () {
-    axios.post(this.baseUrl + '/setbreak', { token: this.debuggerName, breakpoint: 3 })
+    axios.post(this.baseUrl + '/pdb/runcmd', { token: this.debuggerName, cmd: 'b 3' })
+  }
+
+  getData () {
+    axios.post(this.baseUrl + '/pdb/curframe', { token: this.debuggerName })
   }
 
   mounted () {

@@ -1,4 +1,6 @@
 import argparse
+from crypt import methods
+from urllib import response
 from matplotlib import mlab
 from pdb_ext import PdbExt
 import multiprocessing
@@ -74,36 +76,29 @@ pdb_output_client = {}
 pdb_output_server = {}
 pdb_instance = {}
 
-@app.route('/cmd', methods=['POST'])
+@app.route('/pdb/runcmd', methods=['POST'])
 def runcmd():
     data = request.get_json()
     token = data['token']
     cmd = data['cmd']
     if token in pdb_instance.keys():
         os.write(pdb_input_client[token], f'{cmd}\n'.encode())
-    print(cmd)
-    return 'cmd send succedd'
+        return {'runflag': True}
+    else:
+        return {'runflag': False}
 
-@app.route('/setbreak', methods=['POST'])
-def setBreak():
-    data = request.get_json()
-    token = data['token']
-    line = data['breakpoint']
-    if token in pdb_instance.keys():
-        os.write(pdb_input_client[token], f'b {line}\n'.encode())
-    return 'true'
-
-@app.route('/pdbN', methods=['POST'])
-def pdbN():
+@app.route('/pdb/curframe', methods=['POST'])
+def get_current_frame():
     data = request.get_json()
     token = data['token']
     print(pdb_instance.keys())
     print(token)
     if token in pdb_instance.keys():
         instance: PdbExt = pdb_instance[token]
-        res = instance.my_get_curframe_locals()
-        print(res)
-    return "test"
+        res = instance.get_current_frame_data()
+        return res
+    else:
+        return {'runflag': False}
 
 def forward_pdb_output():
     max_read_bytes = 1024 * 20
