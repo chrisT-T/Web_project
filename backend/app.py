@@ -5,7 +5,7 @@ from flask_cors import CORS
 import fileFunc, userInfo
 
 app = Flask(__name__)
-CORS(app, supports_credentials=True)
+CORS(app, resources=r'/*')
 
 @app.route('/')
 def hello_world():
@@ -21,7 +21,6 @@ folder_list = []
 # 注册
 @app.route('/signup', methods=["POST", "GET"])
 def signup():
-    print("enter")
     if request.method == "POST":
         user = request.form['userName']
         password = request.form['userPassword']

@@ -74,16 +74,28 @@ import {
 import { FormInstance } from 'element-plus'
 import router from '@/router'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
 
 const count = ref(0)
 const formLabelWidth = '140px'
 const formRef = ref<FormInstance>()
 // 提交新项目
 // TODO：后端确认没有重复项目名
-const submitForm = () => {
+const submitForm = async () => {
   if (form.name === '' || form.language === '') {
     console.log('Empty enter form')
   } else {
+    await axios.post('http://127.0.0.1:5000/mkdir/' + name.value, { src: name.value + '/' + form.name })
+      .then(res => {
+        form.flag = res.data.flag
+        form.message = res.data.message
+      }).catch(function (error) {
+        console.log(error.response)
+      })
+    if (form.flag === false) {
+      alert(form.message)
+      return
+    }
     form.taskList.unshift({
       name: form.name,
       language: form.language,
@@ -92,11 +104,33 @@ const submitForm = () => {
   }
 }
 // 登出确认
-const logoutConfirm = () => {
+const logoutConfirm = async () => {
+  await axios.post('http://127.0.0.1:5000/logout/' + name.value)
+    .then(res => {
+      form.message = res.data
+    }).catch(function (error) {
+      console.log(error.response)
+    })
+  if (form.message !== 'succeed logout') {
+    alert('something wrong')
+    return
+  }
   router.replace('/index')
 }
 // 删除项目
-const removeTask = (index: number) => {
+const removeTask = async (index: number) => {
+  await axios.post('http://127.0.0.1:5000/delete/' + name.value, { src: name.value + '/' + form.taskList[index].name, type: 'folder' })
+    .then(res => {
+      form.flag = res.data.flag
+      form.message = res.data
+    }).catch(function (error) {
+      console.log(error.response)
+    })
+
+  if (form.flag === false) {
+    alert('something wrong')
+    return
+  }
   form.taskList.splice(index, 1)
 }
 // 当前用户名 从rouetr获取
@@ -107,8 +141,10 @@ const dialogFormVisible = ref(false)
 const form = reactive({
   name: '',
   language: '',
+  flag: false,
+  message: '',
   taskList: [
-    { name: 'project 1', language: 'python', id: 0 }
+    // { name: 'project 1', language: 'python', id: 0 }
   ]
 })
 
