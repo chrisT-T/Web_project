@@ -66,6 +66,7 @@ def login():
     # 否则重新输入用户名密码
     if userInfo.isCorrect(user, password):  
         userInfo.setCurUser(user)  
+        folder_list.clear()
         # 成功登陆  
         flag, path_list = fileFunc.walkone(user)
         data = {

@@ -136,7 +136,7 @@ def walkone(src: String):
         return True, tmp_list
     else:
         print ("路径错误")
-        return False, None
+        return False, []
 
 
 
@@ -153,11 +153,11 @@ def getTreeData(username: String, folder_list: List):
         tmp_dict = {}
         tmp_dict['name'] = f['name']
         tmp_dict['id'] = str(i) * 3
+        tmp_dict['path'] = os.path.join(username, tmp_dict['name'])
         if f['type'] == 'file':
             tmp_dict['isLeaf'] = True
         elif f['type'] == 'folder':
             tmp_dict['isLeaf'] = False
-            tmp_dict['path'] = os.path.join(username, tmp_dict['name'])
             folder_list.append(tmp_dict)  # 将文件夹加入文件夹列表
 
         tmp_list.append(tmp_dict)
@@ -184,11 +184,11 @@ def getTreeChildData(id: String, folder_list: List):
                 tmp_dict = {}
                 tmp_dict['name'] = f['name']
                 tmp_dict['id'] = id + '-' + str(i) * 3
+                tmp_dict['path'] = os.path.join(folder['path'], tmp_dict['name'])
                 if f['type'] == 'file':
                     tmp_dict['isLeaf'] = True
                 elif f['type'] == 'folder':
                     tmp_dict['isLeaf'] = False
-                    tmp_dict['path'] = os.path.join(folder['path'], tmp_dict['name'])
                     folder_list.append(tmp_dict)  # 将文件夹加入文件夹列表
 
                 tmp_list.append(tmp_dict)
