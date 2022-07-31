@@ -16,13 +16,8 @@ def mkdir(path: String):
     # 文件夹不存在 新建
     if not folder:
         os.makedirs(path)
-        # open(path+"dir.txt", 'w').close()
-        print ("create new folder: "+path)
-        print ("----------------------")
         return True
     else:
-        print (path + " the folder has existed")
-        print ("----------------------")
         return False
 
 # 新建文件
@@ -37,11 +32,7 @@ def walk(path: String):
     path = os.path.join(FILE_PATH, path)
     p = Path(path)
     r = p.rglob('*')
-    path_list = []
-    for i in r:
-        print (i)
-        # <class 'pathlib.WindowsPath'>
-        path_list.append(str(i))
+    path_list = [str(i) for i in r] # there maybe some problems when cross platform
     return path_list
 
 # 重命名文件(夹)
@@ -52,7 +43,7 @@ def rename(src: String, dst: String):
         os.rename(src, dst)
         return True
     else:
-        print ("文件不存在")
+        print ("the file does not exist")
         return False
 
 # 删除文件夹
@@ -62,6 +53,7 @@ def deleteFolder(src: String):
         shutil.rmtree(src)
         return True
     else:
+        print ("the directory does not exist")
         return False
 
 # 删除文件
@@ -81,15 +73,14 @@ def upload(src: String, text: String):
     src = os.path.join(FILE_PATH, src)
     if os.path.exists(src):
         try:
-            file = open(src, 'w', encoding='utf-8')
-            file.write(text)
-            file.close()
+            with open(src, 'w', encoding='utf-8') as f:
+                f.write(text)
             return True
         except:
-            print ("文件形式错误")
+            print ("wrong file type")
             return False
     else:
-        print ("文件不存在")
+        print ("the file does not exist")
         return False
 
 # 下载文件
@@ -97,16 +88,14 @@ def download(src: String):
     src = os.path.join(FILE_PATH, src)
     if os.path.exists(src):
         try:
-            file = open(src, 'r')
-            data = file.read()
-            file.close()
-            print(data)
+            with open(src, 'r', encoding='utf-8') as f:
+                data = f.read()
             return True, data
         except:
-            print ("文件形式错误")
+            print ("wrong file type")
             return False, None
     else:
-        print ("文件不存在")
+        print ("the file does not exist")
         return False, None
 
 # 输出指定路径一级目录
@@ -114,8 +103,8 @@ def download(src: String):
 def walkone(src: String):
     src = os.path.join(FILE_PATH, src)
     if os.path.isfile(src):
-        print ("格式错误")
-        return False
+        print ("shoule be a directory not a file")
+        return False, []
 
     if os.path.exists(src):
         dirs = os.listdir(src)
@@ -131,23 +120,19 @@ def walkone(src: String):
             elif os.path.isfile(path):
                 tmp_dict['type'] = "file"
             tmp_list.append(tmp_dict)
-
-        # print (tmp_list)
         return True, tmp_list
     else:
-        print ("路径错误")
+        print ("the directory does not exist")
         return False, []
 
 
 
 # 获取最外层tree数据结构
 def getTreeData(username: String, folder_list: List):
-    
     tmp_list = []
     flag, level0_list = walkone(username)
     if not flag:
         return False
-
     i = 1
     for f in level0_list:
         tmp_dict = {}
@@ -162,14 +147,11 @@ def getTreeData(username: String, folder_list: List):
 
         tmp_list.append(tmp_dict)
         i += 1
-
-    # print (tmp_list)
     return True, tmp_list
 
 
 # 根据id查询对应层级tree数据
 def getTreeChildData(id: String, folder_list: List):
-    # print (folder_list)
     tmp_list = []
     for folder in folder_list:
         # 找到目标文件夹
@@ -193,32 +175,4 @@ def getTreeChildData(id: String, folder_list: List):
 
                 tmp_list.append(tmp_dict)
                 i += 1
-
-    # print (tmp_list)
     return True, tmp_list
-
-
-
-
-
-# mkdir("xiaoming/")
-# walk('')
-# rename("xiaoming", "xiaolan")
-# walk("xiaoming/")
-# mkdir("xiaolan")
-# deleteFolder("xiaohong")
-# touch('xiaolan/b.py')
-# upload('xiaolan/b.py', 
-# """
-# def myhelloworld():
-#     # 成功
-#     print ("hello world")
-
-# myhelloworld()
-# """)
-# download("xiaolan/b.py")
-# walkone("xiaolan/b.py")
-# l = []
-# getTreeData("xiaolan", l)
-# getTreeChildData("444", l)
-# getTreeChildData("444-333", l)
