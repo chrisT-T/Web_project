@@ -30,8 +30,13 @@ def signup():
     if userInfo.isValid(user):
         # 成功注册
         userInfo.createNewUser(user, password)
+        userInfo.setCurUser(user)
         fileFunc.mkdir(user)
+        folder_list.clear()
+        flag, path_list = fileFunc.walkone(user)
+
         data = {
+            'path_list': path_list,
             'flag': True,
             'message': None,
         }

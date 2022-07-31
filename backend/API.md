@@ -1,6 +1,6 @@
 # API
 
-### 注册
+### 注册并登录
 
 ```python
 @app.route('/signup', method = ["POST", "GET"])
@@ -11,6 +11,8 @@ def signup()
   + post表单形式传入参数，或get传入参数
 + 返回值：
   + 格式json，有`flag`、`message`两个属性，`flag`为true时，代表`message`为空；`flag`为false时，`message`中含有具体错误类型（如 文件不存在，文件名重复...）
+  + 成功登陆则json还会返回`path_list`，是一个字典列表，含有该用户根目录下一级文件和文件夹名字
+
 
 
 
