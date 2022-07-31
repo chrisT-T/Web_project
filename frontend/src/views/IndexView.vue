@@ -23,8 +23,8 @@
                   <div class="context" id="c_1">
                       <input type="text" placeholder="Username" id="username" v-model="data.username">
                       <input type="password" placeholder="Password" id="password" v-model="data.password">
-                      <button class="button" style="vertical-align:middle" id="btn_2" @click="loginCheck"><span>Signup and Login</span></button>
-                      <button class="button" style="vertical-align:middle" @click="SignupCheck"><span>Login</span></button>
+                      <button class="button" style="vertical-align:middle" id="btn_2" @click="SignupCheck"><span>Signup and Login</span></button>
+                      <button class="button" style="vertical-align:middle" @click="loginCheck"><span>Login</span></button>
                   </div>
               </div>
             </div>
@@ -207,26 +207,49 @@ height: 400px;
 <script lang="ts" setup>
 import router from '@/router'
 import { reactive } from 'vue'
+import axios from 'axios'
 
 const data = reactive({
   username: '',
-  password: ''
+  password: '',
+  flag: false,
+  message: ''
 })
 
-const loginCheck = () => {
+const loginCheck = async () => {
   if (data.username.trim() === '' || data.password.trim() === '') {
     alert('Username or Password is missing')
   } else {
-    console.log(data.password, data.username)
+    await axios.get('http://127.0.0.1:5000/login', { params: { userName: data.username, userPassword: data.password } })
+      .then(res => {
+        data.flag = res.data.flag
+        data.message = res.data.message
+      }).catch(function (error) {
+        console.log(error.response)
+      })
+    if (data.flag === false) {
+      alert(data.message)
+      return
+    }
     router.replace({ name: 'test', params: { username: data.username } })
   }
 }
 
-const SignupCheck = () => {
+const SignupCheck = async () => {
   if (data.username.trim() === '' || data.password.trim() === '') {
     alert('Username or Password is missing')
   } else {
-    console.log(data.password, data.username)
+    await axios.get('http://127.0.0.1:5000/signup', { params: { userName: data.username, userPassword: data.password } })
+      .then(res => {
+        data.flag = res.data.flag
+        data.message = res.data.message
+      }).catch(function (error) {
+        console.log(error.response)
+      })
+    if (data.flag === false) {
+      alert(data.message)
+      return
+    }
     router.replace({ name: 'test', params: { username: data.username } })
   }
 }
