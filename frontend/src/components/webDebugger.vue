@@ -1,7 +1,13 @@
 <template>
   <div>
     <h1> {{ status }} </h1>
-    <div id="debugger"> </div>
+    <div id = "debugConsole">
+      <p>{{ consoleOutput }}</p>
+    </div>
+    <button @click="pdbN"> n command </button>
+    <button @click="setbreak"> b command </button>
+    <input type="text" name="command" id="command" v-model="command">
+    <button @click="send">send command </button>
   </div>
 </template>
 
@@ -18,8 +24,10 @@ class webDebuggerProps {
 }
 
 export default class webDebugger extends Vue.with(webDebuggerProps) {
-  status = 'distanced'
-  term = new Terminal()
+  baseUrl = 'http://127.0.0.1:5000' as string
+  status = 'distanced' as string
+  command = '' as string
+  consoleOutput = '' as string
   socket = io('http://127.0.0.1:5000/pdb', {
     auth: {
       token: this.debuggerName
@@ -27,33 +35,30 @@ export default class webDebugger extends Vue.with(webDebuggerProps) {
   })
 
   initDebugger () {
-    this.term = new Terminal({
-      cursorBlink: true,
-      macOptionIsMeta: true
-    })
-
-    this.term.open(document.getElementById('debugger') as HTMLElement)
-
-    this.term.writeln('This is the debugger console')
-
-    this.term.onData((data) => {
-      console.log(data)
-      this.socket.emit('pdb-input', { input: data, token: this.debuggerName })
-      this.term.write(data)
-    })
-
     this.socket.on('pdb-output', (data: {'consoleOutput': string, 'token': string}) => {
       console.log('rx')
       console.log(data)
       if (data.token === this.debuggerName) {
         console.log(data.consoleOutput)
-        this.term.write(data.consoleOutput)
+        this.consoleOutput += data.consoleOutput
       }
     })
 
     this.socket.on('connect', () => {
       this.status = this.debuggerName
     })
+  }
+
+  send () {
+    axios.post(this.baseUrl + '/cmd', { token: this.debuggerName, cmd: this.command })
+  }
+
+  pdbN () {
+    axios.post(this.baseUrl + '/pdbN', { token: this.debuggerName })
+  }
+
+  setbreak () {
+    axios.post(this.baseUrl + '/setbreak', { token: this.debuggerName, breakpoint: 3 })
   }
 
   mounted () {
@@ -65,4 +70,9 @@ export default class webDebugger extends Vue.with(webDebuggerProps) {
 
 <style scoped>
   @import 'xterm/css/xterm.css';
+
+  #debugConsole {
+    white-space: pre;
+    text-align: left;
+  }
 </style>

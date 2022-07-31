@@ -1,14 +1,17 @@
 import argparse
-import pdb
+from matplotlib import mlab
+from pdb_ext import PdbExt
 import multiprocessing
+from multiprocessing.managers import BaseManager
 from flask import Flask, render_template, request
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, disconnect
 from flask_cors import CORS
 import pty
 import os
 import subprocess
 import select
-
+import sys
+import threading
 
 app = Flask(__name__, template_folder='.')
 CORS(app, resources=r'/*')
@@ -47,11 +50,6 @@ def runpdb():
     data = request.get_json()
     os.write(app.config['fd'][data.get('token')], f"python3 -m pdb { data.get('path') } \n".encode())
 
-@app.route('/pdbN', methods=['POST'])
-def pdbN():
-    data = request.get_json()
-    os.write(app.config['fd'][data.get('token')], f"n \n".encode())
-
 @socketio.on("connect", namespace='/pty')
 def connect(data) :
     print('new client', data['token'])
@@ -70,48 +68,93 @@ def connect(data) :
         app.config['child_pid'][token] = child_pid
         socketio.start_background_task(target=forward_pty_output)
 
-input_server = input_client = output_client = output_server = None
-pdbtoken = None
+pdb_input_client = {}
+pdb_input_server = {}
+pdb_output_client = {}
+pdb_output_server = {}
+pdb_instance = {}
+
+@app.route('/cmd', methods=['POST'])
+def runcmd():
+    data = request.get_json()
+    token = data['token']
+    cmd = data['cmd']
+    if token in pdb_instance.keys():
+        os.write(pdb_input_client[token], f'{cmd}\n'.encode())
+    print(cmd)
+    return 'cmd send succedd'
+
+@app.route('/setbreak', methods=['POST'])
+def setBreak():
+    data = request.get_json()
+    token = data['token']
+    line = data['breakpoint']
+    if token in pdb_instance.keys():
+        os.write(pdb_input_client[token], f'b {line}\n'.encode())
+    return 'true'
+
+@app.route('/pdbN', methods=['POST'])
+def pdbN():
+    data = request.get_json()
+    token = data['token']
+    print(pdb_instance.keys())
+    print(token)
+    if token in pdb_instance.keys():
+        instance: PdbExt = pdb_instance[token]
+        res = instance.my_get_curframe_locals()
+        print(res)
+    return "test"
 
 def forward_pdb_output():
     max_read_bytes = 1024 * 20
     while True:
         socketio.sleep(0.01)
-        if output_client != None:
-            print(output_client)
-            output = os.read(output_client, max_read_bytes).decode()
-            print(output)
-            socketio.emit("pdb-output", {"consoleOutput": output, 'token': pdbtoken}, namespace="/pdb")
+        for key in pdb_output_client.keys():
+            if key not in pdb_instance.keys():
+                print(pdb_instance.keys(), pdb_output_client.keys())
+                continue
+            output = os.read(pdb_output_client[key], max_read_bytes).decode()
+            socketio.emit("pdb-output", {"consoleOutput": output, 'token': key}, namespace="/pdb")
 
 @socketio.on("pdb-input", namespace="/pdb")
 def pty_input(data):
-    if input_client != None:
+    token = data['token']
+    if token in pdb_input_client.keys():
         print(data['input'])
-        os.write(input_client, data['input'].encode())
+        os.write(pdb_input_client[token], data['input'].encode())
 
 @socketio.on("connect", namespace='/pdb')
 def pdb_connect(data):
     token = data['token']
-    
-    global input_server, output_server, output_client, input_client, pdbtoken
-    pdbtoken = token
-
-    if input_server != None:
+    print(token)
+    if token in pdb_input_server.keys():
         return
 
-    input_server, input_client = os.pipe()
-    output_client, output_server = os.pipe()
-
-    def run_pdb_process(input_fd, output_fd):
-        pdb_instance = pdb.Pdb(stdin=os.fdopen(input_fd, 'r'), stdout=os.fdopen(output_fd, 'w'))
-        pdb.Pdb._runscript(pdb_instance, './test.py')
+    pdb_input_server[token], pdb_input_client[token] = os.pipe()
+    pdb_output_client[token], pdb_output_server[token] = os.pipe()
+    stdout_tmp = sys.stdout
+    sys.stdout = stdout_tmp
+    pdb_instance[token] = PdbExt(stdin=os.fdopen(pdb_input_server[token], 'r'), stdout=os.fdopen(pdb_output_server[token], 'w'))
+    def run_pdb_process(input_fd, output_fd, token, instance:PdbExt):
+        
+        PdbExt._runscript(instance, os.path.realpath('./test.py'))
+        #instance.set_trace()
+        sys.stdout.flush()
+        os.close(input_fd)
+        os.close(output_fd)
+        pdb_input_client.pop(token)
+        pdb_input_server.pop(token)
+        pdb_output_client.pop(token)
+        pdb_output_server.pop(token)
+        pdb_instance.pop(token)
         print('pdb finish')
-    p = multiprocessing.Process(target=run_pdb_process, args=(input_server, output_server), daemon=True)
-    p.start()
+        disconnect(namespace='/pdb')
+
+    #p = multiprocessing.Process(target=run_pdb_process, args=(pdb_input_server[token], pdb_output_server[token], token, pdb_instance[token]), daemon=True)
+    #p.start()
+    t = threading.Thread(target=run_pdb_process, args=(pdb_input_server[token], pdb_output_server[token], token, pdb_instance[token]), daemon=True)
+    t.start()
     socketio.start_background_task(target=forward_pdb_output)
-
-
-
 
 if __name__ == "__main__":
     socketio.run(app, port=5000, host='127.0.0.1')
