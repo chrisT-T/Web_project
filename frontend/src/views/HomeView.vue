@@ -23,7 +23,7 @@ export default class HomeView extends Vue {
   }
 
   mounted () {
-    console.log('mounted')
+    console.log('HomeView mounted')
   }
 }
 </script>

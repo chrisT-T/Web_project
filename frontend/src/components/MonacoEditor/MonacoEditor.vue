@@ -3,15 +3,22 @@
 </template>
 
 <script lang="ts">
-import * as monaco from 'monaco-editor'
+import vsDark from './themes/vs-dark-converted.json'
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
 import { Options, Vue } from 'vue-class-component'
+
 import { buildWorkerDefinition } from 'monaco-editor-workers'
+import { StandaloneServices } from 'vscode/services'
+import getMessageServiceOverride from 'vscode/service-override/messages'
 
 import { MonacoLanguageClient, CloseAction, ErrorAction, MonacoServices, MessageTransports } from 'monaco-languageclient'
 import { toSocket, WebSocketMessageReader, WebSocketMessageWriter } from 'vscode-ws-jsonrpc'
 import normalizeUrl from 'normalize-url'
-import { StandaloneServices } from 'vscode/services'
-import getMessageServiceOverride from 'vscode/service-override/messages'
+
+import { loadWASM, createOnigString, createOnigScanner } from 'vscode-oniguruma'
+import { Registry, IRawGrammar, parseRawGrammar, INITIAL } from 'vscode-textmate'
+import { createTextmateTokenizer, TextmateRegistry, TokenizerState } from './textmate'
+import { languageContributions } from './lanuages/language'
 
 @Options({
   props: {
@@ -113,16 +120,124 @@ export default class MonacoEditor extends Vue {
     return normalizeUrl(`${protocol}://${hostname}:${port}${path}`)
   }
 
-  mounted () {
+  async fetchOnigasm (): Promise<ArrayBuffer | Response> {
+    const response = await fetch('onig.wasm')
+    const contentType = response.headers.get('content-type')
+    if (contentType === 'application/wasm') {
+      return response
+    }
+    return await response.arrayBuffer()
+  }
+
+  async mounted () {
     // StandaloneServices.initialize({
     //   ...getMessageServiceOverride(document.body)
     // })
     // buildWorkerDefinition('dist', new URL('', window.location.href).href, false)
 
+    // 注册我们需要的语言
+    monaco.languages.register({ id: 'python' })
+
+    // load wasm
+    await this.fetchOnigasm().then(async (res) => {
+      await loadWASM(res)
+    })
+
+    const textmateRegistry = new TextmateRegistry()
+
+    // 将全部语言配置注册到 textmate 中，但是还不能直接使用
+    for (const grammarProvider of languageContributions) {
+      try {
+        grammarProvider.registerTextmateLanguage(textmateRegistry)
+      } catch (err) {
+        console.error(err)
+      }
+    }
+    const onigLib = Promise.resolve({
+      createOnigScanner,
+      createOnigString
+    })
+
+    // 初始化一个 textmate 注册器，各个语言挂载用
+    const grammarRegistry = new Registry({
+      onigLib,
+      loadGrammar: async (scopeName: string) => {
+        const provider = textmateRegistry.getProvider(scopeName)
+        if (provider) {
+          const definition = await provider.getGrammarDefinition()
+          let rawGrammar: IRawGrammar
+          if (typeof definition.content === 'string') {
+            rawGrammar = parseRawGrammar(definition.content, definition.format === 'json' ? 'grammar.json' : 'grammar.plist')
+          } else {
+            rawGrammar = definition.content as IRawGrammar
+          }
+          return rawGrammar
+        }
+        return undefined
+      },
+      getInjections: (scopeName: string) => {
+        const provider = textmateRegistry.getProvider(scopeName)
+        if (provider && provider.getInjections) {
+          return provider.getInjections(scopeName)
+        }
+        return []
+      }
+    })
+
+    // 激活语言支持
+    const _activatedLanguages = new Set<string>()
+    const activateLanguage = async (languageId: string): Promise<void> => {
+      // 缓存已经打开的语言
+      if (_activatedLanguages.has(languageId)) return
+      _activatedLanguages.add(languageId)
+      // 看 textmate 是否注册了对应的语法
+      const scopeName = textmateRegistry.getScope(languageId)
+      if (!scopeName) return
+      // 看 textmate 是否提供了了对应的 provider
+      const provider = textmateRegistry.getProvider(scopeName)
+      if (!provider) return
+      // 获取语法配置
+      const configuration = textmateRegistry.getGrammarConfiguration(languageId)
+      const initialLanguage = monaco.languages.getEncodedLanguageId(languageId)
+      await onigLib
+      try {
+        // 实例化一个语法分析器
+        const grammar = await grammarRegistry.loadGrammarWithConfiguration(scopeName, initialLanguage, configuration)
+        const options = configuration.tokenizerOption ? configuration.tokenizerOption : {}
+        // 将语法分析器挂载到 monaco-editor 提供解析服务
+        if (grammar !== null) {
+          monaco.languages.setTokensProvider(languageId, createTextmateTokenizer(grammar, options))
+          const myTokenizer = createTextmateTokenizer(grammar, options)
+          console.log(myTokenizer.tokenize('import os', new TokenizerState(INITIAL)))
+        } else {
+          console.error('grammar not found')
+        }
+      } catch (error) {
+        console.warn('No grammar for this language id ' + languageId)
+        console.warn(error)
+      }
+      console.log('开启语言 ' + languageId + ' 支持')
+    }
+
+    // 在用到对应语言才会激活对应的语言
+    for (const { id } of monaco.languages.getLanguages()) {
+      monaco.languages.onLanguage(id, () => activateLanguage(id))
+    }
+
+    monaco.editor.defineTheme('own-vs-dark', vsDark)
+
+    console.log(vsDark)
+
     const breakpointClassName = 'monaco-editor-breakpoint'
     const shadowBreakpointClassName = 'monaco-editor-breakpoint-shadow'
     console.log('mounted')
-    this.editor = monaco.editor.create(this.$refs.editor as HTMLElement, this.editorOption)
+    new Promise<void>((resolve, reject) => {
+      this.editor = monaco.editor.create(this.$refs.editor as HTMLElement, this.editorOption)
+      resolve()
+    }).then(() => {
+      console.log('set theme')
+      monaco.editor.setTheme('own-vs-dark')
+    })
 
     // for lint service
     // install the service
