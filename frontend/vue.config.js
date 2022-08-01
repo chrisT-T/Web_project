@@ -5,8 +5,13 @@ module.exports = defineConfig({
   configureWebpack: {
     plugins: [
       new MonacoWebpackPlugin({
-        languages: ['javascript', 'typescript', 'python']
+        languages: ['python']
       })
-    ]
+    ],
+    resolve: {
+      fallback: {
+        path: false
+      }
+    }
   }
 })

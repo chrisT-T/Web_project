@@ -5,13 +5,13 @@
 <script lang="ts">
 import * as monaco from 'monaco-editor'
 import { Options, Vue } from 'vue-class-component'
-import { buildWorkerDefinition } from 'monaco-editor-workers'
+// import { buildWorkerDefinition } from 'monaco-editor-workers'
 
 import { MonacoLanguageClient, CloseAction, ErrorAction, MonacoServices, MessageTransports } from 'monaco-languageclient'
 import { toSocket, WebSocketMessageReader, WebSocketMessageWriter } from 'vscode-ws-jsonrpc'
 import normalizeUrl from 'normalize-url'
-import { StandaloneServices } from 'vscode/services'
-import getMessageServiceOverride from 'vscode/service-override/messages'
+// import { StandaloneServices } from 'vscode/services'
+// import getMessageServiceOverride from 'vscode/service-override/messages'
 
 @Options({
   props: {
