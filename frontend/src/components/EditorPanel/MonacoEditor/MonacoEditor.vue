@@ -1,10 +1,11 @@
 <template>
-  <div id="editor" ref="editor"></div>
+  <div id="editor" ref="editorContainer"></div>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
+import { ref, onMounted, shallowRef, onUnmounted, watch, defineProps, defineExpose } from 'vue'
+
 import * as monaco from 'monaco-editor'
-import { Options, Vue } from 'vue-class-component'
 // import { buildWorkerDefinition } from 'monaco-editor-workers'
 
 import { MonacoLanguageClient, CloseAction, ErrorAction, MonacoServices, MessageTransports } from 'monaco-languageclient'
@@ -13,176 +14,189 @@ import normalizeUrl from 'normalize-url'
 // import { StandaloneServices } from 'vscode/services'
 // import getMessageServiceOverride from 'vscode/service-override/messages'
 
-@Options({
-  props: {
-    editorOption: {
-      type: Object,
-      default: () => ({
-        theme: 'vs'
-      })
-    }
-  },
-  watch: {
-    editorOption: {
-      handler (val) {
-        console.log('editor options:')
-        console.log(val)
-        this.getEditor().updateOptions(val)
-      },
-      deep: true
-    }
-  }
-})
-export default class MonacoEditor extends Vue {
-  editor!: monaco.editor.IStandaloneCodeEditor
-  editorOption!: monaco.editor.IStandaloneEditorConstructionOptions
+const props = defineProps<{
+    editorOption: monaco.editor.IStandaloneEditorConstructionOptions,
+}>()
 
-  getAllDecorationbyClass (className : string) {
-    return this.editor.getModel()?.getAllDecorations()
-      .filter(decoration => decoration.options.glyphMarginClassName === className)
-  }
+const editor = shallowRef<monaco.editor.IStandaloneCodeEditor | null>(null)
 
-  clearAllDecorationbyClass (className : string) {
-    const decorations = this.getAllDecorationbyClass(className)?.map(decoration => decoration.id)
-    if (decorations) {
-      this.editor.deltaDecorations(decorations, [])
-    }
-  }
+const editorContainer = ref<HTMLElement | null>(null)
 
-  existDecoration (className: string, lineNumber: number) {
-    return this.getAllDecorationbyClass(className)?.some(decoration => decoration.range.startLineNumber === lineNumber)
-  }
+const models = shallowRef<Array<monaco.editor.ITextModel>>([])
 
-  addDecoration (className: string, lineNumber: number, hoverMessage : string) {
-    const old = this.getAllDecorationbyClass(className) as monaco.editor.IModelDecoration[]
-    const oldId = old.map(decoration => decoration.id)
-    const existIndex = old.findIndex(decoration => decoration.range.startLineNumber === lineNumber)
-    // doesn't exist a decoration on the line
-    if (existIndex === -1) {
-      old.push({
-        id: '',
-        ownerId: 0,
-        range: new monaco.Range(lineNumber, 1, lineNumber, 1),
-        options: {
-          isWholeLine: true,
-          glyphMarginClassName: className,
-          stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
-          glyphMarginHoverMessage: {
-            value: hoverMessage
-          }
-        }
-      })
-      this.editor.deltaDecorations(oldId, old)
-    }
-  }
+watch(() => props.editorOption, (val : monaco.editor.IStandaloneEditorConstructionOptions) => {
+  console.log('editor options:')
+  console.log(val)
+  editor.value?.updateOptions(val)
+}, { deep: true })
 
-  removeDecoration (className: string, lineNumber: number) {
-    const old = this.getAllDecorationbyClass(className) as monaco.editor.IModelDecoration[]
-    const oldId = old.map(decoration => decoration.id)
-    const existIndex = old.findIndex(decoration => decoration.range.startLineNumber === lineNumber)
-    // exist a decoration on the line
-    if (existIndex !== -1) {
-      old.splice(existIndex, 1)
-      this.editor.deltaDecorations(oldId, old)
-    }
-  }
+function createModel (value: string, language: string) {
+  console.log('create model')
+  const model = monaco.editor.createModel(value, language)
+  models.value.push(model)
+  return model
+}
 
-  createLanguageClient (transports: MessageTransports): MonacoLanguageClient {
-    return new MonacoLanguageClient({
-      name: 'Sample Language Client',
-      clientOptions: {
-        // use a language id as a document selector
-        documentSelector: ['python'],
-        // disable the default error handler
-        errorHandler: {
-          error: () => ({ action: ErrorAction.Continue }),
-          closed: () => ({ action: CloseAction.DoNotRestart })
-        }
-      },
-      // create a language client connection from the JSON RPC connection on demand
-      connectionProvider: {
-        get: () => {
-          return Promise.resolve(transports)
-        }
-      }
-    })
-  }
+function setModel (index : number) {
+  console.log('set model')
+  editor.value?.setModel(models.value[index])
+}
 
-  createUrl (hostname: string, port: number, path: string): string {
-    const protocol = location.protocol === 'https:' ? 'wss' : 'ws'
-    return normalizeUrl(`${protocol}://${hostname}:${port}${path}`)
-  }
+function deleteModel (index : number) {
+  models.value[index].dispose()
+  models.value.splice(index, 1)
+}
 
-  mounted () {
-    // StandaloneServices.initialize({
-    //   ...getMessageServiceOverride(document.body)
-    // })
-    // buildWorkerDefinition('dist', new URL('', window.location.href).href, false)
+function getAllDecorationbyClass (className : string) {
+  return editor.value?.getModel()?.getAllDecorations()
+    .filter(decoration => decoration.options.glyphMarginClassName === className)
+}
 
-    const breakpointClassName = 'monaco-editor-breakpoint'
-    const shadowBreakpointClassName = 'monaco-editor-breakpoint-shadow'
-    console.log('mounted')
-    this.editor = monaco.editor.create(this.$refs.editor as HTMLElement, this.editorOption)
-
-    // for lint service
-    // install the service
-    MonacoServices.install()
-
-    // create websocket
-    const url = this.createUrl('localhost', 3000, '/')
-    const webSocket = new WebSocket(url)
-
-    // define the connection(websocket) to the language server
-    webSocket.onopen = () => {
-      const socket = toSocket(webSocket)
-      const reader = new WebSocketMessageReader(socket)
-      const writer = new WebSocketMessageWriter(socket)
-      const languageClient = this.createLanguageClient({ reader, writer })
-      languageClient.start()
-      reader.onClose(() => languageClient.stop())
-    }
-
-    // set shadow on move
-    this.editor.onMouseMove(e => {
-      const { target } = e
-      if (target.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN ||
-          target.type === monaco.editor.MouseTargetType.GUTTER_LINE_DECORATIONS) {
-        if (!this.existDecoration(breakpointClassName, target.position.lineNumber)) {
-          this.clearAllDecorationbyClass(shadowBreakpointClassName)
-          this.addDecoration(shadowBreakpointClassName, target.position.lineNumber, '')
-        }
-      } else {
-        this.clearAllDecorationbyClass(shadowBreakpointClassName)
-      }
-    })
-    // clear shadow on leave
-    this.editor.onMouseLeave(() => {
-      this.clearAllDecorationbyClass(shadowBreakpointClassName)
-    })
-    // set breakpoint property to the editor
-    this.editor.onMouseDown(e => {
-      const { target } = e
-      if (target.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN || target.type === monaco.editor.MouseTargetType.GUTTER_LINE_DECORATIONS) {
-        this.clearAllDecorationbyClass(shadowBreakpointClassName)
-        if (!this.existDecoration(breakpointClassName, target.position.lineNumber)) {
-          this.addDecoration(breakpointClassName, target.position.lineNumber, '')
-        } else {
-          this.removeDecoration(shadowBreakpointClassName, target.range.startLineNumber)
-          this.removeDecoration(breakpointClassName, target.position.lineNumber)
-        }
-      }
-    })
-  }
-
-  destroyed () {
-    console.log('destroyed')
-    this.editor.dispose()
-  }
-
-  getEditor () {
-    return this.editor
+function clearAllDecorationbyClass (className: string) {
+  const decorations = getAllDecorationbyClass(className)?.map(decoration => decoration.id)
+  if (decorations) {
+    editor.value?.deltaDecorations(decorations, [])
   }
 }
+
+function existDecoration (className: string, lineNumber: number) {
+  return getAllDecorationbyClass(className)?.some(decoration => decoration.range.startLineNumber === lineNumber)
+}
+
+function addDecoration (className: string, lineNumber: number, hoverMessage: string) {
+  const old = getAllDecorationbyClass(className) as monaco.editor.IModelDecoration[]
+  const oldId = old.map(decoration => decoration.id)
+  const existIndex = old.findIndex(decoration => decoration.range.startLineNumber === lineNumber)
+  // doesn't exist a decoration on the line
+  if (existIndex === -1) {
+    old.push({
+      id: '',
+      ownerId: 0,
+      range: new monaco.Range(lineNumber, 1, lineNumber, 1),
+      options: {
+        isWholeLine: true,
+        glyphMarginClassName: className,
+        stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
+        glyphMarginHoverMessage: {
+          value: hoverMessage
+        }
+      }
+    })
+    editor.value?.deltaDecorations(oldId, old)
+  }
+}
+
+function removeDecoration (className: string, lineNumber: number) {
+  const old = getAllDecorationbyClass(className) as monaco.editor.IModelDecoration[]
+  const oldId = old.map(decoration => decoration.id)
+  const existIndex = old.findIndex(decoration => decoration.range.startLineNumber === lineNumber)
+  // exist a decoration on the line
+  if (existIndex !== -1) {
+    old.splice(existIndex, 1)
+    editor.value?.deltaDecorations(oldId, old)
+  }
+}
+
+function createLanguageClient (transports: MessageTransports): MonacoLanguageClient {
+  return new MonacoLanguageClient({
+    name: 'Sample Language Client',
+    clientOptions: {
+      // use a language id as a document selector
+      documentSelector: ['python'],
+      // disable the default error handler
+      errorHandler: {
+        error: () => ({ action: ErrorAction.Continue }),
+        closed: () => ({ action: CloseAction.DoNotRestart })
+      }
+    },
+    // create a language client connection from the JSON RPC connection on demand
+    connectionProvider: {
+      get: () => {
+        return Promise.resolve(transports)
+      }
+    }
+  })
+}
+
+function createUrl (hostname: string, port: number, path: string): string {
+  const protocol = location.protocol === 'https:' ? 'wss' : 'ws'
+  return normalizeUrl(`${protocol}://${hostname}:${port}${path}`)
+}
+
+onMounted(() => {
+  // StandaloneServices.initialize({
+  //   ...getMessageServiceOverride(document.body)
+  // })
+  // buildWorkerDefinition('dist', new URL('', window.location.href).href, false)
+
+  const breakpointClassName = 'monaco-editor-breakpoint'
+  const shadowBreakpointClassName = 'monaco-editor-breakpoint-shadow'
+  console.log('mounted')
+  if (editorContainer.value !== null && props.editorOption !== null) {
+    editor.value = monaco.editor.create(editorContainer.value, props.editorOption)
+  } else {
+    console.error('editor container is null')
+  }
+  // for lint service
+  // install the service
+  MonacoServices.install()
+
+  // create websocket
+  const url = createUrl('localhost', 3000, '/')
+  const webSocket = new WebSocket(url)
+
+  // define the connection(websocket) to the language server
+  webSocket.onopen = () => {
+    const socket = toSocket(webSocket)
+    const reader = new WebSocketMessageReader(socket)
+    const writer = new WebSocketMessageWriter(socket)
+    const languageClient = createLanguageClient({ reader, writer })
+    languageClient.start()
+    reader.onClose(() => languageClient.stop())
+  }
+
+  // set shadow on move
+  editor.value?.onMouseMove(e => {
+    const { target } = e
+    if (target.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN ||
+      target.type === monaco.editor.MouseTargetType.GUTTER_LINE_DECORATIONS) {
+      if (!existDecoration(breakpointClassName, target.position.lineNumber)) {
+        clearAllDecorationbyClass(shadowBreakpointClassName)
+        addDecoration(shadowBreakpointClassName, target.position.lineNumber, '')
+      }
+    } else {
+      clearAllDecorationbyClass(shadowBreakpointClassName)
+    }
+  })
+  // clear shadow on leave
+  editor.value?.onMouseLeave(() => {
+    clearAllDecorationbyClass(shadowBreakpointClassName)
+  })
+  // set breakpoint property to the editor
+  editor.value?.onMouseDown(e => {
+    const { target } = e
+    if (target.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN || target.type === monaco.editor.MouseTargetType.GUTTER_LINE_DECORATIONS) {
+      clearAllDecorationbyClass(shadowBreakpointClassName)
+      if (!existDecoration(breakpointClassName, target.position.lineNumber)) {
+        addDecoration(breakpointClassName, target.position.lineNumber, '')
+      } else {
+        removeDecoration(shadowBreakpointClassName, target.range.startLineNumber)
+        removeDecoration(breakpointClassName, target.position.lineNumber)
+      }
+    }
+  })
+})
+
+onUnmounted(() => {
+  console.log('destroyed')
+  editor.value?.dispose()
+})
+
+defineExpose({
+  createModel,
+  setModel,
+  deleteModel
+})
 </script>
 
 <style src="./main.css"/>

@@ -1,7 +1,7 @@
 <template>
     <div class="editor-header-bar">
-      <div class="editor-header-bar-item" v-for="(item, index) in items" v-bind:key="item">
-        <HeaderItem :title="item" :focus="focusList[index]"  @to-focus="focusToItem(item)" @close="closeItem(item)"></HeaderItem>
+      <div class="editor-header-bar-item" v-for="(item, index) in titles" v-bind:key="item">
+        <HeaderItem :title="item" :focus="focusList[index]"  @to-focus="emit('focusToItem', index)" @close="emit('closeItem', index)"></HeaderItem>
         <div class="editor-header-bar-item-separation"></div>
       </div>
     </div>
@@ -9,25 +9,29 @@
 
 <script lang="ts" setup>
 import HeaderItem from './HeaderItem.vue'
-import { ref, defineEmits } from 'vue'
+import { ref, defineEmits, defineExpose, defineProps } from 'vue'
 
-const items = ref<Array<string>>(['aaaaaaaaaaaaaaaaaa', 'b', 'c'])
+const props = defineProps<{
+  titles: Array<string>,
+}>()
 
-const focusList = ref<Array<boolean>>(items.value.map(() => false))
+const focusList = ref<Array<boolean>>(props.titles.map(() => false))
 
-function focusToItem (item: string) {
-  const index = items.value.indexOf(item)
-  focusList.value = focusList.value.map(() => false)
-  focusList.value[index] = true
+// eslint-disable-next-line func-call-spacing
+const emit = defineEmits<{
+  (e: 'focusToItem', index: number): void
+  (e: 'closeItem', index: number): void
+}> ()
+
+function changeFocus (index: number) {
+  console.log('change focus' + index)
+  focusList.value = focusList.value.map((item, i) => i === index)
 }
 
-function closeItem (item: string) {
-  const index = items.value.indexOf(item)
-  items.value.splice(index, 1)
-  focusList.value.splice(index, 1)
-}
+defineExpose({
+  changeFocus
+})
 
-const emit = defineEmits(['changeFocus:item'])
 </script>
 
 <style scoped>

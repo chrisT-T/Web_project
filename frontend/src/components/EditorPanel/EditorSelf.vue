@@ -1,17 +1,44 @@
 <template>
-  <!-- 这个是单个的“编辑器”，包括上面的文件 header 和导航栏？-->
+  <!-- 这个是单个的“编辑器”，包括上面的标签页栏 和导航栏 (如果有) -->
   <div>
-    <EditHeader></EditHeader>
-    <MonacoEditor :editor-option="monacoEditorOption"></MonacoEditor>
+    <EditorHeader ref="editorHeader" :titles="titles" @focus-to-item="changeFocus"></EditorHeader>
+    <MonacoEditor ref="editorItself" :editor-option="monacoEditorOption"></MonacoEditor>
   </div>
 </template>
 
 <script lang="ts" setup>
-import EditHeader from './Header/EditorHeader.vue'
+import EditorHeader from './Header/EditorHeader.vue'
 import MonacoEditor from './MonacoEditor/MonacoEditor.vue'
+import { onMounted, shallowRef } from 'vue'
+
 const monacoEditorOption = {
   theme: 'vs-dark',
   glyphMargin: true,
   language: 'python'
+}
+
+const titles = ['a', 'b', 'c']
+const values = ['aaaaaaaa', 'bbbbbbbb', 'cccccccc']
+
+const editorHeader = shallowRef<InstanceType<typeof EditorHeader> | null>(null)
+const editorItself = shallowRef<InstanceType<typeof MonacoEditor> | null>(null)
+
+async function createMonacoModels () {
+  values.forEach(value => {
+    editorItself.value?.createModel(value, 'python')
+  })
+}
+
+onMounted(async () => {
+  await createMonacoModels()
+  editorHeader.value?.changeFocus(0)
+  console.log(editorItself.value)
+  editorItself.value?.setModel(0)
+})
+
+function changeFocus (index : number) {
+  console.log(editorHeader.value)
+  editorHeader.value?.changeFocus(index)
+  editorItself.value?.setModel(index)
 }
 </script>
