@@ -53,16 +53,12 @@ export default class webDebugger extends Vue.with(webDebuggerProps) {
     axios.post(this.baseUrl + '/pdb/runcmd', { token: this.debuggerName, cmd: this.command })
   }
 
-  pdbN () {
-    axios.post(this.baseUrl + '/pdbN', { token: this.debuggerName })
-  }
-
   setbreak () {
     axios.post(this.baseUrl + '/pdb/runcmd', { token: this.debuggerName, cmd: 'b 3' })
   }
 
   getData () {
-    axios.post(this.baseUrl + '/pdb/curframe', { token: this.debuggerName })
+    axios.post(this.baseUrl + '/pdb/getfunc', { token: this.debuggerName })
   }
 
   mounted () {

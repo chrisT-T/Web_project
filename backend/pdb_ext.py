@@ -3,6 +3,8 @@ import io
 import os
 from multiprocessing.process import AuthenticationString
 import inspect
+from pprint import pformat
+from sys import stdout
 
 class PdbExt(Pdb):
     def __init__(self, stdin, stdout):
@@ -13,6 +15,14 @@ class PdbExt(Pdb):
         res = self.curframe_locals
         return res
 
+    def get_current_stack(self):
+        res = []
+        for s in self.stack:
+            res.append(s[0].__str__())
+        return res
+
+    def get_current_function(self):
+        return self.curframe.f_code.co_name
 
     def get_current_frame_data(self):
         filename = self.curframe.f_code.co_filename
@@ -26,6 +36,8 @@ class PdbExt(Pdb):
             'globals': self.get_globals(),
             'locals': self.get_locals()
         }
+
+
 
     """
     The following three functions comes from the project: web-pdb
@@ -70,3 +82,23 @@ class PdbExt(Pdb):
         :rtype: unicode
         """
         return self._format_variables(self.curframe_locals)
+
+    @staticmethod
+    def _get_repr(obj, pretty=False, indent=1):
+        """
+        Get string representation of an object
+
+        :param obj: object
+        :type obj: object
+        :param pretty: use pretty formatting
+        :type pretty: bool
+        :param indent: indentation for pretty formatting
+        :type indent: int
+        :return: string representation
+        :rtype: str
+        """
+        if pretty:
+            repr_value = pformat(obj, indent)
+        else:
+            repr_value = repr(obj)
+        return repr_value

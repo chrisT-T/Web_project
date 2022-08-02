@@ -1,7 +1,10 @@
-res = 0
-for i in range(100):
-    res += i
+def testFunc():
+    res = 0
+    for i in range(100):
+        res += i
 
-print(res)
+    print(res)
 
-print(res ** 2)
+    print(res ** 2)
+
+testFunc()

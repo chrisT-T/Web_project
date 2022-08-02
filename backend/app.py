@@ -1,11 +1,10 @@
 import argparse
-from crypt import methods
 from urllib import response
 from matplotlib import mlab
 from pdb_ext import PdbExt
 import multiprocessing
 from multiprocessing.managers import BaseManager
-from flask import Flask, render_template, request
+from flask import Flask, jsonify, render_template, request
 from flask_socketio import SocketIO, disconnect
 from flask_cors import CORS
 import pty
@@ -75,6 +74,21 @@ pdb_input_server = {}
 pdb_output_client = {}
 pdb_output_server = {}
 pdb_instance = {}
+
+@app.route('/pdb/getstack', methods=['POST'])
+def getStack():
+    data = request.get_json()
+    token:str = data['token']
+    print(pdb_instance.keys())
+    if token in pdb_instance.keys():
+        return jsonify(pdb_instance[token].get_current_stack())
+
+@app.route('/pdb/getfunc', methods=['POST'])
+def getFunc():
+    data = request.get_json()
+    token: str = data['token']
+    if token in pdb_instance.keys():
+        return pdb_instance[token].get_current_function()
 
 @app.route('/pdb/runcmd', methods=['POST'])
 def runcmd():

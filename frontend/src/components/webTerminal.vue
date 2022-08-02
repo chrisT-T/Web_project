@@ -2,9 +2,6 @@
   <div>
     <h1> {{ status }} </h1>
     <div id="terminal"></div>
-    <button id='runbtn' @click='runPython'> Run ./test.py in Terminal </button>
-    <button id='runbtn' @click='runPdb'> Run ./test.py in Terminal (Debug mode) </button>
-    <button @click="pdbN"> n command </button>
     <div> <p> {{ pdbBuffer }} </p> </div>
   </div>
 </template>
@@ -60,40 +57,6 @@ export default class webTerminal extends Vue.with(webTerminalProps) {
     this.socket.on('connect', () => {
       this.status = this.termName
     })
-  }
-
-  runPython () {
-    axios.post('http://127.0.0.1:5000/run', { token: this.termName, path: './test.py' })
-  }
-
-  runPdb () {
-    axios.post('http://127.0.0.1:5000/runpdb', { token: this.termName, path: './test.py', breakPointList: [] })
-    this.pdbBuffer = ''
-    this.pdbFlag = 'run'
-  }
-
-  pdbN () {
-    axios.post(this.baseUrl + '/pdbN', { token: this.termName })
-  }
-
-  pdbC () {
-    axios.post(this.baseUrl + '/pdbC', { token: this.termName })
-  }
-
-  pdbR () {
-    axios.post(this.baseUrl + '/pdbR', { token: this.termName })
-  }
-
-  pdbQ () {
-    axios.post(this.baseUrl + '/pdbQ', { token: this.termName })
-  }
-
-  pdbB (breakLine: number) {
-    axios.post(this.baseUrl + '/pdbB', { token: this.termName, breakLine: breakLine.toString() })
-  }
-
-  pdbCmd (cmd: string) {
-    axios.post(this.baseUrl + '/pdbVar', { token: this.termName, cmd: cmd })
   }
 
   mounted () {
