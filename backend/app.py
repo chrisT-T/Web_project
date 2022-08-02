@@ -320,5 +320,29 @@ def getTreeChildData(username):
     return jsonify(obj)
 
 
+# 接收文件夹路径，返回该文件夹下所有文件和文件夹
+@app.route('/getData/<username>', method = "POST")
+def getData(username):
+    if username != userInfo.currentUser():
+        raise error
+
+    src = request.get_json()['src']
+    flag, path_list = fileFunc.getData(src)
+    if flag:
+        data = {
+            'filelist': path_list,
+            'flag': True,
+            'message': None
+        }
+        return jsonify(data)
+    else:
+        data = {
+            'flag': False,
+            'message': "Path error"
+        }
+        return jsonify(data)
+
+
+
 if __name__ == "__main__":
     app.run(debug=True)

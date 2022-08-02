@@ -105,7 +105,7 @@ def touch(username):
 
 
 
-## 上传文件
+### 上传文件
 
 ```python
 @app.route('/upload/<username>', method = "POST")
@@ -192,5 +192,54 @@ def getTreeChildData(username)
   + url提供当前用户用户名
   + get形式传入参数`id`，表示待展开的文件夹
 + 返回值
-  + 格式:json，其中`data`是字典列表，字典有键`name`：文件（夹）名字；`type`：文件（夹）类型，`isLeaf`；是否是叶子，即是否是文件；`id`：用于逐级访问；`path`：该文件（夹）的路径，从用户名一级开始
+  + 格式：json，其中`data`是字典列表，字典有键`name`：文件（夹）名字；`type`：文件（夹）类型，`isLeaf`；是否是叶子，即是否是文件；`id`：用于逐级访问；`path`：该文件（夹）的路径，从用户名一级开始
 
+
+
+### 返回文件夹下所有文件文件夹信息
+
+```python
+# 接收文件夹路径，返回该文件夹下所有文件和文件夹
+@app.route('/getData/<username>', method = "POST")
+def getData(username)
+```
+
++ 参数：
+
+  + url提供当前用户用户名
+  + json形式传入参数`src`，`src`为目录的路径（路径非文件夹时会返回错误信息），路径从用户名一级开始（如 `xiaoming/... `）
+
++ 返回值：
+
+  + 格式：json，带键值对`flag`、`message`，flag为true时，message为空；flag为false时，message指出具体错误（如 文件不存在，文件名重复...）
+
+  + 操作成功则json还会返回`filelist`，是一个字典列表，字典内含有该用户当前目录下文件和文件夹名字`name`，以及`type`指明是文件`file`还是文件夹`folder`，以及`children`子文件夹列表
+
+  + ```python
+    # filelist格式
+    [
+        # 若是文件，则是一个字典，有属性name type children，其中children为空列表
+    	# 若是文件夹，则是一个字典，有属性name type children，其中children一个结构类似于父列表的列表
+        {
+            'name': 'b.py', 
+         	'type': 'file', 
+            'children': []
+        }, 
+        {
+            'name': 'test2', 
+            'type': 'folder', 
+            'children': 
+            [
+                {
+                    'name': 'mat.txt', 
+                    'type': 'file', 
+                    'children': []
+                }
+            ]
+        }
+    ]
+    ```
+
+    
+
+  
