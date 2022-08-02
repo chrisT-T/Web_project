@@ -4,7 +4,7 @@
     <router-link to="/about">About</router-link> |
     <router-link to="/test/1">Test</router-link> |
     <router-link to="/index">Index</router-link> |
-    <router-link to="/coding">Coding</router-link> |
+    <router-link to="/coding/1/1">Coding</router-link> |
     <router-link to="/file">File</router-link>
   </nav>
   <router-view/>

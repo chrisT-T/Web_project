@@ -22,7 +22,10 @@
       <el-main>
         <el-scrollbar max-height="600px">
             <div v-for="( item, index ) in form.taskList" :key="item.id" class="scrollbar-demo-item">
-                <div><span>{{item.language}}</span><span>{{item.name}}</span></div>
+                <div class="detail_info" >
+                  <el-link type="info" :underline="false">{{item.language}}</el-link>
+                  <el-link type="primary" :underline="false" :icon="InfoFilled" @click="ProjectDetail(item.name)">{{item.name}}</el-link>
+                </div>
                 <el-button type="danger" :icon="Delete" @click="removeTask(index)" circle />
             </div>
             <span style="color: var(--el-color-info-light-5)">end of list</span>
@@ -69,7 +72,8 @@
 import { reactive, ref } from 'vue'
 import {
   Delete,
-  Edit
+  Edit,
+  InfoFilled
 } from '@element-plus/icons-vue'
 import { FormInstance } from 'element-plus'
 import router from '@/router'
@@ -134,7 +138,7 @@ const removeTask = async (index: number) => {
   form.taskList.splice(index, 1)
 }
 // 当前用户名 从rouetr获取
-const name = ref(useRouter().currentRoute.value.params.username)
+const name = useRouter().currentRoute.value.params.username
 
 const dialogFormVisible = ref(false)
 
@@ -144,7 +148,7 @@ const form = reactive({
   flag: false,
   message: '',
   taskList: [
-    // { name: 'project 1', language: 'python', id: 0 }
+    { name: 'project 1', language: 'python', id: 0 }
   ]
 })
 
@@ -155,6 +159,11 @@ const options = [
     label: 'python'
   }
 ]
+// 跳到项目详情页
+const ProjectDetail = (Projectname:string) => {
+  console.log(Projectname)
+  router.replace({ name: 'coding', params: { username: name, projectname: Projectname } })
+}
 </script>
 
 <style scoped>
@@ -195,7 +204,10 @@ const options = [
 .scrollbar-demo-item:hover {
     background-color: var(--el-color-info-light-9);
 }
-.scrollbar-demo-item span, div{
-    padding: 0 10px;
+.scrollbar-demo-item .el-link, div{
+  padding: 0 10px;
+}
+.el-link {
+  font-size: 18px;
 }
 </style>

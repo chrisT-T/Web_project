@@ -1,140 +1,153 @@
 <template>
   <div class="common-layout">
-    <el-header>
-      Header
-    </el-header>
-    <el-main>
-      <el-button :icon="Folder" class="close-btn" @click="showFolder();" circle />
-      <div id="fileManager" v-bind:style="{width: showPage.detailWidth + 'px'}">
-        <el-tree :data="data" :props="defaultProps" @node-click="handleNodeClick" />
-      </div>
-      <div id="codingArea">Coding area</div>
-    </el-main>
-    <el-footer>Footer</el-footer>
+    <el-container>
+      <el-header>
+        <el-button type="primary" class="backBtn" :icon="HomeFilled" @click="ProjectBack" text>Menu</el-button>
+      </el-header>
+      <el-container>
+        <div class="btnArea">
+          <el-button class="closeBtn" :icon="Fold" @click="closeAside" circle />
+          <el-button class="openBtn" :icon="Expand" @click="openAside" circle />
+        </div>
+        <el-aside :width="data.width">
+          <FileSet></FileSet>
+        </el-aside>
+        <span class="resize_col" @mousedown="handleDragStart"></span>
+        <el-container>
+          <el-main>Main</el-main>
+          <span class="resize_row" @mousedown="handleDragStartrow"></span>
+          <el-footer :height="data.height">Footer</el-footer>
+        </el-container>
+      </el-container>
+    </el-container>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { onMounted, reactive } from 'vue'
+import router from '@/router'
+import { reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import {
-  Folder
+  Expand,
+  Fold,
+  HomeFilled
 } from '@element-plus/icons-vue'
 
-interface Tree {
-  label: string
-  children?: Tree[]
+import FileSet from '../components/fileSet.vue'
+
+const name = useRouter().currentRoute.value.params.username
+const ProjectBack = () => {
+  router.replace({ name: 'test', params: { username: name } })
 }
 
-const handleNodeClick = (data: Tree) => {
-  console.log(data)
+const data = reactive({
+  width: '200px',
+  old_width: '0px',
+  isClose: false,
+  originX: 200,
+  originY: 20,
+  height: '50px',
+  old_height: '0px',
+  old_height_2: 0,
+  height_2: 50
+})
+
+const closeAside = () => {
+  data.old_width = data.width
+  data.width = '0px'
+  data.isClose = true
+}
+const openAside = () => {
+  data.width = data.old_width
 }
 
-const data: Tree[] = [
-  {
-    label: 'Level one 1',
-    children: [
-      {
-        label: 'Level two 1-1',
-        children: [
-          {
-            label: 'Level three 1-1-1'
-          }
-        ]
-      },
-      {
-        label: 'Level two 2-1',
-        children: [
-          {
-            label: 'Level three 2-1-1'
-          },
-          {
-            label: 'Level two 2-2',
-            children: [
-              {
-                label: 'Level three 2-2-1'
-              }
-            ]
-          }
-        ]
-      }
-    ]
+const handleDragStart = (event: MouseEvent) => {
+  data.originX = event.clientX
+  console.log(data.originX)
+  let isMouseDown = true
+  document.onmousemove = (ev:MouseEvent) => {
+    if (!isMouseDown) return false
+    const moveX = ev.clientX
+    console.log(ev.clientX, data.originX, moveX)
+    data.old_width = data.width
+    data.width = moveX + 'px'
   }
-]
-
-const defaultProps = {
-  children: 'children',
-  label: 'label'
-}
-
-const showFolder = () => {
-  if (showPage.detailWidth === 0) {
-    showPage.detailWidth = 200
-  } else {
-    showPage.detailWidth = 0
+  document.onmouseup = (ev:MouseEvent) => {
+    if (!isMouseDown) return false
+    isMouseDown = false
   }
 }
 
-const showPage = reactive({
-  detailWidth: 200
-})
-onMounted(() => {
-  console.log('component is mounted')
-})
+const handleDragStartrow = (event: MouseEvent) => {
+  data.originY = event.clientY
+  console.log(data.originY)
+  let isMouseDown = true
+  data.old_height_2 = data.height_2
+  document.onmousemove = (ev:MouseEvent) => {
+    if (!isMouseDown) return false
+    const moveY = data.originY - ev.clientY
+    data.height_2 = data.old_height_2 + moveY
+    data.height = data.height_2 + 'px'
+    console.log(ev.clientY, data.originY, moveY, data.old_height, data.old_height_2)
+  }
+  document.onmouseup = (ev:MouseEvent) => {
+    if (!isMouseDown) return false
+    isMouseDown = false
+  }
+}
 </script>
 
 <style scoped>
-.close-btn {
-    margin: 10px 2px;
+div {
+  display: flex;
+  height: 100%;
 }
-  .common-layout {
-    height: 80%;
-    display: flex;
-    flex-direction: column;
-  }
-  .el-header {
-    background-color: var(--el-color-info-dark-2);
-    color: var(--el-color-info-light-9);;
-    text-align: left;
-    line-height: 30px;
-    height: 30px;
-  }
-
-  .el-main {
-    background-color: #E9EEF3;
-    color: var(--el-color-info-light-2);
-    text-align: center;
-    line-height: 160px;
-    display: flex;
-    padding: 0;
-    overflow: hidden;
-  }
-  #fileManager {
-    background-color: var(--el-color-warning-light-7);
-    height: 100%;
-    float:left;
-    overflow: hidden;
-  }
-  .el-tree {
-    background-color: transparent;
-  }
-  #codingArea {
-    height:100%;
-    float:left;
-    overflow: hidden;
-    background: var(--el-color-danger-light-7);
-    flex-grow: 1;
-  }
-  #codingArea:hover {
-    background: var(--el-color-danger-light-5);
-  }
-  #resize{
-    position: relative;
-    width:5px;
-    height:100%;
-    cursor: w-resize;
-    float:left;
-  }
-  body > .el-container {
-    margin-bottom: 40px;
-  }
+.el-header {
+  background-color: var(--el-color-primary-dark-2);
+  height: 30px;
+  display: flex;
+  flex-direction: row;
+}
+.resize_col {
+  cursor: col-resize;
+  float: left;
+  border-radius: 5px;
+  width: 2px;
+}
+.resize_row {
+  cursor:row-resize;
+  float: left;
+  border-radius: 5px;
+  height: 2px;
+}
+.backBtn {
+  height: 30px;
+  background-color: var(--el-color-primary-dark-2);
+  color: aliceblue;
+}
+.backBtn:hover {
+  color: black;
+}
+.backBtn:hover {
+  background-color: var(--el-color-primary);
+}
+.el-footer {
+  background-color: var(--el-color-primary-dark-2);
+  overflow: auto;
+}
+.el-aside {
+  background-color: var(--el-color-primary-light-8);
+  overflow: auto;
+}
+.el-main {
+  background-color: var(--el-color-primary-light-7);
+  overflow: auto;
+}
+.btnArea {
+  display: flex;
+  flex-direction: column;
+}
+.btnArea .el-button {
+  margin: 5px 2px;
+}
 </style>
