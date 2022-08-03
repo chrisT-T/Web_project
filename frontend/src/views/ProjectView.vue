@@ -20,7 +20,7 @@
       </el-header>
 
       <el-main>
-        <el-scrollbar max-height="600px">
+        <el-scrollbar max-height="600px" v-if="form.taskList.length > 0">
             <div v-for="( item, index ) in form.taskList" :key="item.id" class="scrollbar-demo-item">
                 <div class="detail_info" >
                   <el-link type="info" :underline="false">{{item.language}}</el-link>
@@ -41,6 +41,13 @@
             </div>
             <span style="color: var(--el-color-info-light-5)">end of list</span>
         </el-scrollbar>
+        <v-else>
+          <div class="noTask">
+            <span>Welcom to use <span class="codingtitle">CODING-ONLINE</span></span>
+            <span>Please start your first Task</span>
+            <el-button type="primary" :icon="Plus" plain @click="dialogFormVisible = true">Create new Task</el-button>
+          </div>
+        </v-else>
       </el-main>
     </el-container>
   </el-container>
@@ -163,7 +170,7 @@ const form = reactive({
   flag: false,
   message: '',
   taskList: [
-    { name: 'project 1', language: 'python', id: 0, lastupdate: 'time' }
+    // { name: 'project 1', language: 'python', id: 0, lastupdate: 'time' }
   ],
   isChecked: false
 })
@@ -271,5 +278,34 @@ const ProjectDetail = (Projectname:string) => {
 .detail_info {
   overflow: hidden;
   white-space: nowrap;
+}
+.noTask {
+  height: 50%;
+  width: 70%;
+  max-width: 500px;
+  max-height: 200px;
+  min-width: 300px;
+  min-height: 150px;
+  box-shadow: rgb(0 0 0 / 27%) 1px 6px 20px;
+  border-radius: 20px;
+  margin: 10% auto;
+  display: flex;
+  flex-direction: column;
+  Vertical-align:middle;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap
+}
+.codingtitle {
+  color: var(--el-color-primary);
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: bolder;
+}
+.noTask span {
+  margin-bottom: 25px;
+}
+.noTask .el-button {
+  width: 200px;
+  height: 40px;
 }
 </style>
