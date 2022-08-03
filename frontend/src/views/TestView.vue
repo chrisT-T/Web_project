@@ -15,7 +15,7 @@
     <el-container>
       <el-header style="text-align: right; font-size: 12px">
         <div class="toolbar">
-            <el-button type="primary" :icon="Edit" @click="dialogFormVisible = true" circle/>
+            <el-button type="primary" plain size="default" :icon="Plus" @click="dialogFormVisible = true" circle/>
         </div>
       </el-header>
 
@@ -24,9 +24,20 @@
             <div v-for="( item, index ) in form.taskList" :key="item.id" class="scrollbar-demo-item">
                 <div class="detail_info" >
                   <el-link type="info" :underline="false">{{item.language}}</el-link>
-                  <el-link type="primary" :underline="false" :icon="InfoFilled" @click="ProjectDetail(item.name)">{{item.name}}</el-link>
+                  <el-link type="primary" :underline="false" :icon="InfoFilled" v-if="!changeInput.isChecked" @click="ProjectDetail(item.name)">{{item.name}}</el-link>
+                  <el-input class="changeInp" size="large" ref="inputVal" v-if="changeInput.isChecked" :value="item.name"
+                    v-model="changeInput.inputStr"
+                    v-focus="changeInput.isChecked"
+                    @blur="editGiveup()"
+                    @keyup.enter="editFinish(item)"
+                    placeholder="file name">
+                  </el-input>
                 </div>
-                <el-button type="danger" :icon="Delete" @click="removeTask(index)" circle />
+                <div class="detail_info">
+                  <span class="time">{{item.lastupdate}}</span>
+                  <el-button type="primary" :icon="Edit" @click="editStart(item)" circle />
+                  <el-button type="danger" :icon="Delete" @click="removeTask(index)" circle />
+                </div>
             </div>
             <span style="color: var(--el-color-info-light-5)">end of list</span>
         </el-scrollbar>
@@ -66,13 +77,14 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import {
   Delete,
   Edit,
-  InfoFilled
+  InfoFilled,
+  Plus
 } from '@element-plus/icons-vue'
-import { FormInstance } from 'element-plus'
+import { ElNotification, FormInstance } from 'element-plus'
 import router from '@/router'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
@@ -80,27 +92,33 @@ import axios from 'axios'
 const count = ref(0)
 const formLabelWidth = '140px'
 const formRef = ref<FormInstance>()
+const changeInput = reactive({
+  isChecked: false,
+  inputStr: ''
+})
+
 // 提交新项目
 // TODO：后端确认没有重复项目名
 const submitForm = async () => {
   if (form.name === '' || form.language === '') {
     alert('Empty enter form')
   } else {
-    await axios.post('http://127.0.0.1:5000/mkdir/' + name.value, { src: name.value + '/' + form.name })
-      .then(res => {
-        form.flag = res.data.flag
-        form.message = res.data.message
-      }).catch(function (error) {
-        console.log(error.response)
-      })
-    if (form.flag === false) {
-      alert(form.message)
-      return
-    }
+    // await axios.post('http://127.0.0.1:5000/mkdir/' + name.value, { src: name.value + '/' + form.name })
+    //   .then(res => {
+    //     form.flag = res.data.flag
+    //     form.message = res.data.message
+    //   }).catch(function (error) {
+    //     console.log(error.response)
+    //   })
+    // if (form.flag === false) {
+    //   alert(form.message)
+    //   return
+    // }
     form.taskList.unshift({
       name: form.name,
       language: form.language,
-      id: count.value++
+      id: count.value++,
+      lastupdate: 'time2'
     })
   }
 }
@@ -145,9 +163,34 @@ const form = reactive({
   flag: false,
   message: '',
   taskList: [
-    { name: 'project 1', language: 'python', id: 0 }
-  ]
+    { name: 'project 1', language: 'python', id: 0, lastupdate: 'time' }
+  ],
+  isChecked: false
 })
+
+interface Project {
+  name: string
+  language: string
+  id: number
+  lastupdate: string
+}
+
+const editStart = (item: Project) => {
+  console.log('editStart')
+  if (!changeInput.isChecked) {
+    changeInput.inputStr = item.name
+    changeInput.isChecked = true
+  }
+}
+const editFinish = (item: Project) => {
+  console.log('editFinish')
+  item.name = changeInput.inputStr
+  changeInput.isChecked = false
+}
+const editGiveup = () => {
+  console.log('edirGiveup')
+  changeInput.isChecked = false
+}
 
 // language options
 const options = [
@@ -161,6 +204,15 @@ const ProjectDetail = (Projectname:string) => {
   console.log(Projectname)
   router.replace({ name: 'coding', params: { username: name, projectname: Projectname } })
 }
+onMounted(() => {
+  ElNotification({
+    title: '使用指南 -- Project Management',
+    message: 'Sidebar for personal information. The information in the main column is: language, project name, last update time, and deleted project',
+    type: 'info',
+    duration: 0,
+    offset: 300
+  })
+})
 </script>
 
 <style scoped>
@@ -212,5 +264,12 @@ const ProjectDetail = (Projectname:string) => {
 }
 .el-input {
   width: 90%;
+}
+.time {
+  margin: 40px;
+}
+.detail_info {
+  overflow: hidden;
+  white-space: nowrap;
 }
 </style>

@@ -25,7 +25,7 @@
 
 <script lang="ts" setup>
 import router from '@/router'
-import { reactive, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   Fold,
@@ -34,6 +34,7 @@ import {
 } from '@element-plus/icons-vue'
 
 import FileSet from '../components/fileSet.vue'
+import { ElNotification } from 'element-plus'
 // 获取当前用户名
 const name = useRouter().currentRoute.value.params.username
 

@@ -34,8 +34,9 @@
 
 <script lang="ts" setup>
 import router from '@/router'
-import { reactive } from 'vue'
+import { onMounted, reactive } from 'vue'
 import axios from 'axios'
+import { ElNotification } from 'element-plus'
 
 const data = reactive({
   username: '',
@@ -81,7 +82,14 @@ const SignupCheck = async () => {
     router.replace({ name: 'test', params: { username: data.username } })
   }
 }
-
+onMounted(() => {
+  ElNotification({
+    title: '使用指南',
+    message: 'This is the login page, the left side is the overview of the site, the right side is the login bar, unregistered users please click to register and log in',
+    type: 'info',
+    duration: 0
+  })
+})
 </script>
 
 <style scoped>

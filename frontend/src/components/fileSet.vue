@@ -7,26 +7,34 @@
     >
       <template #default="{ node, data }">
         <span class="custom-tree-node">
-          <el-dropdown trigger="contextmenu">
-            <span class="el-dropdown-link">
+          <el-dropdown v-if="!data.showInput" trigger="contextmenu">
+            <span class="el-dropdown-link" @dblclick="editStart(data)">
               {{ node.label }}
             </span>
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item :icon="Plus" @click="currentTree(data)" :disabled="data.type === 'file'">Append</el-dropdown-item>
                 <el-dropdown-item :icon="DeleteFilled" @click="remove(node, data)">Delete</el-dropdown-item>
+                <el-dropdown-item :icon="EditPen" @click="editStart(data)">Change name</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
+          <el-input size="small" ref="inputVal" v-if="data.showInput" :value="data.label"
+            v-model="changeInput.inputStr"
+            v-focus="data.showInput"
+            @blur="editGiveup(data)"
+            @keyup.enter="editFinish(data)"
+            placeholder="file name">
+          </el-input>
         </span>
       </template>
     </el-tree>
     <el-dialog v-model="form.dialogFormVisible" title="Create new file/folder">
       <el-form :model="form">
-        <el-form-item label="Promotion name" :label-width="formLabelWidth">
+        <el-form-item label="Name" :label-width="formLabelWidth">
           <el-input v-model="form.label" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="Zones" :label-width="formLabelWidth">
+        <el-form-item label="Type" :label-width="formLabelWidth">
           <el-select v-model="form.type" placeholder="Please select type">
             <el-option :icon="DocumentAdd" label="Folder" value="folder" />
             <el-option :icon="FolderAdd" label="File" value="file" />
@@ -47,13 +55,15 @@
 
 <script lang="ts" setup>
 import { ref, reactive } from 'vue'
-import type Node from 'element-plus/es/components/tree/src/model/node'
+import Node from 'element-plus/es/components/tree/src/model/node'
 import {
   Plus,
   DeleteFilled,
   DocumentAdd,
-  FolderAdd
+  FolderAdd,
+  EditPen
 } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 
 const formLabelWidth = '140px'
 
@@ -61,6 +71,7 @@ interface Tree {
   id: number
   label: string
   type: string
+  showInput: boolean
   children?: Tree[]
 }
 let id = 10000
@@ -72,9 +83,49 @@ const form = reactive({
   currennode: {
     id: 0,
     label: '',
-    type: ''
+    type: '',
+    showInput: false
   }
 })
+
+const changeInput = reactive({
+  isChecked: false,
+  inputStr: ''
+})
+// 成功编辑并连接后端
+const editFinish = (data:Tree) => {
+  let editCheck = true
+  const reg = /.py$/
+  if (!reg.test(changeInput.inputStr) && data.type === 'file') {
+    editCheck = false
+  }
+  if (editCheck) {
+    data.label = changeInput.inputStr
+    data.showInput = false
+    changeInput.isChecked = false
+  } else {
+    ElMessage({
+      message: 'Warning, ,py is missing',
+      type: 'warning'
+    })
+  }
+  console.log(data.label, changeInput.inputStr)
+}
+// 开始编辑
+const editStart = (data:Tree) => {
+  console.log('alters')
+  if (!changeInput.isChecked) {
+    changeInput.inputStr = data.label
+    data.showInput = !data.showInput
+    changeInput.isChecked = true
+  }
+}
+// 放弃编辑
+const editGiveup = (data:Tree) => {
+  console.log('alter')
+  changeInput.isChecked = false
+  data.showInput = false
+}
 
 const currentTree = (data: Tree) => {
   form.currennode = data
@@ -94,7 +145,7 @@ const submitCheck = (data: Tree, labelNew: string, typeNew: string) => {
       labelNew = labelNew + '.py'
       console.log(labelNew)
     }
-    const newChild = { id: id++, label: labelNew, type: typeNew, children: [] }
+    const newChild = { id: id++, label: labelNew, type: typeNew, showInput: false, children: [] }
     if (!data.children) {
       data.children = []
     }
@@ -119,21 +170,25 @@ const dataSource = ref<Tree[]>([
     id: 1,
     label: 'Level one 1',
     type: 'folder',
+    showInput: false,
     children: [
       {
         id: 4,
         label: 'Level two 1-1',
         type: 'folder',
+        showInput: false,
         children: [
           {
             id: 9,
             label: 'Level three 1-1-1',
-            type: 'folder'
+            type: 'folder',
+            showInput: false
           },
           {
             id: 10,
             label: 'Level_three_1-1-2.py',
-            type: 'file'
+            type: 'file',
+            showInput: false
           }
         ]
       }
@@ -143,16 +198,19 @@ const dataSource = ref<Tree[]>([
     id: 2,
     label: 'Level one 2',
     type: 'folder',
+    showInput: false,
     children: [
       {
         id: 5,
         label: 'Level two 2-1',
-        type: 'folder'
+        type: 'folder',
+        showInput: false
       },
       {
         id: 6,
         label: 'Level_two_2-2.py',
-        type: 'file'
+        type: 'file',
+        showInput: false
       }
     ]
   },
@@ -160,16 +218,19 @@ const dataSource = ref<Tree[]>([
     id: 3,
     label: 'Level one 3',
     type: 'folder',
+    showInput: false,
     children: [
       {
         id: 7,
         label: 'Level two 3-1',
-        type: 'folder'
+        type: 'folder',
+        showInput: false
       },
       {
         id: 8,
         label: 'Level_two_3-2.py',
-        type: 'file'
+        type: 'file',
+        showInput: false
       }
     ]
   }
