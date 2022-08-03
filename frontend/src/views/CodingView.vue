@@ -25,7 +25,7 @@
 
 <script lang="ts" setup>
 import router from '@/router'
-import { onMounted, reactive, ref } from 'vue'
+import { reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   Fold,
@@ -40,7 +40,7 @@ const name = useRouter().currentRoute.value.params.username
 
 // 回到当前用户的项目管理区域
 const ProjectBack = () => {
-  router.replace({ name: 'test', params: { username: name } })
+  router.replace({ name: 'projectmanage', params: { username: name } })
 }
 
 const data = reactive({

@@ -60,7 +60,7 @@ const loginCheck = async () => {
     //   alert(data.message)
     //   return
     // }
-    router.replace({ name: 'test', params: { username: data.username } })
+    router.replace({ name: 'projectmanage', params: { username: data.username } })
   }
 }
 
@@ -79,17 +79,17 @@ const SignupCheck = async () => {
       alert(data.message)
       return
     }
-    router.replace({ name: 'test', params: { username: data.username } })
+    router.replace({ name: 'projectmanage', params: { username: data.username } })
   }
 }
-onMounted(() => {
-  ElNotification({
-    title: '使用指南',
-    message: 'This is the login page, the left side is the overview of the site, the right side is the login bar, unregistered users please click to register and log in',
-    type: 'info',
-    duration: 0
-  })
-})
+// onMounted(() => {
+//   ElNotification({
+//     title: '使用指南',
+//     message: 'This is the login page, the left side is the overview of the site, the right side is the login bar, unregistered users please click to register and log in',
+//     type: 'info',
+//     duration: 0
+//   })
+// })
 </script>
 
 <style scoped>

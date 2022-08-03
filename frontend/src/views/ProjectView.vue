@@ -134,7 +134,7 @@ const logoutConfirm = async () => {
   //   alert('something wrong')
   //   return
   // }
-  router.replace('/index')
+  router.replace('/login')
 }
 // 删除项目
 const removeTask = async (index: number) => {
@@ -204,15 +204,15 @@ const ProjectDetail = (Projectname:string) => {
   console.log(Projectname)
   router.replace({ name: 'coding', params: { username: name, projectname: Projectname } })
 }
-onMounted(() => {
-  ElNotification({
-    title: '使用指南 -- Project Management',
-    message: 'Sidebar for personal information. The information in the main column is: language, project name, last update time, and deleted project',
-    type: 'info',
-    duration: 0,
-    offset: 300
-  })
-})
+// onMounted(() => {
+//   ElNotification({
+//     title: '使用指南 -- Project Management',
+//     message: 'Sidebar for personal information. The information in the main column is: language, project name, last update time, and deleted project',
+//     type: 'info',
+//     duration: 0,
+//     offset: 300
+//   })
+// })
 </script>
 
 <style scoped>
