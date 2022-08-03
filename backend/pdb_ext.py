@@ -1,19 +1,12 @@
 from pdb import Pdb
-import io 
 import os
-from multiprocessing.process import AuthenticationString
 import inspect
 from pprint import pformat
-from sys import stdout
 
 class PdbExt(Pdb):
     def __init__(self, stdin, stdout):
         PdbExt.instance = self
         super().__init__(stdin=stdin, stdout=stdout)
-
-    def my_get_curframe_locals(self):
-        res = self.curframe_locals
-        return res
 
     def get_current_stack(self):
         res = []

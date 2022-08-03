@@ -72,6 +72,26 @@ def forward_pdb_output():
             output = os.read(pdb_output_client[key], max_read_bytes).decode()
             socketio.emit("pdb-output", {"consoleOutput": output, 'token': key}, namespace="/pdb")
 
+@app.route('/pdb/debug', methods=['POST'])
+def start_debug():
+    data = request.get_json()
+    token = data['token']
+    path = data['filepath']
+    def run_pdb_process(token, instance:PdbExt):
+        
+        PdbExt._runscript(instance, os.path.realpath(path))
+        pdb_instance_lock.acquire()
+        pdb_input_client.pop(token)
+        pdb_input_server.pop(token)
+        pdb_output_client.pop(token)
+        pdb_output_server.pop(token)
+        pdb_instance.pop(token)
+        pdb_instance_lock.release()
+        
+        socketio.emit("pdb_quit", {'token': token}, namespace="/pdb")
+
+    t = threading.Thread(target=run_pdb_process, args=(token, pdb_instance[token]), daemon=True)
+    t.start()
 
 @socketio.on("connect", namespace='/pdb')
 def pdb_connect(data):
@@ -85,21 +105,5 @@ def pdb_connect(data):
     stdout_tmp = sys.stdout
     sys.stdout = stdout_tmp
     pdb_instance[token] = PdbExt(stdin=os.fdopen(pdb_input_server[token], 'r'), stdout=os.fdopen(pdb_output_server[token], 'w'))
-    def run_pdb_process(input_fd, output_fd, token, instance:PdbExt):
-        
-        PdbExt._runscript(instance, os.path.realpath('./test.py'))
-        pdb_instance_lock.acquire()
-        pdb_input_client.pop(token)
-        pdb_input_server.pop(token)
-        pdb_output_client.pop(token)
-        pdb_output_server.pop(token)
-        pdb_instance.pop(token)
-        pdb_instance_lock.release()
-        
-        socketio.emit("pdb_quit", {'token': token}, namespace="/pdb")
 
-    #p = multiprocessing.Process(target=run_pdb_process, args=(pdb_input_server[token], pdb_output_server[token], token, pdb_instance[token]), daemon=True)
-    #p.start()
-    t = threading.Thread(target=run_pdb_process, args=(pdb_input_server[token], pdb_output_server[token], token, pdb_instance[token]), daemon=True)
-    t.start()
     socketio.start_background_task(target=forward_pdb_output)

@@ -1,14 +1,6 @@
-from pdb_ext import PdbExt
-from flask import Flask, jsonify, render_template, request
-from flask_socketio import SocketIO, disconnect
+from flask import Flask
+from flask_socketio import SocketIO
 from flask_cors import CORS
-import pty
-import os
-import subprocess
-import select
-import sys
-import threading
-
 
 app = Flask(__name__, template_folder='.')
 CORS(app, resources=r'/*')
