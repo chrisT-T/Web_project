@@ -1,7 +1,7 @@
 <template>
     <div class="editor-header-bar">
       <div class="editor-header-bar-item" v-for="(item, index) in titles" v-bind:key="item">
-        <HeaderItem :title="item" :focus="focusList[index]"  @to-focus="emit('focusToItem', index)" @close="emit('closeItem', index)"></HeaderItem>
+        <HeaderItem :title="item" :focus="focusList[index]" :modified="modifiedList[index]"  @to-focus="emit('focusToItem', index)" @close="emit('closeItem', index)" draggable="true"></HeaderItem>
         <div class="editor-header-bar-item-separation"></div>
       </div>
     </div>
@@ -16,6 +16,7 @@ const props = defineProps<{
 }>()
 
 const focusList = ref<Array<boolean>>(props.titles.map(() => false))
+const modifiedList = ref<Array<boolean>>(props.titles.map(() => false))
 
 // eslint-disable-next-line func-call-spacing
 const emit = defineEmits<{
@@ -28,8 +29,34 @@ function changeFocus (index: number) {
   focusList.value = focusList.value.map((item, i) => i === index)
 }
 
+function modified (index: number) {
+  console.log('change modified' + index)
+  modifiedList.value[index] = true
+}
+
+function saved (index: number) {
+  console.log('change saved' + index)
+  modifiedList.value[index] = false
+}
+
+function getCurrentFocus () {
+  return focusList.value.indexOf(true)
+}
+
+function saveCurrent () {
+  const index = getCurrentFocus()
+  saved(index)
+}
+
+function modifyCurrent () {
+  const index = getCurrentFocus()
+  modified(index)
+}
+
 defineExpose({
-  changeFocus
+  changeFocus,
+  saveCurrent,
+  modifyCurrent
 })
 
 </script>

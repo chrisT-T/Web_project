@@ -3,7 +3,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, shallowRef, onUnmounted, watch, defineProps, defineExpose } from 'vue'
+import { ref, onMounted, shallowRef, onUnmounted, watch, defineProps, defineExpose, defineEmits } from 'vue'
 
 import * as monaco from 'monaco-editor'
 // import { buildWorkerDefinition } from 'monaco-editor-workers'
@@ -137,6 +137,40 @@ onMounted(() => {
   } else {
     console.error('editor container is null')
   }
+
+  // create save and modify emitter
+  editor.value?.onDidChangeModelContent((e) => {
+    emit('modified')
+  })
+  editor.value?.addAction({
+    // An unique identifier of the contributed action.
+    id: 'save-current-file',
+
+    // A label of the action that will be presented to the user.
+    label: 'Save',
+
+    // An optional array of keybindings for the action.
+    keybindings: [
+      monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS
+    ],
+
+    // A precondition for this action.
+    precondition: undefined,
+
+    // A rule to evaluate on top of the precondition in order to dispatch the keybindings.
+    keybindingContext: undefined,
+
+    contextMenuGroupId: 'navigation',
+
+    contextMenuOrder: 1.5,
+
+    // Method that will be executed when the action is triggered.
+    // @param editor The editor instance is passed in as a convenience
+    run: function (ed) {
+      emit('saved')
+    }
+  })
+
   // for lint service
   // install the service
   MonacoServices.install()
@@ -197,6 +231,12 @@ defineExpose({
   setModel,
   deleteModel
 })
+
+// eslint-disable-next-line func-call-spacing
+const emit = defineEmits<{
+  (e: 'modified'): void
+  (e: 'saved'): void
+}> ()
 </script>
 
 <style src="./main.css"/>
