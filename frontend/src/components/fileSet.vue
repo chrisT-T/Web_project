@@ -1,104 +1,203 @@
 <template>
-<div>
-  <el-tree :data="data" :props="defaultProps" @node-click="handleNodeClick" />
+  <div class="custom-tree-container">
+    <el-tree
+      :data="dataSource"
+      node-key="id"
+      default-expand-all
+    >
+      <template #default="{ node, data }">
+        <span class="custom-tree-node">
+          <el-dropdown trigger="contextmenu">
+            <span class="el-dropdown-link">
+              {{ node.label }}
+            </span>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item :icon="Plus" @click="currentTree(data)" :disabled="data.type === 'file'">Append</el-dropdown-item>
+                <el-dropdown-item :icon="DeleteFilled" @click="remove(node, data)">Delete</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+        </span>
+      </template>
+    </el-tree>
+    <el-dialog v-model="form.dialogFormVisible" title="Create new file/folder">
+      <el-form :model="form">
+        <el-form-item label="Promotion name" :label-width="formLabelWidth">
+          <el-input v-model="form.label" autocomplete="off" />
+        </el-form-item>
+        <el-form-item label="Zones" :label-width="formLabelWidth">
+          <el-select v-model="form.type" placeholder="Please select type">
+            <el-option :icon="DocumentAdd" label="Folder" value="folder" />
+            <el-option :icon="FolderAdd" label="File" value="file" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="form.dialogFormVisible = false">Cancel</el-button>
+          <el-button type="primary" @click="form.dialogFormVisible = false; submitCheck(form.currennode, form.label, form.type)"
+            >Confirm</el-button
+          >
+        </span>
+      </template>
+    </el-dialog>
 </div>
 </template>
 
 <script lang="ts" setup>
+import { ref, reactive } from 'vue'
+import type Node from 'element-plus/es/components/tree/src/model/node'
+import {
+  Plus,
+  DeleteFilled,
+  DocumentAdd,
+  FolderAdd
+} from '@element-plus/icons-vue'
+
+const formLabelWidth = '140px'
+
 interface Tree {
+  id: number
   label: string
+  type: string
   children?: Tree[]
 }
+let id = 10000
 
-const handleNodeClick = (data: Tree) => {
-  console.log(data)
-  if (data.children === undefined) {
-    console.log('is leaf')
+const form = reactive({
+  dialogFormVisible: false,
+  label: '',
+  type: '',
+  currennode: {
+    id: 0,
+    label: '',
+    type: ''
+  }
+})
+
+const currentTree = (data: Tree) => {
+  form.currennode = data
+  console.log(form.currennode)
+  // 文件不能继续新增加
+  if (data.type !== 'file') {
+    form.dialogFormVisible = true
   }
 }
 
-const data: Tree[] = [
+// 创建新文件/文件夹
+const submitCheck = (data: Tree, labelNew: string, typeNew: string) => {
+  if (labelNew === '' || typeNew === '') {
+    alert('Name or type is missing')
+  } else {
+    if (typeNew === 'file') {
+      labelNew = labelNew + '.py'
+      console.log(labelNew)
+    }
+    const newChild = { id: id++, label: labelNew, type: typeNew, children: [] }
+    if (!data.children) {
+      data.children = []
+    }
+    data.children.push(newChild)
+    dataSource.value = [...dataSource.value]
+  }
+}
+
+// 删除文件/文件夹
+const remove = (node: Node, data: Tree) => {
+  const parent = node.parent
+  const children: Tree[] = parent.data.children || parent.data
+  const index = children.findIndex((d) => d.id === data.id)
+  children.splice(index, 1)
+  dataSource.value = [...dataSource.value]
+}
+
+// TODO: 从后端获取这个项目的文件信息：需要增加id
+
+const dataSource = ref<Tree[]>([
   {
+    id: 1,
     label: 'Level one 1',
+    type: 'folder',
     children: [
       {
+        id: 4,
         label: 'Level two 1-1',
+        type: 'folder',
         children: [
           {
-            label: 'Level three 1-1-1'
+            id: 9,
+            label: 'Level three 1-1-1',
+            type: 'folder'
+          },
+          {
+            id: 10,
+            label: 'Level_three_1-1-2.py',
+            type: 'file'
           }
         ]
       }
     ]
   },
   {
+    id: 2,
     label: 'Level one 2',
+    type: 'folder',
     children: [
       {
+        id: 5,
         label: 'Level two 2-1',
-        children: [
-          {
-            label: 'Level three 2-1-1',
-            children: [
-              {
-                label: 'Level four 2-1-1-1',
-                children: [
-                  {
-                    label: 'Level five 2-1-1-1-1'
-                  }
-                ]
-              }
-            ]
-          }
-        ]
+        type: 'folder'
       },
       {
-        label: 'Level two 2-2',
-        children: [
-          {
-            label: 'Level three 2-2-1'
-          }
-        ]
+        id: 6,
+        label: 'Level_two_2-2.py',
+        type: 'file'
       }
     ]
   },
   {
+    id: 3,
     label: 'Level one 3',
+    type: 'folder',
     children: [
       {
+        id: 7,
         label: 'Level two 3-1',
-        children: [
-          {
-            label: 'Level three 3-1-1'
-          }
-        ]
+        type: 'folder'
       },
       {
-        label: 'Level two 3-2',
-        children: [
-          {
-            label: 'Level three 3-2-1'
-          }
-        ]
+        id: 8,
+        label: 'Level_two_3-2.py',
+        type: 'file'
       }
     ]
   }
-]
-
-const defaultProps = {
-  children: 'children',
-  label: 'label'
-}
+])
 </script>
 
-<style scoped>
-:deep(.el-tree-node__content) {
+<style>
+.custom-tree-node {
+  flex: 1;
   display: flex;
-  width: 100%;
-  height: max-content;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  padding-right: 8px;
 }
-:deep(.el-tree) {
-  height: 100%;
+.el-select {
+  width: 70%;
+}
+.el-input {
+  width: 70%;
+}
+.dialog-footer button:first-child {
+  margin-right: 10px;
+}
+.el-dialog {
+  overflow: auto;
+}
+.el-tree {
   width: 100%;
   background-color: transparent;
 }

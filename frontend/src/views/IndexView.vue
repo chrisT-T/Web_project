@@ -32,6 +32,58 @@
     </div>
 </template>
 
+<script lang="ts" setup>
+import router from '@/router'
+import { reactive } from 'vue'
+import axios from 'axios'
+
+const data = reactive({
+  username: '',
+  password: '',
+  flag: false,
+  message: ''
+})
+
+const loginCheck = async () => {
+  if (data.username.trim() === '' || data.password.trim() === '') {
+    alert('Username or Password is missing')
+  } else {
+    // await axios.get('http://127.0.0.1:5000/login', { params: { userName: data.username, userPassword: data.password } })
+    //   .then(res => {
+    //     data.flag = res.data.flag
+    //     data.message = res.data.message
+    //   }).catch(function (error) {
+    //     console.log(error.response)
+    //   })
+    // if (data.flag === false) {
+    //   alert(data.message)
+    //   return
+    // }
+    router.replace({ name: 'test', params: { username: data.username } })
+  }
+}
+
+const SignupCheck = async () => {
+  if (data.username.trim() === '' || data.password.trim() === '') {
+    alert('Username or Password is missing')
+  } else {
+    await axios.get('http://127.0.0.1:5000/signup', { params: { userName: data.username, userPassword: data.password } })
+      .then(res => {
+        data.flag = res.data.flag
+        data.message = res.data.message
+      }).catch(function (error) {
+        console.log(error.response)
+      })
+    if (data.flag === false) {
+      alert(data.message)
+      return
+    }
+    router.replace({ name: 'test', params: { username: data.username } })
+  }
+}
+
+</script>
+
 <style scoped>
 body {
     background-color: #fffbf7;
@@ -45,6 +97,7 @@ body {
 .all {
     display: flex;
     flex-direction: column;
+    height: 100%;
 }
 
 header{
@@ -71,6 +124,7 @@ header{
   justify-content: center;
   align-items: center;
   /* flex-direction: column; */
+  flex-grow: 1;
 }
 
 .bg_img {
@@ -203,55 +257,3 @@ height: 400px;
     border-color: var(--el-color-primary-light-7) ;
   }
 </style>
-
-<script lang="ts" setup>
-import router from '@/router'
-import { reactive } from 'vue'
-import axios from 'axios'
-
-const data = reactive({
-  username: '',
-  password: '',
-  flag: false,
-  message: ''
-})
-
-const loginCheck = async () => {
-  if (data.username.trim() === '' || data.password.trim() === '') {
-    alert('Username or Password is missing')
-  } else {
-    await axios.get('http://127.0.0.1:5000/login', { params: { userName: data.username, userPassword: data.password } })
-      .then(res => {
-        data.flag = res.data.flag
-        data.message = res.data.message
-      }).catch(function (error) {
-        console.log(error.response)
-      })
-    if (data.flag === false) {
-      alert(data.message)
-      return
-    }
-    router.replace({ name: 'test', params: { username: data.username } })
-  }
-}
-
-const SignupCheck = async () => {
-  if (data.username.trim() === '' || data.password.trim() === '') {
-    alert('Username or Password is missing')
-  } else {
-    await axios.get('http://127.0.0.1:5000/signup', { params: { userName: data.username, userPassword: data.password } })
-      .then(res => {
-        data.flag = res.data.flag
-        data.message = res.data.message
-      }).catch(function (error) {
-        console.log(error.response)
-      })
-    if (data.flag === false) {
-      alert(data.message)
-      return
-    }
-    router.replace({ name: 'test', params: { username: data.username } })
-  }
-}
-
-</script>

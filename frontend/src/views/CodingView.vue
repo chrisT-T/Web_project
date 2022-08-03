@@ -3,11 +3,11 @@
     <el-container>
       <el-header>
         <el-button type="primary" class="backBtn" :icon="HomeFilled" @click="ProjectBack" text>Menu</el-button>
+        <el-button type="primary" class="saveBtn" :icon="Checked" @click="saveProject" text>Save</el-button>
       </el-header>
       <el-container>
         <div class="btnArea">
           <el-button class="closeBtn" :icon="Fold" @click="closeAside" circle />
-          <el-button class="openBtn" :icon="Expand" @click="openAside" circle />
         </div>
         <el-aside :width="data.width">
           <FileSet></FileSet>
@@ -28,14 +28,16 @@ import router from '@/router'
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import {
-  Expand,
   Fold,
-  HomeFilled
+  HomeFilled,
+  Checked
 } from '@element-plus/icons-vue'
 
 import FileSet from '../components/fileSet.vue'
-
+// 获取当前用户名
 const name = useRouter().currentRoute.value.params.username
+
+// 回到当前用户的项目管理区域
 const ProjectBack = () => {
   router.replace({ name: 'test', params: { username: name } })
 }
@@ -52,15 +54,28 @@ const data = reactive({
   height_2: 50
 })
 
+// 侧边栏收开
 const closeAside = () => {
-  data.old_width = data.width
-  data.width = '0px'
-  data.isClose = true
-}
-const openAside = () => {
-  data.width = data.old_width
+  if (data.isClose) {
+    console.log('isClose')
+    data.width = data.old_width
+    data.isClose = false
+    console.log(data.isClose)
+  } else {
+    console.log('noClose')
+    data.old_width = data.width
+    data.width = '0px'
+    data.isClose = true
+    console.log(data.isClose)
+  }
 }
 
+// 保存文件
+const saveProject = () => {
+  console.log('save')
+}
+
+// 侧边栏拖拽大小
 const handleDragStart = (event: MouseEvent) => {
   data.originX = event.clientX
   console.log(data.originX)
@@ -77,7 +92,7 @@ const handleDragStart = (event: MouseEvent) => {
     isMouseDown = false
   }
 }
-
+// debug区域拖拽大小
 const handleDragStartrow = (event: MouseEvent) => {
   data.originY = event.clientY
   console.log(data.originY)
@@ -107,6 +122,7 @@ div {
   height: 30px;
   display: flex;
   flex-direction: row;
+  padding: 0 5px;
 }
 .resize_col {
   cursor: col-resize;
@@ -120,12 +136,13 @@ div {
   border-radius: 5px;
   height: 2px;
 }
-.backBtn {
+.backBtn, .saveBtn {
   height: 30px;
   background-color: var(--el-color-primary-dark-2);
   color: aliceblue;
+  margin: 0;
 }
-.backBtn:hover {
+.backBtn:hover, .saveBtn:hover {
   color: black;
 }
 .backBtn:hover {

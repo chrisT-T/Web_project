@@ -43,9 +43,6 @@
       >
         <el-form-item
           label="task name"
-          :rules="[
-            { required: true, message: 'task name is required' }
-          ]"
           :label-width="formLabelWidth"
         >
           <el-input v-model="form.name" autocomplete="off"/>
@@ -87,7 +84,7 @@ const formRef = ref<FormInstance>()
 // TODO：后端确认没有重复项目名
 const submitForm = async () => {
   if (form.name === '' || form.language === '') {
-    console.log('Empty enter form')
+    alert('Empty enter form')
   } else {
     await axios.post('http://127.0.0.1:5000/mkdir/' + name.value, { src: name.value + '/' + form.name })
       .then(res => {
@@ -109,16 +106,16 @@ const submitForm = async () => {
 }
 // 登出确认
 const logoutConfirm = async () => {
-  await axios.post('http://127.0.0.1:5000/logout/' + name.value)
-    .then(res => {
-      form.message = res.data
-    }).catch(function (error) {
-      console.log(error.response)
-    })
-  if (form.message !== 'succeed logout') {
-    alert('something wrong')
-    return
-  }
+  // await axios.post('http://127.0.0.1:5000/logout/' + name.value)
+  //   .then(res => {
+  //     form.message = res.data
+  //   }).catch(function (error) {
+  //     console.log(error.response)
+  //   })
+  // if (form.message !== 'succeed logout') {
+  //   alert('something wrong')
+  //   return
+  // }
   router.replace('/index')
 }
 // 删除项目
@@ -209,5 +206,11 @@ const ProjectDetail = (Projectname:string) => {
 }
 .el-link {
   font-size: 18px;
+}
+.el-select {
+  width: 60%;
+}
+.el-input {
+  width: 90%;
 }
 </style>
