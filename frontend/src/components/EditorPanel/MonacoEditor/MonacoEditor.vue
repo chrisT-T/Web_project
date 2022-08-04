@@ -22,29 +22,15 @@ const editor = shallowRef<monaco.editor.IStandaloneCodeEditor | null>(null)
 
 const editorContainer = ref<HTMLElement | null>(null)
 
-const models = shallowRef<Array<monaco.editor.ITextModel>>([])
-
 watch(() => props.editorOption, (val : monaco.editor.IStandaloneEditorConstructionOptions) => {
   console.log('editor options:')
   console.log(val)
   editor.value?.updateOptions(val)
 }, { deep: true })
 
-function createModel (value: string, language: string) {
-  console.log('create model')
-  const model = monaco.editor.createModel(value, language)
-  models.value.push(model)
-  return model
-}
-
-function setModel (index : number) {
+function setModel (model : monaco.editor.ITextModel) {
   console.log('set model')
-  editor.value?.setModel(models.value[index])
-}
-
-function deleteModel (index : number) {
-  models.value[index].dispose()
-  models.value.splice(index, 1)
+  editor.value?.setModel(model)
 }
 
 function getAllDecorationbyClass (className : string) {
@@ -139,7 +125,7 @@ onMounted(() => {
   }
 
   // create save and modify emitter
-  editor.value?.onDidChangeModelContent((e) => {
+  editor.value?.onDidChangeModelContent(() => {
     emit('modified')
   })
   editor.value?.addAction({
@@ -166,7 +152,7 @@ onMounted(() => {
 
     // Method that will be executed when the action is triggered.
     // @param editor The editor instance is passed in as a convenience
-    run: function (ed) {
+    run: function () {
       emit('saved')
     }
   })
@@ -227,9 +213,7 @@ onUnmounted(() => {
 })
 
 defineExpose({
-  createModel,
-  setModel,
-  deleteModel
+  setModel
 })
 
 // eslint-disable-next-line func-call-spacing
