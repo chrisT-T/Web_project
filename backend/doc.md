@@ -1,31 +1,106 @@
-## 现状
+## Debugger API
 
-目前已经实现了一个Web-Terminal，下一步计划实现一个 Web-Debuger
+**执行 PDB 命令**
 
-## 后端
+```py
+@app.route('/pdb/runcmd', methods=['POST'])
+def runcmd():
+```
 
-Web-Debuger 的后端计划基于 pdb 实现，目标的功能如下：
+参数:
 
-- 调试器基本功能
-    - 单步执行，单步跳过，继续，断点
-- 局部变量和全局变量的显示
-- （待定）高级功能
-    - 条件断点，表达式求值
-    - 栈帧的查看
+```json
+{ 
+  token: string, 
+  cmd: string 
+}
+```
 
-## 前端
+返回值:
+```json
+{
+  runflag: bool
+}
+```
+表示命令是否被执行，注意不需要输入换行符。
 
-需要实现一个前端，有以下组件
+**获取当前 PDB 的信息**
+```py
+@app.route('/pdb/curframe', methods=['POST'])
+def get_current_frame():
+```
 
-- 执行这几个操作的按钮
-- 显示局部变量和全局变量的文本框
+参数:
 
-Button 需要能有“不可点击”的功能，至于什么时候不可点击再说。
+```json
+{ 
+  token: string, 
+}
+```
 
-## 前后端通信
+返回值：
 
-计划前端使用 `socket.io-client`，后端使用 `flask_socketio`，接口长啥样再说，先看看怎么用
+```json
+{
+    'dirname': string,
+    'filename': string,
+    'file_listing': string,
+    'current_line': int,
+    'breakpoints': [int],
+    'globals': string,
+    'locals': string
+}
+```
 
-## 参考项目
-- ![https://pypi.org/project/web-pdb]
+**获取调用栈信息**
 
+```py
+@app.route('/pdb/getstack', methods=['POST'])
+def getStack():
+```
+
+参数：
+```json
+{
+    token: string
+}
+```
+
+返回值: List of string
+
+**获取当前函数名称**
+
+```py
+@app.route('/pdb/getfunc', methods=['POST'])
+def getFunc():
+```
+
+参数：
+```json
+{
+    token: string
+}
+```
+
+返回值: List of string
+
+**开始调试**
+
+```py
+@app.route('/pdb/debug', methods=['POST'])
+def start_debug():
+```
+
+参数：
+```json
+{
+    token: string,
+    filepath: string
+}
+```
+
+**调试结束**
+
+```py
+socketio.emit("pdb_quit", {'token': token}, namespace="/pdb")
+```

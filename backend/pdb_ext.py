@@ -30,8 +30,6 @@ class PdbExt(Pdb):
             'locals': self.get_locals()
         }
 
-
-
     """
     The following three functions comes from the project: web-pdb
     https://pypi.org/project/web-pdb

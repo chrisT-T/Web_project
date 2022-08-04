@@ -10,7 +10,6 @@
 import { Vue, prop } from 'vue-class-component'
 import { Terminal } from 'xterm'
 import io from 'socket.io-client'
-import axios from 'axios'
 
 class webTerminalProps {
   termName: string = prop({
@@ -48,9 +47,6 @@ export default class webTerminal extends Vue.with(webTerminalProps) {
     this.socket.on('pty-output', (data: {'output': string, 'token': string}) => {
       if (data.token === this.termName) {
         this.term.write(data.output)
-        if (this.pdbFlag !== '') {
-          this.pdbBuffer += data.output
-        }
       }
     })
 

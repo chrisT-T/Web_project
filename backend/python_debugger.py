@@ -1,109 +1,42 @@
-from pdb_ext import PdbExt
-from flask import jsonify, request
+from argparse import Namespace
+import subprocess
+from socket import SocketIO
 from app import app, socketio
-from flask_socketio import disconnect
-import threading
-import sys
+import pty
+import select
 import os
 
-pdb_input_client = {}
-pdb_input_server = {}
-pdb_output_client = {}
-pdb_output_server = {}
-pdb_instance = {}
-pdb_instance_lock = threading.Lock()
+debugger_terminal_fd = {}
 
-@app.route('/pdb/getstack', methods=['POST'])
-def getStack():
-    data = request.get_json()
-    token:str = data['token']
-    print(pdb_instance.keys())
-    pdb_instance_lock.acquire()
-    if token in pdb_instance.keys():
-        res =jsonify(pdb_instance[token].get_current_stack())
-        pdb_instance_lock.release()
-        return res
-
-@app.route('/pdb/getfunc', methods=['POST'])
-def getFunc():
-    data = request.get_json()
-    token: str = data['token']
-    pdb_instance_lock.acquire()
-    if token in pdb_instance.keys():
-        res = pdb_instance[token].get_current_function()
-        pdb_instance_lock.release()
-        return res
-
-@app.route('/pdb/runcmd', methods=['POST'])
-def runcmd():
-    data = request.get_json()
-    token = data['token']
-    cmd = data['cmd']
-    pdb_instance_lock.acquire()
-    if token in pdb_instance.keys():
-        os.write(pdb_input_client[token], f'{cmd}\n'.encode())
-        pdb_instance_lock.release()
-        return {'runflag': True}
-    else:
-        pdb_instance_lock.release()
-        return {'runflag': False}
-
-@app.route('/pdb/curframe', methods=['POST'])
-def get_current_frame():
-    data = request.get_json()
-    token = data['token']
-    pdb_instance_lock.acquire()
-    if token in pdb_instance.keys():
-        instance: PdbExt = pdb_instance[token]
-        res = instance.get_current_frame_data()
-        pdb_instance_lock.release()
-        return res
-    else:
-        return {'runflag': False}
-
-def forward_pdb_output():
+def forward_debugger_term():
     max_read_bytes = 1024 * 20
     while True:
         socketio.sleep(0.01)
-        pdb_instance_lock.acquire()
-        current_key = pdb_instance.keys()
-        pdb_instance_lock.release()
-        for key in current_key:
-            output = os.read(pdb_output_client[key], max_read_bytes).decode()
-            socketio.emit("pdb-output", {"consoleOutput": output, 'token': key}, namespace="/pdb")
+        for key in debugger_terminal_fd.keys():
+            timeout_sec = 0
+            (data_ready, _, _) = select.select([debugger_terminal_fd[key]], [], [], timeout_sec)
+            if data_ready:
+                output = os.read(debugger_terminal_fd[key], max_read_bytes).decode()
+                socketio.emit("debugger_term_output", {"output": output, 'token': key}, namespace="/pdb")
 
-@app.route('/pdb/debug', methods=['POST'])
-def start_debug():
-    data = request.get_json()
-    token = data['token']
-    path = data['filepath']
-    def run_pdb_process(token, instance:PdbExt):
-        
-        PdbExt._runscript(instance, os.path.realpath(path))
-        pdb_instance_lock.acquire()
-        pdb_input_client.pop(token)
-        pdb_input_server.pop(token)
-        pdb_output_client.pop(token)
-        pdb_output_server.pop(token)
-        pdb_instance.pop(token)
-        pdb_instance_lock.release()
-        
-        socketio.emit("pdb_quit", {'token': token}, namespace="/pdb")
-
-    t = threading.Thread(target=run_pdb_process, args=(token, pdb_instance[token]), daemon=True)
-    t.start()
+@socketio.on('debugger_term_input', namespace='/pdb')
+def pdb_terminal_input(data):
+    if data['token'] in debugger_terminal_fd.keys():
+        os.write(debugger_terminal_fd[data['token']], data['input'].encode())
 
 @socketio.on("connect", namespace='/pdb')
-def pdb_connect(data):
+def debugger_connect(data):
     token = data['token']
-    print(token)
-    if token in pdb_input_server.keys():
+    if token in debugger_terminal_fd.keys():
         return
+    
+    (child_pid, fd) = pty.fork()
 
-    pdb_input_server[token], pdb_input_client[token] = os.pipe()
-    pdb_output_client[token], pdb_output_server[token] = os.pipe()
-    stdout_tmp = sys.stdout
-    sys.stdout = stdout_tmp
-    pdb_instance[token] = PdbExt(stdin=os.fdopen(pdb_input_server[token], 'r'), stdout=os.fdopen(pdb_output_server[token], 'w'))
-
-    socketio.start_background_task(target=forward_pdb_output)
+    if child_pid == 0:
+        subprocess.run('bash')
+    else:
+        debugger_terminal_fd[token] = fd
+        socketio.start_background_task(target=forward_debugger_term)
+        os.write(fd, 'export FLASK_APP=debugger_server\n'.encode())
+        os.write(fd, 'flask run -p 2333\n'.encode())
+        socketio.emit('debugger_port', {"port": 2333, 'token': token}, namespace='/pdb')
