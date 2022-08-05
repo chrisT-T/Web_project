@@ -1,7 +1,9 @@
 <template>
+  <div class="general-editor-container">
+    <GeneralEditor :file-tree="fileTree" class="editor-panel" @delete-window="handleDeleteWindow"></GeneralEditor>
+  </div>
   <!-- 这里是要直接用在 View 里面的 Editor，作为拥有者管理各个 Editor 的状态 -->
   <!-- 使用 provide / inject 穿透祖先关系，直接获得 model 和 mapinformation -->
-  <GeneralEditor :file-tree="fileTree" class="editor-panel"></GeneralEditor>
 </template>
 
 <script setup lang="ts">
@@ -15,7 +17,6 @@ export interface FileInfo {
   focus: boolean
 }
 
-// 考虑
 export interface FileTree {
   id: number,
   isLeaf: boolean,
@@ -56,6 +57,23 @@ const fileTree = ref<FileTree>({
     }
   ]
 })
+
+function handleDeleteWindow (array: Array<number>) {
+  console.log(array)
+  if (array.length === 0) {
+    // TO BE ADD ?
+  } else {
+    deleteWindow(fileTree.value, array)
+  }
+}
+
+function deleteWindow (currentTree : FileTree, array : Array<number>) {
+  if (array.length === 1) {
+    currentTree.children?.splice(array[0], 1)
+  } else {
+    deleteWindow(currentTree.children?.[array[0]] as FileTree, array.slice(1))
+  }
+}
 
 // fileContents 是一个 Map，key 是 path，value 是 FileContent
 const fileStatus = ref <Map<string, FileStatus>>(new Map<string, FileStatus>())
@@ -145,8 +163,10 @@ provide('fileModels', fileModels.value)
 </script>
 
 <style>
-.editor-panel {
-  height: 1000px;
+.general-editor-container {
+  height: 100%;
   width: 100%;
+  background-color: #6D6D6D;
+;
 }
 </style>

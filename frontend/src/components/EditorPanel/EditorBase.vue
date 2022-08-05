@@ -4,7 +4,7 @@
     <!-- header -->
     <div class="editor-header-bar">
       <draggable v-model="thisFileItems" item-key="path" group="editor-header-item" direction="vertical" :prevent-on-filter="true"
-        style="display: flex; flex-direction: row; width: 100%;">
+        style="display: flex; flex-direction: row; width: 100%;" @add="addedItem" @remove="removedItem">
         <template #item="{ element, index }">
           <div style="display: flex;">
             <HeaderItem :title="element.title" :focus="element.focus" :modified="getModified(index)"
@@ -25,12 +25,17 @@ import HeaderItem from './HeaderItem.vue'
 import Draggable from 'vuedraggable'
 import MonacoEditor from './MonacoEditor/MonacoEditor.vue'
 import * as monaco from 'monaco-editor'
-import { ref, onMounted, shallowRef, inject, defineProps, onBeforeMount, computed } from 'vue'
+import { ref, onMounted, shallowRef, inject, defineProps, defineEmits, computed } from 'vue'
 import { FileStatus, FileInfo, FileModel } from './EditorPanel.vue'
 
 const fileStatus = inject('fileStatus') as Map<string, FileStatus>
 const fileModels = inject('fileModels') as Map<string, FileModel>
 const fileItems = inject('fileItems') as Map<number, Array<FileInfo>>
+
+// eslint-disable-next-line func-call-spacing
+const emit = defineEmits<{
+  (e : 'deleteEditor') : void,
+}>()
 
 const props = defineProps<{
   id: number,
@@ -48,6 +53,26 @@ const thisFileItems = computed({
 })
 
 console.log(thisFileItems)
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function addedItem (e : any) {
+  console.log(e)
+  changeFocus(e.newIndex)
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function removedItem (e : any) {
+  console.log(e)
+  if (thisFileItems.value?.length === 0) {
+    emit('deleteEditor')
+  } else {
+    if (e.oldIndex === 0) {
+      changeFocus(0)
+    } else {
+      changeFocus(e.oldIndex - 1)
+    }
+  }
+}
 
 const monacoEditorOption = {
   theme: 'vs-dark',
@@ -109,8 +134,16 @@ function close (index: number) {
   getModel(index)?.dispose()
   fileStatus.delete(getPath(index))
   fileModels.delete(getPath(index))
-
   getFileItems().splice(index, 1)
+  if (getFileItems().length === 0) {
+    emit('deleteEditor')
+  } else {
+    if (index === 0) {
+      changeFocus(0)
+    } else {
+      changeFocus(index - 1)
+    }
+  }
 }
 
 function changeFocus (index: number) {
