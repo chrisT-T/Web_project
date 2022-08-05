@@ -23,16 +23,13 @@ const editor = shallowRef<monaco.editor.IStandaloneCodeEditor | null>(null)
 const editorContainer = ref<HTMLElement | null>(null)
 
 watch(() => props.editorOption, (val : monaco.editor.IStandaloneEditorConstructionOptions) => {
-  console.log('editor options:')
   console.log(val)
   editor.value?.updateOptions(val)
 }, { deep: true })
 
 function setModel (model : monaco.editor.ITextModel) {
-  console.log('set model')
   editor.value?.setModel(model)
 }
-
 function getAllDecorationbyClass (className : string) {
   return editor.value?.getModel()?.getAllDecorations()
     .filter(decoration => decoration.options.glyphMarginClassName === className)
@@ -41,7 +38,7 @@ function getAllDecorationbyClass (className : string) {
 function clearAllDecorationbyClass (className: string) {
   const decorations = getAllDecorationbyClass(className)?.map(decoration => decoration.id)
   if (decorations) {
-    editor.value?.deltaDecorations(decorations, [])
+    editor.value?.getModel()?.deltaDecorations(decorations, [])
   }
 }
 
@@ -68,7 +65,7 @@ function addDecoration (className: string, lineNumber: number, hoverMessage: str
         }
       }
     })
-    editor.value?.deltaDecorations(oldId, old)
+    editor.value?.getModel()?.deltaDecorations(oldId, old)
   }
 }
 
@@ -79,7 +76,7 @@ function removeDecoration (className: string, lineNumber: number) {
   // exist a decoration on the line
   if (existIndex !== -1) {
     old.splice(existIndex, 1)
-    editor.value?.deltaDecorations(oldId, old)
+    editor.value?.getModel()?.deltaDecorations(oldId, old)
   }
 }
 
