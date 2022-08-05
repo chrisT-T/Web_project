@@ -16,7 +16,7 @@
     </div>
     <!-- editor -->
     <MonacoEditor ref="editorItself" :editor-option="monacoEditorOption" @modified="modifyCurrent()"
-      @saved="saveCurrent()"></MonacoEditor>
+      @saved="saveCurrent()" @split-current-view="splitCurrentView()"></MonacoEditor>
   </div>
 </template>
 
@@ -35,6 +35,7 @@ const fileItems = inject('fileItems') as Map<number, Array<FileInfo>>
 // eslint-disable-next-line func-call-spacing
 const emit = defineEmits<{
   (e : 'deleteEditor') : void,
+  (e : 'splitCurrentView', path : string) : void,
 }>()
 
 const props = defineProps<{
@@ -193,6 +194,10 @@ function saveCurrent () {
 function modifyCurrent () {
   const index = getCurrentFocus()
   modified(index)
+}
+
+function splitCurrentView () {
+  emit('splitCurrentView', thisFileItems.value?.[getCurrentFocus()].path as string)
 }
 </script>
 

@@ -1,6 +1,9 @@
 <template>
   <div class="general-editor-container">
-    <GeneralEditor :file-tree="fileTree" class="editor-panel" @delete-window="handleDeleteWindow"></GeneralEditor>
+    <GeneralEditor :file-tree="fileTree" class="editor-panel"
+      @delete-window="handleDeleteWindow"
+      @add-window="handleAddWindow">
+    </GeneralEditor>
   </div>
   <!-- 这里是要直接用在 View 里面的 Editor，作为拥有者管理各个 Editor 的状态 -->
   <!-- 使用 provide / inject 穿透祖先关系，直接获得 model 和 mapinformation -->
@@ -63,11 +66,26 @@ function handleDeleteWindow (array: Array<number>) {
   if (array.length === 0) {
     // TO BE ADD ?
   } else {
-    deleteWindow(fileTree.value, array)
+    deleteWindow(fileTree.value, array.reverse())
+  }
+}
+function handleAddWindow (path : string, array : Array<number>) {
+  console.log(path, array)
+  if (array.length === 0) {
+    // TO BE ADD ?
+  } else {
+    // random a newid or sequence id
+    const newId = Math.floor(Math.random() * 1e9)
+    fileItems.value.set(newId, [{
+      path,
+      title: path.split('/').pop() as string,
+      focus: false
+    }])
+    addWindow(fileTree.value, newId, array.reverse())
   }
 }
 
-function deleteWindow (currentTree : FileTree, array : Array<number>) {
+function deleteWindow (currentTree: FileTree, array : Array<number>) {
   if (array.length === 1) {
     currentTree.children?.splice(array[0], 1)
   } else {
@@ -75,11 +93,22 @@ function deleteWindow (currentTree : FileTree, array : Array<number>) {
   }
 }
 
-// fileContents 是一个 Map，key 是 path，value 是 FileContent
-const fileStatus = ref <Map<string, FileStatus>>(new Map<string, FileStatus>())
-// fileItems 是从 ID 到 Array<FileInfo> 的映射
+function addWindow (currentTree: FileTree, id : number, array : Array<number>) {
+  if (array.length === 1) {
+    currentTree.children?.splice(array[0] + 1, 0, {
+      id,
+      isLeaf: true
+    })
+  } else {
+    addWindow(currentTree.children?.[array[0]] as FileTree, id, array.slice(1))
+  }
+}
+
+// 和 tab 绑定
 const fileItems = ref <Map<number, Array<FileInfo>>>(new Map<number, Array<FileInfo>>())
 
+// 和 文件 绑定
+const fileStatus = ref <Map<string, FileStatus>>(new Map<string, FileStatus>())
 const fileModels = shallowRef <Map<string, FileModel>>(new Map<string, FileModel>())
 
 fileStatus.value.set('a', {

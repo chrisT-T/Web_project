@@ -125,6 +125,7 @@ onMounted(() => {
   editor.value?.onDidChangeModelContent(() => {
     emit('modified')
   })
+
   editor.value?.addAction({
     // An unique identifier of the contributed action.
     id: 'save-current-file',
@@ -151,6 +152,35 @@ onMounted(() => {
     // @param editor The editor instance is passed in as a convenience
     run: function () {
       emit('saved')
+    }
+  })
+
+  editor.value?.addAction({
+    // An unique identifier of the contributed action.
+    id: 'split-current-view',
+
+    // A label of the action that will be presented to the user.
+    label: 'Split Current View',
+
+    // An optional array of keybindings for the action.
+    keybindings: [
+      monaco.KeyMod.CtrlCmd | monaco.KeyCode.Backslash
+    ],
+
+    // A precondition for this action.
+    precondition: undefined,
+
+    // A rule to evaluate on top of the precondition in order to dispatch the keybindings.
+    keybindingContext: undefined,
+
+    contextMenuGroupId: 'modification',
+
+    contextMenuOrder: 1.5,
+
+    // Method that will be executed when the action is triggered.
+    // @param editor The editor instance is passed in as a convenience
+    run: function () {
+      emit('splitCurrentView')
     }
   })
 
@@ -217,6 +247,7 @@ defineExpose({
 const emit = defineEmits<{
   (e: 'modified'): void
   (e: 'saved'): void
+  (e: 'splitCurrentView'): void
 }> ()
 </script>
 
