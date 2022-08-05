@@ -7,6 +7,7 @@ import threading
 import sys
 import os
 import argparse
+import time
 
 app = Flask(__name__, template_folder='.')
 CORS(app, resources=r'/*')
@@ -81,7 +82,7 @@ def forward_pdb_output():
         pdb_instance_lock.release()
         for key in current_key:
             output = os.read(pdb_output_client[key], max_read_bytes).decode()
-            socketio.emit("pdb_output", {"consoleOutput": output, 'token': key}, namespace="/pdb")
+            socketio.emit("pdb_output", {"consoleOutput": output, 'token': key}, namespace="/pdb", to=key)
 
 @app.route('/pdb/debug', methods=['POST'])
 def start_debug():
@@ -95,6 +96,7 @@ def start_debug():
         except FileNotFoundError:
             flag = 'FileNotFoundError'
 
+        time.sleep(0.2)
         pdb_instance_lock.acquire()
         pdb_input_client.pop(token)
         pdb_input_server.pop(token)
@@ -122,8 +124,9 @@ def pdb_connect():
     pdb_instance[token] = PdbExt(stdin=os.fdopen(pdb_input_server[token], 'r'), stdout=os.fdopen(pdb_output_server[token], 'w'))
     socketio.start_background_task(target=forward_pdb_output)
 
-@socketio.on("disconnect", namespace='pdb')
+@socketio.on("disconnect", namespace='/pdb')
 def pdb_disconnect():
+    time.sleep(2)
     token = request.sid
     pdb_instance_lock.acquire()
     if token in pdb_instance.keys():
