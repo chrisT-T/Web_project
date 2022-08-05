@@ -1,6 +1,7 @@
-#editor {
+.monaco-editor-container {
     height: 100%;
-    min-height: 200px;
+    width: 100%;
+    min-height: 100px;
     text-align: left;
 }
 .my-inline-class {

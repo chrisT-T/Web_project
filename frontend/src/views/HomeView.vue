@@ -22,3 +22,8 @@ export default class HomeView extends Vue {
   }
 }
 </script>
+<style scoped>
+.home {
+  height: 500px;
+}
+</style>

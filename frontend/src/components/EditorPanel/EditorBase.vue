@@ -1,9 +1,9 @@
 <template>
   <!-- 这个是单个的“编辑器”，包括上面的标签页栏 和导航栏 (如果有) -->
-  <div>
+  <div class="editor-base-container">
     <!-- header -->
     <div class="editor-header-bar">
-      <draggable v-model="thisFileItems" item-key="path"  direction="vertical" :prevent-on-filter="true"
+      <draggable v-model="thisFileItems" item-key="path" group="editor-header-item" direction="vertical" :prevent-on-filter="true"
         style="display: flex; flex-direction: row; width: 100%;">
         <template #item="{ element, index }">
           <div style="display: flex;">
@@ -183,5 +183,10 @@ function modifyCurrent () {
   width: 1px;
   height: 30px;
   background-color: #1E1E1E;
+}
+
+.editor-base-container {
+  height: 100%;
+  width: 100%;
 }
 </style>

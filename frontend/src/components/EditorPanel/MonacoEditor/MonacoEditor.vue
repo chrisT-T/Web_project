@@ -1,5 +1,5 @@
 <template>
-  <div id="editor" ref="editorContainer"></div>
+  <div class="monaco-editor-container" ref="editorContainer"></div>
 </template>
 
 <script lang="ts" setup>

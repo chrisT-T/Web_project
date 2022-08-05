@@ -29,12 +29,26 @@ const props = defineProps<{
 
 </script>
 
-<style scoped>
-/* .splitpanes__pane {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-} */
+<style>
+.splitpanes--vertical>.splitpanes__splitter {
+  min-width: 3px;
+}
+
+.splitpanes--vertical>.splitpanes__splitter:hover {
+  background-color: #0000cc;
+  outline: #0000cc solid;
+  outline-width: 3px 0px;
+}
+.splitpanes--horizontal>.splitpanes__splitter:hover {
+  background-color: #0000cc;
+  outline: #0000cc solid;
+  outline-width: 3px 0px;
+  z-index: 1;
+}
+
+.splitpanes--horizontal>.splitpanes__splitter {
+  min-height: 3px;
+}
 </style>
 
 <script lang="ts">
