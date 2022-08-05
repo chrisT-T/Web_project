@@ -1,8 +1,9 @@
 <template>
   <div class="general-editor-container">
-    <GeneralEditor :file-tree="fileTree" class="editor-panel"
+    <GeneralEditor :file-tree="fileTree" class="editor-panel" ref="thisGeneralEditor"
       @delete-window="handleDeleteWindow"
-      @add-window="handleAddWindow">
+      @add-window="handleAddWindow"
+      @change-cursor-focus-window="handleChangeCursorFocus">
     </GeneralEditor>
   </div>
   <!-- 这里是要直接用在 View 里面的 Editor，作为拥有者管理各个 Editor 的状态 -->
@@ -11,7 +12,7 @@
 
 <script setup lang="ts">
 import GeneralEditor from './GeneralEditor.vue'
-import { provide, ref, shallowRef, ShallowRef } from 'vue'
+import { provide, ref, shallowRef, defineExpose } from 'vue'
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
 
 export interface FileInfo {
@@ -23,8 +24,8 @@ export interface FileInfo {
 export interface FileTree {
   id: number,
   isLeaf: boolean,
+  children: Array<FileTree>
   direction?: 'horizontal' | 'vertical',
-  children?: Array<FileTree>
 }
 
 export interface FileStatus {
@@ -47,30 +48,63 @@ const fileTree = ref<FileTree>({
       children: [
         {
           id: 2,
-          isLeaf: true
+          isLeaf: true,
+          children: []
         },
         {
           id: 3,
-          isLeaf: true
+          isLeaf: true,
+          children: []
         }
       ]
     }, {
       id: 4,
-      isLeaf: true
+      isLeaf: true,
+      children: []
     }
   ]
 })
 
+const thisGeneralEditor = shallowRef<InstanceType<typeof GeneralEditor> | null>(null)
+
+// 和 tab 绑定
+const fileItems = ref <Map<number, Array<FileInfo>>>(new Map<number, Array<FileInfo>>())
+
+// 和 文件 绑定
+const fileStatus = ref <Map<string, FileStatus>>(new Map<string, FileStatus>())
+const fileModels = shallowRef <Map<string, FileModel>>(new Map<string, FileModel>())
+
+const currentCursorFocus = ref<Array<number>>([])
+
+function addFile (path: string, value: string) {
+  const model = monaco.editor.createModel(value, 'python')
+  if (!fileModels.value.has(path)) {
+    fileModels.value.set(path, { model })
+  }
+  if (!fileStatus.value.has(path)) {
+    fileStatus.value.set(path, { modified: false })
+  }
+  if (currentCursorFocus.value.length === 0) {
+    addFileToWindow(path, new Array<number>(1000).fill(0))
+  } else {
+    addFileToWindow(path, currentCursorFocus.value)
+  }
+}
+
+function addFileToWindow (path : string, array : Array<number>) {
+  thisGeneralEditor.value?.addFileToWindow(path, array)
+}
+
 function handleDeleteWindow (array: Array<number>) {
-  console.log(array)
   if (array.length === 0) {
-    // TO BE ADD ?
+    // 删麻了，不用处理一下（）
   } else {
     deleteWindow(fileTree.value, array.reverse())
   }
+  console.log(fileTree.value.children?.length)
 }
+
 function handleAddWindow (path : string, array : Array<number>) {
-  console.log(path, array)
   if (array.length === 0) {
     // TO BE ADD ?
   } else {
@@ -85,6 +119,10 @@ function handleAddWindow (path : string, array : Array<number>) {
   }
 }
 
+function handleChangeCursorFocus (array: Array<number>) {
+  currentCursorFocus.value = array.reverse()
+}
+
 function deleteWindow (currentTree: FileTree, array : Array<number>) {
   if (array.length === 1) {
     currentTree.children?.splice(array[0], 1)
@@ -97,19 +135,13 @@ function addWindow (currentTree: FileTree, id : number, array : Array<number>) {
   if (array.length === 1) {
     currentTree.children?.splice(array[0] + 1, 0, {
       id,
-      isLeaf: true
+      isLeaf: true,
+      children: []
     })
   } else {
     addWindow(currentTree.children?.[array[0]] as FileTree, id, array.slice(1))
   }
 }
-
-// 和 tab 绑定
-const fileItems = ref <Map<number, Array<FileInfo>>>(new Map<number, Array<FileInfo>>())
-
-// 和 文件 绑定
-const fileStatus = ref <Map<string, FileStatus>>(new Map<string, FileStatus>())
-const fileModels = shallowRef <Map<string, FileModel>>(new Map<string, FileModel>())
 
 fileStatus.value.set('a', {
   modified: false
@@ -189,6 +221,9 @@ provide('fileStatus', fileStatus.value)
 provide('fileItems', fileItems.value)
 provide('fileModels', fileModels.value)
 
+defineExpose({
+  addFile
+})
 </script>
 
 <style>

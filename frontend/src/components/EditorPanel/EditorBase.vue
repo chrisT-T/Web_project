@@ -15,8 +15,12 @@
       </draggable>
     </div>
     <!-- editor -->
-    <MonacoEditor ref="editorItself" :editor-option="monacoEditorOption" @modified="modifyCurrent()"
-      @saved="saveCurrent()" @split-current-view="splitCurrentView()"></MonacoEditor>
+    <MonacoEditor ref="editorItself" :editor-option="monacoEditorOption"
+      @modified="modifyCurrent()"
+      @saved="saveCurrent()"
+      @split-current-view="splitCurrentView()"
+      @change-cursor-focus="changeCursorFocus()">
+    </MonacoEditor>
   </div>
 </template>
 
@@ -25,7 +29,7 @@ import HeaderItem from './HeaderItem.vue'
 import Draggable from 'vuedraggable'
 import MonacoEditor from './MonacoEditor/MonacoEditor.vue'
 import * as monaco from 'monaco-editor'
-import { ref, onMounted, shallowRef, inject, defineProps, defineEmits, computed } from 'vue'
+import { onMounted, shallowRef, inject, defineProps, defineEmits, defineExpose, computed } from 'vue'
 import { FileStatus, FileInfo, FileModel } from './EditorPanel.vue'
 
 const fileStatus = inject('fileStatus') as Map<string, FileStatus>
@@ -36,6 +40,7 @@ const fileItems = inject('fileItems') as Map<number, Array<FileInfo>>
 const emit = defineEmits<{
   (e : 'deleteEditor') : void,
   (e : 'splitCurrentView', path : string) : void,
+  (e : 'changeCursorFocus') : void,
 }>()
 
 const props = defineProps<{
@@ -53,17 +58,28 @@ const thisFileItems = computed({
   }
 })
 
-console.log(thisFileItems)
+function addFile (path : string) {
+  const newFile = {
+    path,
+    title: path.split('/').pop() as string,
+    focus: false
+  }
+  fileItems.get(props.id)?.push(newFile)
+  changeFocus(fileItems.get(props.id)?.length as number - 1)
+  console.log('add file!')
+}
+
+defineExpose({
+  addFile
+})
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function addedItem (e : any) {
-  console.log(e)
   changeFocus(e.newIndex)
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function removedItem (e : any) {
-  console.log(e)
   if (thisFileItems.value?.length === 0) {
     emit('deleteEditor')
   } else {
@@ -82,27 +98,6 @@ const monacoEditorOption = {
   automaticLayout: true,
   bracketPairColorization: true
 } as monaco.editor.IStandaloneEditorConstructionOptions
-
-// path to model
-// const models = shallowRef<Map<string, monaco.editor.ITextModel>>(new Map<string, monaco.editor.ITextModel>())
-
-// async function init (titles: string[], values: string[]) {
-//   // create fileItems
-//   for (let i = 0; i < titles.length; i++) {
-//     const item = {
-//       path: titles[i],
-//       title: titles[i],
-//       language: 'python',
-//       modified: false,
-//       focused: false
-//     }
-//     fileItems.value.push(item)
-//   }
-//   // create models
-//   values.forEach((value, index) => {
-//     models.value.set(fileItems.value[index].path, monaco.editor.createModel(value, 'python'))
-//   })
-// }
 
 const editorItself = shallowRef<InstanceType<typeof MonacoEditor> | null>(null)
 
@@ -148,7 +143,6 @@ function close (index: number) {
 }
 
 function changeFocus (index: number) {
-  console.log('change focus' + index)
   const gotFileItems = getFileItems()
   for (let i = 0; i < gotFileItems.length; i++) {
     gotFileItems[i].focus = false
@@ -159,18 +153,16 @@ function changeFocus (index: number) {
   if (model !== undefined) {
     editorItself.value?.setModel(model)
   } else {
-    console.log('model is undefined')
+    console.error('model is undefined')
   }
 }
 
 function modified (index: number) {
-  console.log('change modified' + index)
   const file = fileStatus.get(getPath(index)) as FileStatus
   file.modified = true
 }
 
 function saved (index: number) {
-  console.log('change saved' + index)
   const file = fileStatus.get(getPath(index)) as FileStatus
   file.modified = false
 }
@@ -199,6 +191,11 @@ function modifyCurrent () {
 function splitCurrentView () {
   emit('splitCurrentView', thisFileItems.value?.[getCurrentFocus()].path as string)
 }
+
+function changeCursorFocus () {
+  emit('changeCursorFocus')
+}
+
 </script>
 
 <style scoped>

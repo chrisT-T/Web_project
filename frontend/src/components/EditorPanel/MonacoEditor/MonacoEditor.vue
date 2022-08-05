@@ -114,7 +114,7 @@ onMounted(() => {
 
   const breakpointClassName = 'monaco-editor-breakpoint'
   const shadowBreakpointClassName = 'monaco-editor-breakpoint-shadow'
-  console.log('mounted')
+  console.log('Monaco Editor mounted')
   if (editorContainer.value !== null && props.editorOption !== null) {
     editor.value = monaco.editor.create(editorContainer.value, props.editorOption)
   } else {
@@ -184,6 +184,10 @@ onMounted(() => {
     }
   })
 
+  editor.value?.onDidFocusEditorText(() => {
+    emit('changeCursorFocus')
+  })
+
   // for lint service
   // install the service
   MonacoServices.install()
@@ -235,7 +239,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  console.log('destroyed')
+  console.log('Monaco Editor Destroyed')
   editor.value?.dispose()
 })
 
@@ -248,6 +252,7 @@ const emit = defineEmits<{
   (e: 'modified'): void
   (e: 'saved'): void
   (e: 'splitCurrentView'): void
+  (e: 'changeCursorFocus'): void
 }> ()
 </script>
 

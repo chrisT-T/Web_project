@@ -15,7 +15,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watch, defineProps, defineEmits } from 'vue'
+import { ref, defineProps, defineEmits } from 'vue'
 
 const props = defineProps({
   title: String,
@@ -27,13 +27,13 @@ const closeOperatorSize = ref('15px')
 const saveOperatorSize = ref('10px')
 
 // on focus, set by parent node
-watch(() => props.focus, (newFocus) => {
-  if (newFocus) {
-    console.log('focus')
-  } else {
-    console.log('stop focus')
-  }
-})
+// watch(() => props.focus, (newFocus) => {
+//   if (newFocus) {
+//     console.log('focus')
+//   } else {
+//     console.log('stop focus')
+//   }
+// })
 
 const emit = defineEmits(['toFocus', 'close'])
 
