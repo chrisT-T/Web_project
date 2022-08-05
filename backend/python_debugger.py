@@ -1,7 +1,7 @@
-from argparse import Namespace
+import socket
 import subprocess
-from socket import SocketIO
 from app import app, socketio
+from flask import request
 import pty
 import select
 import os
@@ -17,16 +17,18 @@ def forward_debugger_term():
             (data_ready, _, _) = select.select([debugger_terminal_fd[key]], [], [], timeout_sec)
             if data_ready:
                 output = os.read(debugger_terminal_fd[key], max_read_bytes).decode()
-                socketio.emit("debugger_term_output", {"output": output, 'token': key}, namespace="/pdb")
-
+                socketio.emit("debugger_term_output", {"output": output, 'token': key}, namespace="/pdb", to=key)
+                
 @socketio.on('debugger_term_input', namespace='/pdb')
 def pdb_terminal_input(data):
-    if data['token'] in debugger_terminal_fd.keys():
-        os.write(debugger_terminal_fd[data['token']], data['input'].encode())
+    token = request.sid
+    print(token, debugger_terminal_fd.keys())
+    if token in debugger_terminal_fd.keys():
+        os.write(debugger_terminal_fd[token], data['input'].encode())
 
 @socketio.on("connect", namespace='/pdb')
-def debugger_connect(data):
-    token = data['token']
+def debugger_connect():
+    token = request.sid
     if token in debugger_terminal_fd.keys():
         return
     
@@ -39,4 +41,8 @@ def debugger_connect(data):
         socketio.start_background_task(target=forward_debugger_term)
         os.write(fd, 'export FLASK_APP=debugger_server\n'.encode())
         os.write(fd, 'flask run -p 2333\n'.encode())
-        socketio.emit('debugger_port', {"port": 2333, 'token': token}, namespace='/pdb')
+        socketio.emit('debugger_port', {"port": 2333, 'token': token}, namespace='/pdb', to=token)
+
+@socketio.on('disconnect', namespace='/pdb')
+def debugger_disconnect():
+    debugger_terminal_fd.pop(request.sid)
