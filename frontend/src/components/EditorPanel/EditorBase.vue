@@ -15,12 +15,14 @@
       </draggable>
     </div>
     <!-- editor -->
-    <MonacoEditor ref="editorItself" :editor-option="monacoEditorOption"
-      @modified="modifyCurrent()"
-      @saved="saveCurrent()"
-      @split-current-view="splitCurrentView()"
-      @change-cursor-focus="changeCursorFocus()">
-    </MonacoEditor>
+    <div class="editor-content">
+      <MonacoEditor ref="editorItself" :editor-option="monacoEditorOption"
+        @modified="modifyCurrent()"
+        @saved="saveCurrent()"
+        @split-current-view="splitCurrentView()"
+        @change-cursor-focus="changeCursorFocus()">
+      </MonacoEditor>
+    </div>
   </div>
 </template>
 
@@ -64,6 +66,9 @@ function addFile (path : string) {
     title: path.split('/').pop() as string,
     focus: false
   }
+  if (!fileItems.get(props.id)) {
+    fileItems.set(props.id, [])
+  }
   fileItems.get(props.id)?.push(newFile)
   changeFocus(fileItems.get(props.id)?.length as number - 1)
   console.log('add file!')
@@ -96,14 +101,17 @@ const monacoEditorOption = {
   glyphMargin: true,
   language: 'python',
   automaticLayout: true,
-  bracketPairColorization: true
+  bracketPairColorization: true,
+  overflowWidgetsDomNode: document.body
 } as monaco.editor.IStandaloneEditorConstructionOptions
 
 const editorItself = shallowRef<InstanceType<typeof MonacoEditor> | null>(null)
 
 onMounted(async () => {
   // await init(testTitles, testValues)
-  changeFocus(0)
+  if (fileItems.get(props.id)?.length) {
+    changeFocus(0)
+  }
 })
 
 function getFileItems () {
@@ -189,6 +197,7 @@ function modifyCurrent () {
 }
 
 function splitCurrentView () {
+  console.log('split current view')
   emit('splitCurrentView', thisFileItems.value?.[getCurrentFocus()].path as string)
 }
 
@@ -223,5 +232,10 @@ function changeCursorFocus () {
 .editor-base-container {
   height: 100%;
   width: 100%;
+}
+
+.editor-content {
+  visibility: v-bind('thisFileItems?.length ? "visible" : "hidden"');
+  height: calc(100% - 30px);
 }
 </style>

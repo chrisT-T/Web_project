@@ -106,17 +106,18 @@ function handleDeleteWindow (array: Array<number>) {
 
 function handleAddWindow (path : string, array : Array<number>) {
   if (array.length === 0) {
-    // TO BE ADD ?
-  } else {
-    // random a newid or sequence id
-    const newId = Math.floor(Math.random() * 1e9)
-    fileItems.value.set(newId, [{
-      path,
-      title: path.split('/').pop() as string,
-      focus: false
-    }])
-    addWindow(fileTree.value, newId, array.reverse())
+    // some ... temporary solution
+    // TO BE DONE!
+    array = new Array(1).fill(0)
   }
+  // random a newid or sequence id
+  const newId = Math.floor(Math.random() * 1e9)
+  fileItems.value.set(newId, [{
+    path,
+    title: path.split('/').pop() as string,
+    focus: false
+  }])
+  addWindow(fileTree.value, newId, array.reverse())
 }
 
 function handleChangeCursorFocus (array: Array<number>) {
@@ -162,6 +163,8 @@ fileStatus.value.set('d', {
 fileStatus.value.set('e', {
   modified: false
 })
+
+fileItems.value.set(0, [])
 
 fileItems.value.set(2, [
   {
