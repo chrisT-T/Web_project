@@ -1,3 +1,4 @@
+import random
 import socket
 import subprocess
 from app import app, socketio
@@ -39,10 +40,21 @@ def debugger_connect():
     else:
         debugger_terminal_fd[token] = fd
         socketio.start_background_task(target=forward_debugger_term)
+        print('testawets')
+        port = random.randint(10000, 30000)
+        while is_port_in_use(port):
+            port = random.randint(10000, 30000)
+        print(f'port is {port}')
         os.write(fd, 'export FLASK_APP=debugger_server\n'.encode())
-        os.write(fd, 'flask run -p 2333\n'.encode())
-        socketio.emit('debugger_port', {"port": 2333, 'token': token}, namespace='/pdb', to=token)
+        os.write(fd, f'flask run -p {port}\n'.encode())
+        socketio.emit('debugger_port', {"port": port, 'token': token}, namespace='/pdb', to=token)
 
 @socketio.on('disconnect', namespace='/pdb')
 def debugger_disconnect():
     debugger_terminal_fd.pop(request.sid)
+
+
+def is_port_in_use(port):
+    import socket
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex(('localhost', port)) == 0
