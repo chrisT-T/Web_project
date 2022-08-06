@@ -5,19 +5,19 @@
   <template v-if="fileTree.isLeaf">
     <!-- 是 Leaf 了！ -->
     <EditorBase :id="fileTree.id" ref="baseEditor"
-      @delete-editor="emit('deleteWindow', [])"
-      @split-current-view="(path) => {emit('addWindow', path, [])}"
-      @change-cursor-focus="() => {emit('changeCursorFocusWindow', [])}">
+      @delete-editor="emit('deleteWindow', fileTree.id)"
+      @split-current-view="(direction: 'horizontal' | 'vertical') => { emit('addWindow', fileTree.id, direction) }"
+      @change-cursor-focus="() => {emit('changeCursorFocusWindow', fileTree.id)}">
       ></EditorBase>
   </template>
   <template v-else>
     <!-- 不是 leaf，需要遍历构造 child -->
     <splitpanes :horizontal="fileTree.direction === 'horizontal'">
-      <pane v-for="(child, index) in fileTree.children" :key="child.id" min-size="20">
-        <GeneralEditor :file-tree="child" :ref="(el) => {childrenRef.set(index, el as Element)}"
-          @add-window="(path : string, array : Array<number>) => { handlerAddWindow(path, array, index) }"
-          @delete-window="(array : Array<number>) => { handlerDeleteWindow(array, index) }"
-          @change-cursor-focus-window="(array : Array<number>) => { handlerChangeCursorFocusWindow(array, index)}">
+      <pane v-for="child in fileTree.children" :key="child" min-size="20">
+        <GeneralEditor :window-id="child"
+          @add-window="(windowID: number, direction: 'horizontal' | 'vertical') => { emit('addWindow', windowID, direction) }"
+          @delete-window="(windowID: number) => { emit('deleteWindow', windowID) }"
+          @change-cursor-focus-window="(windowID: number) => {emit('changeCursorFocusWindow', windowID)}">
         </GeneralEditor>
       </pane>
     </splitpanes>
@@ -25,61 +25,32 @@
 </template>
 
 <script setup lang="ts">
-import { shallowRef, defineProps, defineEmits, defineExpose } from 'vue'
+import { shallowRef, defineProps, defineEmits, inject } from 'vue'
 import { FileTree } from './EditorPanel.vue'
 import EditorBase from './EditorBase.vue'
 import { Splitpanes, Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 
+const fileTrees = inject('fileTrees') as Map<number, FileTree>
+
 const props = defineProps<{
-  fileTree: FileTree,
+  windowId: number,
 }>()
 
+const fileTree = fileTrees.get(props.windowId) as FileTree
+
+console.log(fileTrees.get(props.windowId))
+
 // sorry, but I have to do that
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const childrenRef = shallowRef<Map<number, any>>(new Map())
 const baseEditor = shallowRef<InstanceType<typeof EditorBase> | null>(null)
 
 // eslint-disable-next-line func-call-spacing
 const emit = defineEmits<{
-  (e: 'deleteWindow', array : Array<number>): void,
-  (e: 'addWindow', path : string, array : Array<number>): void,
-  (e: 'changeCursorFocusWindow', array: Array<number>): void,
+  (e: 'deleteWindow', windowID: number): void,
+  (e: 'addWindow', windowId: number, direction: 'horizontal' | 'vertical'): void,
+  (e: 'changeCursorFocusWindow', windowID: number): void,
 }>()
 
-function addToEnd (array: Array<number>, item: number) {
-  const newArray = array
-  newArray.push(item)
-  return newArray
-}
-
-function handlerDeleteWindow (array: Array<number>, index: number) {
-  if (props.fileTree.children?.length === 1 && array.length === 0) {
-    emit('deleteWindow', [])
-  } else {
-    emit('deleteWindow', addToEnd(array, index))
-  }
-}
-
-function handlerAddWindow (path: string, array: Array<number>, index: number) {
-  emit('addWindow', path, addToEnd(array, index))
-}
-
-function handlerChangeCursorFocusWindow (array: Array<number>, index: number) {
-  emit('changeCursorFocusWindow', addToEnd(array, index))
-}
-
-function addFileToWindow (path : string, array : Array<number>) {
-  console.log('addFileToWindow', path, array)
-  if (props.fileTree.isLeaf) {
-    baseEditor.value?.addFile(path)
-  } else {
-    childrenRef.value.get(array[0]).addFileToWindow(path, array.slice(1))
-  }
-}
-defineExpose({
-  addFileToWindow
-})
 </script>
 
 <style>

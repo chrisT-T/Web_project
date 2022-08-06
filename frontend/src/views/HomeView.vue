@@ -1,6 +1,5 @@
 <template>
   <div class="home">
-    <!-- <MonacoEditor :editor-option="option" ref="myeditor"> </MonacoEditor> -->
     <EditorPanel ref="myEditorPanel"></EditorPanel>
   </div>
   <button @click="addFile">Add Random File</button>
@@ -10,6 +9,7 @@
 <script lang="ts" setup>
 import EditorPanel from '@/components/EditorPanel/EditorPanel.vue'
 import { shallowRef } from 'vue'
+import MonacoEditor from '@/components/EditorPanel/MonacoEditor/MonacoEditor.vue'
 
 const myEditorPanel = shallowRef<InstanceType<typeof EditorPanel> | null>(null)
 

@@ -1,14 +1,13 @@
 <template>
   <div class="general-editor-container">
-    <GeneralEditor :file-tree="fileTree" class="editor-panel" ref="thisGeneralEditor"
+    <GeneralEditor :window-id="rootID" class="editor-panel" ref="thisGeneralEditor"
       @delete-window="handleDeleteWindow"
       @add-window="handleAddWindow"
       @change-cursor-focus-window="handleChangeCursorFocus">
     </GeneralEditor>
 
-    <p>{{ JSON.stringify(fileTree , null, 4) }}</p>
+    <p>{{ fileTrees }}</p>
     <p>{{ fileItems }}</p>
-    <p>{{ fileModels.keys() }}</p>
     <p>{{ fileStatus }}</p>
 
   </div>
@@ -23,14 +22,14 @@ import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
 
 export interface FileInfo {
   path: string,
-  title: string,
   focus: boolean
 }
 
 export interface FileTree {
   id: number,
   isLeaf: boolean,
-  children: Array<FileTree>
+  parent: number,
+  children: Array<number>
   direction?: 'horizontal' | 'vertical',
 }
 
@@ -43,36 +42,20 @@ export interface FileModel {
   model: monaco.editor.ITextModel,
 }
 
-const fileTree = ref<FileTree>({
-  id: 0,
-  isLeaf: false,
-  direction: 'horizontal',
-  children: [
-    {
-      id: 1,
-      isLeaf: false,
-      direction: 'vertical',
-      children: [
-        {
-          id: 2,
-          isLeaf: true,
-          children: []
-        },
-        {
-          id: 3,
-          isLeaf: true,
-          children: []
-        }
-      ]
-    }, {
-      id: 4,
-      isLeaf: true,
-      children: []
-    }
-  ]
-})
-
 const thisGeneralEditor = shallowRef<InstanceType<typeof GeneralEditor> | null>(null)
+
+// root is at number 0
+const undefinedID = -1
+const rootID = 0
+const fileTrees = ref<Map<number, FileTree>>(new Map())
+
+fileTrees.value.set(rootID, {
+  id: rootID,
+  isLeaf: false,
+  parent: undefinedID,
+  children: [],
+  direction: 'horizontal'
+})
 
 // 和 tab 绑定
 const fileItems = ref <Map<number, Array<FileInfo>>>(new Map<number, Array<FileInfo>>())
@@ -81,7 +64,8 @@ const fileItems = ref <Map<number, Array<FileInfo>>>(new Map<number, Array<FileI
 const fileStatus = ref <Map<string, FileStatus>>(new Map<string, FileStatus>())
 const fileModels = shallowRef <Map<string, FileModel>>(new Map<string, FileModel>())
 
-const currentCursorFocus = ref<Array<number>>([])
+// 记录 window 的 ID
+const currentCursorFocus = ref<number>()
 
 function addFile (path: string, value: string) {
   const model = monaco.editor.createModel(value, 'python')
@@ -89,151 +73,184 @@ function addFile (path: string, value: string) {
     fileModels.value.set(path, { model })
   }
   if (!fileStatus.value.has(path)) {
-    fileStatus.value.set(path, { modified: false, openCount: 0 })
+    fileStatus.value.set(path, { modified: false, openCount: 1 })
   }
-  if (currentCursorFocus.value.length === 0) {
-    addFileToWindow(path, new Array<number>(1000).fill(0))
+  if (currentCursorFocus.value) {
+    addFileToWindow(currentCursorFocus.value as number, path)
   } else {
-    addFileToWindow(path, currentCursorFocus.value)
+    const firstWindowID = getFirstWindow(0)
+    if (firstWindowID !== undefinedID) {
+      addFileToWindow(firstWindowID, path)
+    } else {
+      handleAddWindow(rootID, 'horizontal')
+      addFileToWindow(getFirstWindow(rootID) as number, path)
+    }
   }
 }
 
-function addFileToWindow (path : string, array : Array<number>) {
-  thisGeneralEditor.value?.addFileToWindow(path, array)
-}
-
-function handleDeleteWindow (array: Array<number>) {
-  if (array.length === 0) {
-    // 删麻了，不用处理一下（）
+function getFirstWindow (currentID: number) : number {
+  const currentTree = fileTrees.value.get(currentID)
+  if (currentTree) {
+    if (currentTree.isLeaf) {
+      return currentID
+    } else {
+      return getFirstWindow(currentTree.children[0])
+    }
   } else {
-    deleteWindow(fileTree.value, array.reverse())
+    return undefinedID
   }
-  console.log(fileTree.value.children?.length)
 }
 
-function handleAddWindow (path : string, array : Array<number>) {
-  if (array.length === 0) {
-    // some ... temporary solution
-    // TO BE DONE!
-    array = new Array(1000).fill(0)
-  }
-  // random a newid or sequence id
-  const newId = Math.floor(Math.random() * 1e9)
-  fileItems.value.set(newId, [{
-    path,
-    title: path.split('/').pop() as string,
-    focus: false
-  }])
-  const newOpenCount = fileStatus.value.get(path)?.openCount as number + 1
-  fileStatus.value.set(path, { modified: false, openCount: newOpenCount })
-  addWindow(fileTree.value, newId, array.reverse())
-}
-
-function handleChangeCursorFocus (array: Array<number>) {
-  currentCursorFocus.value = array.reverse()
-}
-
-function deleteWindow (currentTree: FileTree, array: Array<number>) {
-  if (array.length === 1) {
-    currentTree.children?.splice(array[0], 1)
+function addFileToWindow (windowID: number, path : string) {
+  console.log('here!!!')
+  const fileItem = fileItems.value.get(windowID)
+  if (fileItem) {
+    fileItem.push({ path, focus: false })
+    fileItems.value.set(windowID, fileItem)
   } else {
-    deleteWindow(currentTree.children?.[array[0]] as FileTree, array.slice(1))
+    fileItems.value.set(windowID, [{ path, focus: false }])
   }
 }
 
-function addWindow (currentTree: FileTree, id : number, array: Array<number>) {
-  if (currentTree.isLeaf === true || array.length === 1) {
-    currentTree.children?.splice(array[0] + 1, 0, {
-      id,
+function handleDeleteWindow (windowID : number) {
+  const parentID = fileTrees.value.get(windowID)?.parent as number
+  // only one children
+  if (parentID !== rootID && fileTrees.value.get(parentID)?.children.length === 1) {
+    // recursive delete
+    handleDeleteWindow(parentID)
+  } else {
+    const parent = fileTrees.value.get(parentID) as FileTree
+    parent.children.splice(parent.children.indexOf(windowID) as number, 1)
+  }
+  fileItems.value.delete(windowID)
+  fileTrees.value.delete(windowID)
+}
+
+function handleAddWindow (windowID : number, direction: 'horizontal' | 'vertical') {
+  console.log('add window', windowID)
+  const newWindowID = Math.floor(Math.random() * 1e9)
+
+  const parentID = fileTrees.value.get(windowID)?.parent as number
+  if (parentID !== undefinedID) {
+    // not a root
+    if (fileTrees.value.get(parentID)?.direction === direction) {
+      // same direction --> as a sibling
+      fileTrees.value.set(newWindowID, {
+        id: newWindowID,
+        isLeaf: true,
+        parent: parentID,
+        children: []
+      })
+      const parent = fileTrees.value.get(parentID) as FileTree
+      const index = parent.children.indexOf(windowID)
+      parent.children.splice(index + 1, 0, newWindowID)
+    } else {
+      // different direction --> as a child
+      // generate a new parent
+      const newParentID = Math.floor(Math.random() * 1e9)
+      const oldParent = fileTrees.value.get(parentID) as FileTree
+      oldParent.children.splice(oldParent.children.indexOf(windowID), 1, newParentID)
+      // replace parent's son with a new parent
+      fileTrees.value.set(parentID, oldParent)
+      fileTrees.value.set(newParentID, {
+        id: newParentID,
+        isLeaf: false,
+        parent: parentID,
+        children: [windowID, newWindowID],
+        direction
+      })
+      fileTrees.value.set(windowID, {
+        id: windowID,
+        isLeaf: true,
+        parent: newParentID,
+        children: []
+      })
+      fileTrees.value.set(newWindowID, {
+        id: newWindowID,
+        isLeaf: true,
+        parent: newParentID,
+        children: []
+      })
+    }
+  } else {
+    fileTrees.value.set(newWindowID, {
+      id: newWindowID,
       isLeaf: true,
+      parent: rootID,
       children: []
     })
-  } else {
-    addWindow(currentTree.children?.[array[0]] as FileTree, id, array.slice(1))
+    fileTrees.value.set(rootID, {
+      id: rootID,
+      isLeaf: false,
+      parent: undefinedID,
+      children: [newWindowID],
+      direction
+    })
   }
+
+  // set fileItems
+  const newfileInfo = fileItems.value.get(windowID)?.filter((item) => item.focus)[0] as FileInfo
+  const newfileStatus = fileStatus.value.get(newfileInfo.path) as FileStatus
+  newfileStatus.openCount += 1
+  fileStatus.value.set(newfileInfo.path, newfileStatus)
+  fileItems.value.set(newWindowID, [
+    {
+      path: newfileInfo.path,
+      focus: true
+    }
+  ])
 }
 
-fileStatus.value.set('a', {
-  modified: false,
-  openCount: 1
+function handleChangeCursorFocus (windowID : number) {
+  currentCursorFocus.value = windowID
+}
+
+fileTrees.value.set(0, {
+  id: 0,
+  isLeaf: false,
+  parent: -1,
+  direction: 'vertical',
+  children: [1, 2]
+}).set(1, {
+  id: 1,
+  isLeaf: true,
+  parent: 0,
+  children: []
+}).set(2, {
+  id: 2,
+  isLeaf: true,
+  parent: 0,
+  children: []
 })
 
-fileStatus.value.set('b', {
-  modified: false,
-  openCount: 1
-})
+function tmpAddFile (path :string, value :string) {
+  fileStatus.value.set(path, { modified: false, openCount: 1 })
+  fileModels.value.set(path, { model: monaco.editor.createModel(value, 'python') })
+}
 
-fileStatus.value.set('c', {
-  modified: false,
-  openCount: 1
-})
+tmpAddFile('a.py', 'print("hello world test1")')
+tmpAddFile('b.py', 'print("hello world test2")')
+tmpAddFile('c.py', 'print("hello world test3")')
 
-fileStatus.value.set('d', {
-  modified: false,
-  openCount: 1
-})
-
-fileStatus.value.set('e', {
-  modified: false,
-  openCount: 1
-})
-
-fileItems.value.set(0, [])
+fileItems.value.set(1, [
+  {
+    path: 'a.py',
+    focus: false
+  }
+])
 
 fileItems.value.set(2, [
   {
-    path: 'a',
-    title: 'a',
-    focus: false
-  }
-])
-
-fileItems.value.set(3, [
-  {
-    path: 'b',
-    title: 'b',
+    path: 'b.py',
     focus: false
   },
   {
-    path: 'c',
-    title: 'c',
+    path: 'c.py',
     focus: false
   }
 ])
 
-fileItems.value.set(4, [
-  {
-    path: 'd',
-    title: 'd',
-    focus: false
-  },
-  {
-    path: 'e',
-    title: 'e',
-    focus: false
-  }
-])
-
-fileModels.value.set('a', {
-  model: monaco.editor.createModel('a', 'python')
-})
-
-fileModels.value.set('b', {
-  model: monaco.editor.createModel('b', 'python')
-})
-
-fileModels.value.set('c', {
-  model: monaco.editor.createModel('c', 'python')
-})
-
-fileModels.value.set('d', {
-  model: monaco.editor.createModel('d', 'python')
-})
-
-fileModels.value.set('e', {
-  model: monaco.editor.createModel('e', 'python')
-})
-
+provide('fileTrees', fileTrees.value)
 provide('fileStatus', fileStatus.value)
 provide('fileItems', fileItems.value)
 provide('fileModels', fileModels.value)

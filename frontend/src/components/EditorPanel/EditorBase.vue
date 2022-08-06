@@ -7,7 +7,7 @@
         style="display: flex; flex-direction: row; width: 100%;" @add="addedItem" @remove="removedItem">
         <template #item="{ element, index }">
           <div style="display: flex;">
-            <HeaderItem :title="element.title" :focus="element.focus" :modified="getModified(index)"
+            <HeaderItem :title="element.path.split('/').pop()" :focus="element.focus" :modified="getModified(index)"
               @to-focus="changeFocus(index)" @close="close(index)"></HeaderItem>
             <div class="editor-header-bar-item-separation"></div>
           </div>
@@ -17,10 +17,10 @@
     <!-- editor -->
     <div class="editor-content">
       <MonacoEditor ref="editorItself" :editor-option="monacoEditorOption"
-        @modified="modifyCurrent()"
-        @saved="saveCurrent()"
-        @split-current-view="splitCurrentView()"
-        @change-cursor-focus="changeCursorFocus()">
+        @modified="modifyCurrent"
+        @saved="saveCurrent"
+        @split-current-view="splitCurrentView"
+        @change-cursor-focus="changeCursorFocus">
       </MonacoEditor>
     </div>
   </div>
@@ -31,7 +31,7 @@ import HeaderItem from './HeaderItem.vue'
 import Draggable from 'vuedraggable'
 import MonacoEditor from './MonacoEditor/MonacoEditor.vue'
 import * as monaco from 'monaco-editor'
-import { onMounted, shallowRef, inject, defineProps, defineEmits, defineExpose, computed } from 'vue'
+import { onMounted, shallowRef, inject, defineProps, defineEmits, watch, computed } from 'vue'
 import { FileStatus, FileInfo, FileModel } from './EditorPanel.vue'
 
 const fileStatus = inject('fileStatus') as Map<string, FileStatus>
@@ -41,7 +41,7 @@ const fileItems = inject('fileItems') as Map<number, Array<FileInfo>>
 // eslint-disable-next-line func-call-spacing
 const emit = defineEmits<{
   (e : 'deleteEditor') : void,
-  (e : 'splitCurrentView', path : string) : void,
+  (e : 'splitCurrentView', direction: 'horizontal' | 'vertical') : void,
   (e : 'changeCursorFocus') : void,
 }>()
 
@@ -58,24 +58,6 @@ const thisFileItems = computed({
       fileItems.set(props.id, val)
     }
   }
-})
-
-function addFile (path : string) {
-  const newFile = {
-    path,
-    title: path.split('/').pop() as string,
-    focus: false
-  }
-  if (!fileItems.get(props.id)) {
-    fileItems.set(props.id, [])
-  }
-  fileItems.get(props.id)?.push(newFile)
-  changeFocus(fileItems.get(props.id)?.length as number - 1)
-  console.log('add file!')
-}
-
-defineExpose({
-  addFile
 })
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -102,7 +84,6 @@ const monacoEditorOption = {
   language: 'python',
   automaticLayout: true,
   bracketPairColorization: true,
-  overflowWidgetsDomNode: document.body,
   model: null
 } as monaco.editor.IStandaloneEditorConstructionOptions
 
@@ -144,7 +125,7 @@ function close (index: number) {
     fileModels.delete(getPath(index))
   } else {
     fileStatus.set(getPath(index), {
-      modified: false,
+      modified: getModified(index) as boolean,
       openCount: currentCount - 1
     })
   }
@@ -206,9 +187,9 @@ function modifyCurrent () {
   modified(index)
 }
 
-function splitCurrentView () {
+function splitCurrentView (direction: 'horizontal' | 'vertical') {
   console.log('split current view')
-  emit('splitCurrentView', thisFileItems.value?.[getCurrentFocus()].path as string)
+  emit('splitCurrentView', direction)
 }
 
 function changeCursorFocus () {

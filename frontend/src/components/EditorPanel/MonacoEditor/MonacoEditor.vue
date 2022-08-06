@@ -157,10 +157,10 @@ onMounted(() => {
 
   editor.value?.addAction({
     // An unique identifier of the contributed action.
-    id: 'split-current-view',
+    id: 'split-current-view-horizontal',
 
     // A label of the action that will be presented to the user.
-    label: 'Split Current View',
+    label: 'Split Current View(Horizontal)',
 
     // An optional array of keybindings for the action.
     keybindings: [
@@ -180,8 +180,36 @@ onMounted(() => {
     // Method that will be executed when the action is triggered.
     // @param editor The editor instance is passed in as a convenience
     run: function () {
-      console.log('split current view')
-      emit('splitCurrentView')
+      emit('splitCurrentView', 'horizontal')
+    }
+  })
+
+  editor.value?.addAction({
+    // An unique identifier of the contributed action.
+    id: 'split-current-view-vertical',
+
+    // A label of the action that will be presented to the user.
+    label: 'Split Current View(Vertical)',
+
+    // An optional array of keybindings for the action.
+    keybindings: [
+      monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.Backslash
+    ],
+
+    // A precondition for this action.
+    precondition: undefined,
+
+    // A rule to evaluate on top of the precondition in order to dispatch the keybindings.
+    keybindingContext: undefined,
+
+    contextMenuGroupId: 'modification',
+
+    contextMenuOrder: 1.5,
+
+    // Method that will be executed when the action is triggered.
+    // @param editor The editor instance is passed in as a convenience
+    run: function () {
+      emit('splitCurrentView', 'vertical')
     }
   })
 
@@ -252,7 +280,7 @@ defineExpose({
 const emit = defineEmits<{
   (e: 'modified'): void
   (e: 'saved'): void
-  (e: 'splitCurrentView'): void
+  (e: 'splitCurrentView', direction: 'horizontal' | 'vertical'): void
   (e: 'changeCursorFocus'): void
 }> ()
 </script>
