@@ -102,7 +102,8 @@ const monacoEditorOption = {
   language: 'python',
   automaticLayout: true,
   bracketPairColorization: true,
-  overflowWidgetsDomNode: document.body
+  overflowWidgetsDomNode: document.body,
+  model: null
 } as monaco.editor.IStandaloneEditorConstructionOptions
 
 const editorItself = shallowRef<InstanceType<typeof MonacoEditor> | null>(null)
@@ -135,9 +136,18 @@ function getModified (index : number) {
 }
 
 function close (index: number) {
-  getModel(index)?.dispose()
-  fileStatus.delete(getPath(index))
-  fileModels.delete(getPath(index))
+  const currentCount = fileStatus.get(getPath(index))?.openCount as number
+  console.log(currentCount)
+  if (currentCount === 1) {
+    fileStatus.delete(getPath(index))
+    fileModels.get(getPath(index))?.model.dispose()
+    fileModels.delete(getPath(index))
+  } else {
+    fileStatus.set(getPath(index), {
+      modified: false,
+      openCount: currentCount - 1
+    })
+  }
   getFileItems().splice(index, 1)
   if (getFileItems().length === 0) {
     emit('deleteEditor')

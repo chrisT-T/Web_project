@@ -5,6 +5,12 @@
       @add-window="handleAddWindow"
       @change-cursor-focus-window="handleChangeCursorFocus">
     </GeneralEditor>
+
+    <p>{{ JSON.stringify(fileTree , null, 4) }}</p>
+    <p>{{ fileItems }}</p>
+    <p>{{ fileModels.keys() }}</p>
+    <p>{{ fileStatus }}</p>
+
   </div>
   <!-- 这里是要直接用在 View 里面的 Editor，作为拥有者管理各个 Editor 的状态 -->
   <!-- 使用 provide / inject 穿透祖先关系，直接获得 model 和 mapinformation -->
@@ -29,7 +35,8 @@ export interface FileTree {
 }
 
 export interface FileStatus {
-  modified: boolean
+  modified: boolean,
+  openCount: number
 }
 
 export interface FileModel {
@@ -82,7 +89,7 @@ function addFile (path: string, value: string) {
     fileModels.value.set(path, { model })
   }
   if (!fileStatus.value.has(path)) {
-    fileStatus.value.set(path, { modified: false })
+    fileStatus.value.set(path, { modified: false, openCount: 0 })
   }
   if (currentCursorFocus.value.length === 0) {
     addFileToWindow(path, new Array<number>(1000).fill(0))
@@ -108,7 +115,7 @@ function handleAddWindow (path : string, array : Array<number>) {
   if (array.length === 0) {
     // some ... temporary solution
     // TO BE DONE!
-    array = new Array(1).fill(0)
+    array = new Array(1000).fill(0)
   }
   // random a newid or sequence id
   const newId = Math.floor(Math.random() * 1e9)
@@ -117,6 +124,8 @@ function handleAddWindow (path : string, array : Array<number>) {
     title: path.split('/').pop() as string,
     focus: false
   }])
+  const newOpenCount = fileStatus.value.get(path)?.openCount as number + 1
+  fileStatus.value.set(path, { modified: false, openCount: newOpenCount })
   addWindow(fileTree.value, newId, array.reverse())
 }
 
@@ -124,7 +133,7 @@ function handleChangeCursorFocus (array: Array<number>) {
   currentCursorFocus.value = array.reverse()
 }
 
-function deleteWindow (currentTree: FileTree, array : Array<number>) {
+function deleteWindow (currentTree: FileTree, array: Array<number>) {
   if (array.length === 1) {
     currentTree.children?.splice(array[0], 1)
   } else {
@@ -132,8 +141,8 @@ function deleteWindow (currentTree: FileTree, array : Array<number>) {
   }
 }
 
-function addWindow (currentTree: FileTree, id : number, array : Array<number>) {
-  if (array.length === 1) {
+function addWindow (currentTree: FileTree, id : number, array: Array<number>) {
+  if (currentTree.isLeaf === true || array.length === 1) {
     currentTree.children?.splice(array[0] + 1, 0, {
       id,
       isLeaf: true,
@@ -145,23 +154,28 @@ function addWindow (currentTree: FileTree, id : number, array : Array<number>) {
 }
 
 fileStatus.value.set('a', {
-  modified: false
+  modified: false,
+  openCount: 1
 })
 
 fileStatus.value.set('b', {
-  modified: false
+  modified: false,
+  openCount: 1
 })
 
 fileStatus.value.set('c', {
-  modified: false
+  modified: false,
+  openCount: 1
 })
 
 fileStatus.value.set('d', {
-  modified: false
+  modified: false,
+  openCount: 1
 })
 
 fileStatus.value.set('e', {
-  modified: false
+  modified: false,
+  openCount: 1
 })
 
 fileItems.value.set(0, [])
