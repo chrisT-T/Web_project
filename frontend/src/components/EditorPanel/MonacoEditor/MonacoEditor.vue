@@ -6,6 +6,7 @@
 import { ref, onMounted, shallowRef, onUnmounted, watch, defineProps, defineExpose, defineEmits } from 'vue'
 
 import * as monaco from 'monaco-editor'
+import * as common from '../common'
 // import { buildWorkerDefinition } from 'monaco-editor-workers'
 
 import { MonacoLanguageClient, CloseAction, ErrorAction, MonacoServices, MessageTransports } from 'monaco-languageclient'
@@ -112,8 +113,6 @@ onMounted(() => {
   // })
   // buildWorkerDefinition('dist', new URL('', window.location.href).href, false)
 
-  const breakpointClassName = 'monaco-editor-breakpoint'
-  const shadowBreakpointClassName = 'monaco-editor-breakpoint-shadow'
   console.log('Monaco Editor mounted')
   if (editorContainer.value !== null && props.editorOption !== null) {
     editor.value = monaco.editor.create(editorContainer.value, props.editorOption)
@@ -155,63 +154,63 @@ onMounted(() => {
     }
   })
 
-  editor.value?.addAction({
-    // An unique identifier of the contributed action.
-    id: 'split-current-view-horizontal',
+  // editor.value?.addAction({
+  //   // An unique identifier of the contributed action.
+  //   id: 'split-current-view-horizontal',
 
-    // A label of the action that will be presented to the user.
-    label: 'Split Current View(Horizontal)',
+  //   // A label of the action that will be presented to the user.
+  //   label: 'Split Current View(Horizontal)',
 
-    // An optional array of keybindings for the action.
-    keybindings: [
-      monaco.KeyMod.CtrlCmd | monaco.KeyCode.Backslash
-    ],
+  //   // An optional array of keybindings for the action.
+  //   keybindings: [
+  //     monaco.KeyMod.CtrlCmd | monaco.KeyCode.Backslash
+  //   ],
 
-    // A precondition for this action.
-    precondition: undefined,
+  //   // A precondition for this action.
+  //   precondition: undefined,
 
-    // A rule to evaluate on top of the precondition in order to dispatch the keybindings.
-    keybindingContext: undefined,
+  //   // A rule to evaluate on top of the precondition in order to dispatch the keybindings.
+  //   keybindingContext: undefined,
 
-    contextMenuGroupId: 'modification',
+  //   contextMenuGroupId: 'modification',
 
-    contextMenuOrder: 1.5,
+  //   contextMenuOrder: 1.5,
 
-    // Method that will be executed when the action is triggered.
-    // @param editor The editor instance is passed in as a convenience
-    run: function () {
-      emit('splitCurrentView', 'horizontal')
-    }
-  })
+  //   // Method that will be executed when the action is triggered.
+  //   // @param editor The editor instance is passed in as a convenience
+  //   run: function () {
+  //     emit('splitCurrentView', 'horizontal')
+  //   }
+  // })
 
-  editor.value?.addAction({
-    // An unique identifier of the contributed action.
-    id: 'split-current-view-vertical',
+  // editor.value?.addAction({
+  //   // An unique identifier of the contributed action.
+  //   id: 'split-current-view-vertical',
 
-    // A label of the action that will be presented to the user.
-    label: 'Split Current View(Vertical)',
+  //   // A label of the action that will be presented to the user.
+  //   label: 'Split Current View(Vertical)',
 
-    // An optional array of keybindings for the action.
-    keybindings: [
-      monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.Backslash
-    ],
+  //   // An optional array of keybindings for the action.
+  //   keybindings: [
+  //     monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.Backslash
+  //   ],
 
-    // A precondition for this action.
-    precondition: undefined,
+  //   // A precondition for this action.
+  //   precondition: undefined,
 
-    // A rule to evaluate on top of the precondition in order to dispatch the keybindings.
-    keybindingContext: undefined,
+  //   // A rule to evaluate on top of the precondition in order to dispatch the keybindings.
+  //   keybindingContext: undefined,
 
-    contextMenuGroupId: 'modification',
+  //   contextMenuGroupId: 'modification',
 
-    contextMenuOrder: 1.5,
+  //   contextMenuOrder: 1.5,
 
-    // Method that will be executed when the action is triggered.
-    // @param editor The editor instance is passed in as a convenience
-    run: function () {
-      emit('splitCurrentView', 'vertical')
-    }
-  })
+  //   // Method that will be executed when the action is triggered.
+  //   // @param editor The editor instance is passed in as a convenience
+  //   run: function () {
+  //     emit('splitCurrentView', 'vertical')
+  //   }
+  // })
 
   editor.value?.onDidFocusEditorText(() => {
     emit('changeCursorFocus')
@@ -240,32 +239,42 @@ onMounted(() => {
     const { target } = e
     if (target.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN ||
       target.type === monaco.editor.MouseTargetType.GUTTER_LINE_DECORATIONS) {
-      if (!existDecoration(breakpointClassName, target.position.lineNumber)) {
-        clearAllDecorationbyClass(shadowBreakpointClassName)
-        addDecoration(shadowBreakpointClassName, target.position.lineNumber, '')
+      if (!existDecoration(common.breakPointClassName, target.position.lineNumber)) {
+        clearAllDecorationbyClass(common.shadowBreakpointClassName)
+        addDecoration(common.shadowBreakpointClassName, target.position.lineNumber, '')
       }
     } else {
-      clearAllDecorationbyClass(shadowBreakpointClassName)
+      clearAllDecorationbyClass(common.shadowBreakpointClassName)
     }
   })
   // clear shadow on leave
   editor.value?.onMouseLeave(() => {
-    clearAllDecorationbyClass(shadowBreakpointClassName)
+    clearAllDecorationbyClass(common.shadowBreakpointClassName)
   })
   // set breakpoint property to the editor
   editor.value?.onMouseDown(e => {
     const { target } = e
     if (target.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN || target.type === monaco.editor.MouseTargetType.GUTTER_LINE_DECORATIONS) {
-      clearAllDecorationbyClass(shadowBreakpointClassName)
-      if (!existDecoration(breakpointClassName, target.position.lineNumber)) {
-        addDecoration(breakpointClassName, target.position.lineNumber, '')
+      clearAllDecorationbyClass(common.shadowBreakpointClassName)
+      if (!existDecoration(common.breakPointClassName, target.position.lineNumber)) {
+        addDecoration(common.breakPointClassName, target.position.lineNumber, '')
       } else {
-        removeDecoration(shadowBreakpointClassName, target.range.startLineNumber)
-        removeDecoration(breakpointClassName, target.position.lineNumber)
+        removeDecoration(common.shadowBreakpointClassName, target.range.startLineNumber)
+        removeDecoration(common.breakPointClassName, target.position.lineNumber)
       }
     }
   })
 })
+
+function locateToLine (lineNumber: number) {
+  // console error when lineNumber is not valid
+  const lineCount = editor.value?.getModel()?.getLineCount() as number
+  if (lineNumber < 1 || lineNumber > lineCount) {
+    console.error('line number is not valid')
+  }
+  editor.value?.revealLineInCenter(lineNumber)
+  editor.value?.setPosition({ lineNumber, column: 1 })
+}
 
 onUnmounted(() => {
   console.log('Monaco Editor Destroyed')
@@ -273,7 +282,8 @@ onUnmounted(() => {
 })
 
 defineExpose({
-  setModel
+  setModel,
+  locateToLine
 })
 
 // eslint-disable-next-line func-call-spacing
