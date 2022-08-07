@@ -95,18 +95,20 @@ def renamepro(src, dst):
         raise error
     username, proname = src.split('/')
     _, newname = dst.split('/')
-    book = load_workbook('./userInfo.xlsx')
-    group_writer = pd.ExcelWriter('./userInfo.xlsx', engine='openpyxl')
-    group_writer.book = book
-    group_writer.sheets = dict((ws.title, ws) for ws in book.worksheets)
     df = pd.DataFrame(pd.read_excel('userInfo.xlsx', sheet_name=username))
     df_del = df[(df.proname!=proname)]
-    df_old = df[(df.proname==proname)]
+    df_old = df[(df.proname==proname)].squeeze()
     tmp = pd.DataFrame([{'proname': newname, 'language': df_old['language'], 'lastupdate': datetime.datetime.now()}])
     frame = [df_del, tmp]
     result = pd.concat(frame)
-    result.to_excel(group_writer, sheet_name=username, index=False)
-    group_writer.save()
+    book = load_workbook('./userInfo.xlsx')
+    with pd.ExcelWriter('./userInfo.xlsx', engine='openpyxl') as writer:
+        writer.book = book
+        idx = book.sheetnames.index(username)
+        book.remove(book.worksheets[idx])
+        book.create_sheet(username, idx)
+        writer.sheets = dict((ws.title, ws) for ws in book.worksheets)
+        result.to_excel(writer, sheet_name=username, index=False)
 
 def showpro(username):
     if not os.path.exists("./userInfo.xlsx"):
