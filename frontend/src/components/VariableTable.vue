@@ -1,6 +1,7 @@
 <template>
   <div class="variable_table">
-    <el-tree :data="dat" :props="{
+    <p class="heading"> &nbsp; &nbsp; &nbsp;Variables:</p>
+    <el-tree :data="data" :props="{
       label: 'label',
       children: 'children',
     }"></el-tree>
@@ -24,38 +25,8 @@ interface Tree {
 
 export default class VariableTable extends Vue {
   mounted () {
-    console.log(this.dat)
+    console.log(this.data)
   }
-
-  dat: Tree[] = [
-    {
-      label: '标签1',
-      children: [
-        {
-          label: '标签1-1'
-        },
-        {
-          label: '标签1-2'
-        }
-      ]
-    },
-    {
-      label: '标签2',
-      children: [
-        {
-          label: '标签2-1',
-          children: [
-            {
-              label: '标签2-1-1'
-            },
-            {
-              label: '标签2-1-2'
-            }
-          ]
-        }
-      ]
-    }
-  ]
 }
 </script>
 
@@ -64,5 +35,8 @@ export default class VariableTable extends Vue {
   display: block;
   width: 200px;
   height: 400px;
+}
+.heading{
+  text-align: left;
 }
 </style>
