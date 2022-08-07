@@ -5,11 +5,13 @@
     <div id = "debugConsole">
       <p>{{ consoleOutput }}</p>
     </div>
-    <button @click="getData"> n command </button>
-    <button @click="setbreak"> b command </button>
+    <button @click="next"> next </button>
+    <button @click="step"> step </button>
     <input type="text" name="command" id="command" v-model="command">
     <button @click="send">send command </button>
+    <button @click="setbreak"> data </button>
   </div>
+  <variable-table></variable-table>
 </template>
 
 <script lang="ts">
@@ -18,10 +20,16 @@ import { Terminal } from 'xterm'
 import io from 'socket.io-client'
 import axios from 'axios'
 
+import VariableTable from '@/components/VariableTable.vue'
+
 class webDebuggerProps {
   debuggerName: string = prop({
     required: true
   })
+
+  components: object = {
+    VariableTable
+  }
 }
 
 export default class webDebugger extends Vue.with(webDebuggerProps) {
@@ -54,7 +62,7 @@ export default class webDebugger extends Vue.with(webDebuggerProps) {
       this.pdbSocket = io(this.baseUrl + '/pdb')
 
       this.pdbSocket.on('connect', () => {
-        axios.post(this.baseUrl + '/pdb/debug', { token: this.pdbSocket.id, filepath: './test_script/echo.py' }).then(() => {
+        axios.post(this.baseUrl + '/pdb/debug', { token: this.pdbSocket.id, filepath: './test_script/test.py' }).then(() => {
           this.status = this.debuggerName
         })
       })
@@ -83,8 +91,23 @@ export default class webDebugger extends Vue.with(webDebuggerProps) {
     axios.post(this.baseUrl + '/pdb/runcmd', { token: this.pdbSocket.id, cmd: this.command })
   }
 
+  next () {
+    axios.post(this.baseUrl + '/pdb/runcmd', { token: this.pdbSocket.id, cmd: 'n' })
+  }
+
+  step () {
+    axios.post(this.baseUrl + '/pdb/runcmd', { token: this.pdbSocket.id, cmd: 's' })
+  }
+
   setbreak () {
-    axios.post(this.baseUrl + '/pdb/runcmd', { token: this.pdbSocket.id, cmd: 'b 3' })
+    // axios.post(this.baseUrl + '/pdb/runcmd', { token: this.pdbSocket.id, cmd: 'b 3' })
+    axios.post(this.baseUrl + '/pdb/curframe', { token: this.pdbSocket.id })
+      .then((response) => {
+        const rawLocals = JSON.parse(response.request.response).locals
+        const globals = JSON.parse(response.request.response).globals
+        const locals = rawLocals.split('\n')
+        console.log(locals)
+      })
   }
 
   getData () {

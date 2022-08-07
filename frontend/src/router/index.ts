@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import terminalView from '../views/terminalView.vue'
+import treeView from '../views/treeView.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -20,6 +21,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/terminal',
     name: 'terminal',
     component: terminalView
+  },
+  {
+    path: '/tree',
+    name: 'tree',
+    component: treeView
   }
 ]
 
