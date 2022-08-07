@@ -64,8 +64,12 @@ import {
   EditPen
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import axios from 'axios'
 
 const formLabelWidth = '140px'
+const props = defineProps({
+  name: String
+})
 
 interface Tree {
   id: number
@@ -85,7 +89,9 @@ const form = reactive({
     label: '',
     type: '',
     showInput: false
-  }
+  },
+  flag: false,
+  message: ''
 })
 
 const changeInput = reactive({
@@ -93,13 +99,24 @@ const changeInput = reactive({
   inputStr: ''
 })
 // 成功编辑并连接后端
-const editFinish = (data:Tree) => {
+const editFinish = async (data:Tree) => {
   let editCheck = true
   const reg = /.py$/
   if (!reg.test(changeInput.inputStr) && data.type === 'file') {
     editCheck = false
   }
   if (editCheck) {
+    await axios.post('http://127.0.0.1:5000/rename/' + props.name, { src: props.name + '/' + data.label, dst: props.name + '/' + changeInput.inputStr })
+      .then(res => {
+        form.flag = res.data.flag
+        form.message = res.data.message
+      }).catch(function (error) {
+        console.log(error.response)
+      })
+    if (form.flag === false) {
+      alert(form.message)
+      return
+    }
     data.label = changeInput.inputStr
     data.showInput = false
     changeInput.isChecked = false

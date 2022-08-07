@@ -10,7 +10,7 @@
           <el-button class="closeBtn" :icon="Fold" @click="closeAside" circle />
         </div>
         <el-aside :width="data.width">
-          <FileSet></FileSet>
+          <FileSet :name="name"></FileSet>
         </el-aside>
         <span class="resize_col" @mousedown="handleDragStart"></span>
         <el-container>
