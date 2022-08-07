@@ -16,8 +16,6 @@ def hello_world():
 # 全局变量 记录当前用户文件夹
 folder_list = []
 
-
-
 # 注册
 @app.route('/signup', methods=["POST", "GET"])
 def signup():
@@ -92,6 +90,42 @@ def logout(username):
     folder_list.clear()
     return "succeed logout"
 
+@app.route('/renamepro/<username>', methods =["POST"])
+def renamepro(username):
+    if username != userInfo.currentUser():
+        raise error
+
+    src = request.get_json()['src']
+    dst = request.get_json()['dst']
+    result = fileFunc.rename(src, dst)
+    if result == 0:
+        path_list = fileFunc.walk(username)
+        userInfo.renamepro(src, dst)
+        data = {
+            'path_list': path_list,
+            'flag': True,
+            'message': None
+        }
+        return jsonify(data)
+    elif result == 1:
+        data = {
+            'flag': False,
+            'message': "The file/folder to rename does not exist"
+        }
+        return jsonify(data)
+    elif result == 2:
+        data = {
+            'flag': False,
+            'message': "The name already used"
+        }
+        return jsonify(data)
+    else:
+        data = {
+            'flag': False,
+            'message': "unexpected result"
+        }
+        return jsonify(data)
+
 # 重命名文件（夹）
 # 前端json形式传入 
 # 路径从用户名开始   xiaoming/...  
@@ -102,8 +136,43 @@ def rename(username):
 
     src = request.get_json()['src']
     dst = request.get_json()['dst']
-    if fileFunc.rename(src, dst):
+    result = fileFunc.rename(src, dst)
+    if result == 0:
         path_list = fileFunc.walk(username)
+        data = {
+            'path_list': path_list,
+            'flag': True,
+            'message': None
+        }
+        return jsonify(data)
+    elif result == 1:
+        data = {
+            'flag': False,
+            'message': "The file/folder to rename does not exist"
+        }
+        return jsonify(data)
+    elif result == 2:
+        data = {
+            'flag': False,
+            'message': "The name already used"
+        }
+        return jsonify(data)
+    else:
+        data = {
+            'flag': False,
+            'message': "unexpected result"
+        }
+        return jsonify(data)
+
+@app.route('/deletepro/<username>', methods = ["POST"])
+def deletepro(username):
+    if username != userInfo.currentUser():
+        raise error
+
+    src = request.get_json()['src']
+    if fileFunc.deleteFolder(src):
+        path_list = fileFunc.walk(username)
+        userInfo.deletepro(src)
         data = {
             'path_list': path_list,
             'flag': True,
@@ -113,9 +182,10 @@ def rename(username):
     else:
         data = {
             'flag': False,
-            'message': "The file/folder does not exist"
+            'message': "The project does not exist"
         }
         return jsonify(data)
+    return jsonify(data)
 
 # 删除文件(夹)
 @app.route('/delete/<username>', methods = ["POST"])
@@ -162,6 +232,30 @@ def delete(username):
             }
         return jsonify(data)
 
+#新建项目
+@app.route('/mkpro/<username>', methods = ["POST"])
+def mkpro(username):
+    if username != userInfo.currentUser():
+        raise error
+
+    src = request.get_json()['src']
+    language = request.get_json()['type']
+    if fileFunc.mkdir(src):
+        path_list = fileFunc.walk(username)
+        t = userInfo.saveLanguage(src, language)
+        data = {
+            'path_list': path_list,
+            'flag': True,
+            'message': None,
+            'lastupdate': t
+        }
+        return jsonify(data)
+    else:
+        data = {
+            'flag': False,
+            'message': "Duplicate foldername"
+        }
+        return jsonify(data)
 
 # 新建文件夹
 @app.route('/mkdir/<username>', methods = ["POST"])
@@ -273,6 +367,17 @@ def show(username):
         }
         return jsonify(data)
 
+@app.route('/getPro/<username>', methods = ["GET"])
+def getPro(username):
+    if username != userInfo.currentUser():
+        raise error
+    ls = userInfo.showpro(username)
+    obj = {
+        'flag': True,
+        'message': None,
+        'data': ls
+    }
+    return jsonify(obj)
 
 # 获取最外层tree数据结构
 @app.route('/getTreeData/<username>', methods = ["GET"])
@@ -290,9 +395,11 @@ def getTreeData(username):
         }
     else:
         obj = {
+            'data' : None,
             'flag': False,
             'message': "Failed to get"
         }
+    print(path_list)
     return jsonify(obj)
 
 

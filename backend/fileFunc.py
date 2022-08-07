@@ -40,11 +40,14 @@ def rename(src: String, dst: String):
     src = os.path.join(FILE_PATH, src)
     dst = os.path.join(FILE_PATH, dst)
     if os.path.exists(src):
-        os.rename(src, dst)
-        return True
+        try:
+            os.rename(src, dst)
+        except:
+            return 2
+        return 0
     else:
         print ("the file does not exist")
-        return False
+        return 1
 
 # 删除文件夹
 def deleteFolder(src: String):

@@ -105,6 +105,7 @@ const changeInput = reactive({
   inputStr: ''
 })
 
+<<<<<<< HEAD
 // 提交新项目
 // TODO：后端确认没有重复项目名
 const submitForm = async () => {
@@ -161,10 +162,13 @@ const removeTask = async (index: number) => {
   // }
   form.taskList.splice(index, 1)
 }
+=======
+>>>>>>> 5f8a22e815df2d920cac576a51c04899e1572061
 // 当前用户名 从rouetr获取
 const name = useRouter().currentRoute.value.params.username
 
 const dialogFormVisible = ref(false)
+<<<<<<< HEAD
 
 const form = reactive({
   name: '',
@@ -176,6 +180,15 @@ const form = reactive({
   ],
   isChecked: false
 })
+=======
+// language options
+const options = [
+  {
+    value: 'python',
+    label: 'python'
+  }
+]
+>>>>>>> 5f8a22e815df2d920cac576a51c04899e1572061
 
 interface Project {
   name: string
@@ -184,8 +197,69 @@ interface Project {
   lastupdate: string
 }
 
+<<<<<<< HEAD
 const editStart = (index: number) => {
   console.log('editStart' + index)
+=======
+const form = reactive({
+  name: '',
+  language: '',
+  flag: false,
+  message: '',
+  lastupdate: '',
+  data: [],
+  taskList: [
+  //  { name: 'project 1', language: 'python', id: 0, lastupdate: 'time' }
+  ],
+  isChecked: false
+})
+
+// 提交新项目
+const submitForm = async () => {
+  if (form.name === '' || form.language === '') {
+    alert('Empty enter form')
+  } else {
+    await axios.post('http://127.0.0.1:5000/mkpro/' + name, { src: name + '/' + form.name, type: form.language })
+      .then(res => {
+        form.flag = res.data.flag
+        form.message = res.data.message
+        form.lastupdate = res.data.lastupdate
+      }).catch(function (error) {
+        console.log(error.response)
+      })
+    if (form.flag === false) {
+      alert(form.message)
+      return
+    }
+    form.taskList.unshift({
+      name: form.name,
+      language: form.language,
+      id: count.value++,
+      lastupdate: form.lastupdate
+    })
+  }
+}
+
+// 删除项目
+const removeTask = async (index: number) => {
+  await axios.post('http://127.0.0.1:5000/deletepro/' + name, { src: name + '/' + form.taskList[index].name, type: 'folder' })
+    .then(res => {
+      form.flag = res.data.flag
+      form.message = res.data.message
+    }).catch(function (error) {
+      console.log(error.response)
+    })
+
+  if (form.flag === false) {
+    alert(form.message)
+    return
+  }
+  form.taskList.splice(index, 1)
+}
+
+const editStart = (item: Project) => {
+  console.log('editStart')
+>>>>>>> 5f8a22e815df2d920cac576a51c04899e1572061
   if (!changeInput.isChecked) {
     // changeInput.inputStr = item.name
     // changeInput.isChecked = true
@@ -194,11 +268,28 @@ const editStart = (index: number) => {
     form.taskList[index].showInp = true
   }
 }
+<<<<<<< HEAD
 const editFinish = (index: number) => {
   console.log('editFinish' + index)
   // item.name = changeInput.inputStr
   // changeInput.isChecked = false
   form.taskList[index].name = changeInput.inputStr
+=======
+const editFinish = async (item: Project) => {
+  console.log('editFinish')
+  await axios.post('http://127.0.0.1:5000/renamepro/' + name, { src: name + '/' + item.name, dst: name + '/' + changeInput.inputStr })
+    .then(res => {
+      form.flag = res.data.flag
+      form.message = res.data.message
+    }).catch(function (error) {
+      console.log(error.response)
+    })
+  if (form.flag === false) {
+    alert(form.message)
+    return
+  }
+  item.name = changeInput.inputStr
+>>>>>>> 5f8a22e815df2d920cac576a51c04899e1572061
   changeInput.isChecked = false
   form.taskList[index].showInp = false
 }
@@ -207,27 +298,54 @@ const editGiveup = (index: number) => {
   changeInput.isChecked = false
 }
 
-// language options
-const options = [
-  {
-    value: 'python',
-    label: 'python'
-  }
-]
 // 跳到项目详情页
 const ProjectDetail = (Projectname:string) => {
   console.log(Projectname)
   router.replace({ name: 'coding', params: { username: name, projectname: Projectname } })
 }
-// onMounted(() => {
-//   ElNotification({
-//     title: '使用指南 -- Project Management',
-//     message: 'Sidebar for personal information. The information in the main column is: language, project name, last update time, and deleted project',
-//     type: 'info',
-//     duration: 0,
-//     offset: 300
-//   })
-// })
+
+// 登出确认
+const logoutConfirm = async () => {
+  await axios.post('http://127.0.0.1:5000/logout/' + name)
+    .then(res => {
+      form.message = res.data
+    }).catch(function (error) {
+      console.log(error.response)
+    })
+  if (form.message !== 'succeed logout') {
+    alert('something wrong')
+    return
+  }
+  router.replace('/login')
+}
+
+onMounted(async () => {
+  // ElNotification({
+  //   title: '使用指南 -- Project Management',
+  //   message: 'Sidebar for personal information. The information in the main column is: language, project name, last update time, and deleted project',
+  //   type: 'info',
+  //   duration: 0,
+  //   offset: 300
+  // })
+  await axios.get('http://127.0.0.1:5000/getPro/' + name)
+    .then(res => {
+      form.data = res.data.data
+      form.flag = res.data.flag
+    }).catch(function (error) {
+      console.log(error.response)
+    })
+  if (form.flag === false) {
+    alert(form.message)
+    return
+  }
+  form.taskList = []
+  // let num = form.data.length
+  for (var key in form.data) {
+    console.log(form.data[key][0], form.data[key][1], form.data[key][2])
+    const taskRecord = { name: form.data[key][0], language: form.data[key][1], id: key, lastupdate: form.data[key][2] }
+    form.taskList.push(taskRecord)
+  }
+})
 </script>
 
 <style scoped>
