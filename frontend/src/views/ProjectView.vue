@@ -254,10 +254,19 @@ onMounted(async () => {
     const taskRecord = { name: form.data[key][0], language: form.data[key][1], id: key, lastupdate: form.data[key][2] }
     form.taskList.push(taskRecord)
   }
+  form.taksList.sort((a, b) => {
+    console.log(a.lastupdate, b.lastupdate)
+    console.log((a.lastupdate < b.lastupdate))
+    if (a.lastupdate < b.lastupdate) {
+      return 1
+    } else {
+      return -1
+    }
+  })
 })
 </script>
 
-<style scoped>
+<style scoped>  
 .layout-container-demo .el-header {
   position: relative;
   background-color: var(--el-color-primary-light-7);
