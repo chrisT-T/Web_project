@@ -79,13 +79,16 @@ def deletepro(src):
     if not os.path.exists("./userInfo.xlsx"):
         raise error
     username, proname = src.split('/')
-    book = load_workbook('./userInfo.xlsx')
-    group_writer = pd.ExcelWriter('./userInfo.xlsx', engine='openpyxl')
-    group_writer.book = book
-    df = pd.DataFrame(pd.read_excel('userInfo.xlsx', sheet_name=username))
+    df = pd.DataFrame(pd.read_excel('./userInfo.xlsx', sheet_name=username))
     df_del = df[(df.proname!=proname)]
-    df_del.to_excel(group_writer, sheet_name=username, index=False)
-    group_writer.save()
+    book = load_workbook('./userInfo.xlsx')
+    with pd.ExcelWriter('./userInfo.xlsx', engine='openpyxl') as writer:
+        writer.book = book
+        idx = book.sheetnames.index(username)
+        book.remove(book.worksheets[idx])
+        book.create_sheet(username, idx)
+        writer.sheets = dict((ws.title, ws) for ws in book.worksheets)
+        df_del.to_excel(writer, sheet_name=username, index=False)
 
 def renamepro(src, dst):
     if not os.path.exists("./userInfo.xlsx"):
@@ -95,6 +98,7 @@ def renamepro(src, dst):
     book = load_workbook('./userInfo.xlsx')
     group_writer = pd.ExcelWriter('./userInfo.xlsx', engine='openpyxl')
     group_writer.book = book
+    group_writer.sheets = dict((ws.title, ws) for ws in book.worksheets)
     df = pd.DataFrame(pd.read_excel('userInfo.xlsx', sheet_name=username))
     df_del = df[(df.proname!=proname)]
     df_old = df[(df.proname==proname)]

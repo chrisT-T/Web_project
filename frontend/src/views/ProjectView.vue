@@ -163,7 +163,7 @@ const submitForm = async () => {
 
 // 删除项目
 const removeTask = async (index: number) => {
-  await axios.post('http://127.0.0.1:5000/deletepro/' + name, { src: name + '/' + form.taskList[index].name, type: 'folder' })
+  await axios.post('http://127.0.0.1:5000/deletepro/' + name, { src: name + '/' + form.taskList[index].name })
     .then(res => {
       form.flag = res.data.flag
       form.message = res.data.message
