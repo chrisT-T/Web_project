@@ -1,7 +1,7 @@
 <template>
   <div class="variable_table">
-    <p class="heading"> &nbsp; &nbsp; &nbsp;Variables:</p>
-    <el-tree :data="data" :props="{
+    <p class="heading" >Variables:</p>
+    <el-tree :default-expand-all="true" :data="data" :props="{
       label: 'label',
       children: 'children',
     }"></el-tree>
@@ -11,11 +11,6 @@
 <script lang="ts">
 
 import { Vue, Options } from 'vue-class-component'
-
-interface Tree {
-  label: string
-  children?: Tree[]
-}
 
 @Options({
   props: {
@@ -38,5 +33,7 @@ export default class VariableTable extends Vue {
 }
 .heading{
   text-align: left;
+  font-size: 20px;
+  font-weight: bold;
 }
 </style>

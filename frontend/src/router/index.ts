@@ -1,8 +1,7 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import terminalView from '../views/terminalView.vue'
-import treeView from '../views/treeView.vue'
-
+import DragView from '../views/DragView.vue'
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
@@ -23,9 +22,9 @@ const routes: Array<RouteRecordRaw> = [
     component: terminalView
   },
   {
-    path: '/tree',
-    name: 'tree',
-    component: treeView
+    path: '/drag',
+    name: 'drag',
+    component: DragView
   }
 ]
 
