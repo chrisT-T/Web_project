@@ -13,45 +13,44 @@
         </el-space>
     </el-aside>
     <el-container>
-      <el-header style="text-align: right; font-size: 12px">
+      <el-header v-if="form.taskList.length > 0">
+        <div class="ProjectCnt">
+          <span>No. of Project: {{ form.taskList.length }}</span>
+        </div>
         <div class="toolbar">
             <el-button type="primary" plain size="default" :icon="Plus" @click="dialogFormVisible = true" circle/>
         </div>
       </el-header>
-
       <el-main>
         <el-scrollbar max-height="600px" v-if="form.taskList.length > 0">
             <div v-for="( item, index ) in form.taskList" :key="item.id" class="scrollbar-demo-item">
                 <div class="detail_info" >
-                  <el-link type="info" :underline="false">{{item.language}}</el-link>
-                  <el-link type="primary" :underline="false" :icon="InfoFilled" v-if="!changeInput.isChecked" @click="ProjectDetail(item.name)">{{item.name}}</el-link>
-                  <el-input class="changeInp" size="large" ref="inputVal" v-if="changeInput.isChecked" :value="item.name"
+                  <el-link type="info" :underline="false">{{ item.language }}</el-link>
+                  <el-link type="primary" :underline="false" :icon="InfoFilled" @click="ProjectDetail(item.name)" v-if="!form.taskList[index].showInp">{{item.name}}</el-link>
+                  <el-input class="changeInp" size="large" ref="inputVal" v-if="form.taskList[index].showInp" :value="item.name"
                     v-model="changeInput.inputStr"
                     v-focus="changeInput.isChecked"
-                    @blur="editGiveup()"
-                    @keyup.enter="editFinish(item)"
+                    @blur="editGiveup(index)"
+                    @keyup.enter="editFinish(index)"
                     placeholder="file name">
                   </el-input>
                 </div>
                 <div class="detail_info">
                   <span class="time">{{item.lastupdate}}</span>
-                  <el-button type="primary" :icon="Edit" @click="editStart(item)" circle />
+                  <el-button type="primary" :icon="Edit" @click="editStart(index)" circle />
                   <el-button type="danger" :icon="Delete" @click="removeTask(index)" circle />
                 </div>
             </div>
             <span style="color: var(--el-color-info-light-5)">end of list</span>
         </el-scrollbar>
-        <v-else>
-          <div class="noTask">
-            <span>Welcom to use <span class="codingtitle">CODING-ONLINE</span></span>
-            <span>Please start your first Task</span>
-            <el-button type="primary" :icon="Plus" plain @click="dialogFormVisible = true">Create new Task</el-button>
-          </div>
-        </v-else>
+        <div class="noTask" v-else>
+          <span>Welcom to use <span class="codingtitle">CODING-ONLINE</span></span>
+          <span>Please start your first Task</span>
+          <el-button type="primary" :icon="Plus" plain @click="dialogFormVisible = true">Create new Task</el-button>
+        </div>
       </el-main>
     </el-container>
   </el-container>
-
     <el-dialog v-model="dialogFormVisible" title="Create new task" custom-class="createDialog">
       <el-form
         ref="formRef"
@@ -179,16 +178,20 @@ const removeTask = async (index: number) => {
   form.taskList.splice(index, 1)
 }
 
-const editStart = (item: Project) => {
-  console.log('editStart')
+const editStart = (index: number) => {
+  console.log('editStart' + index)
   if (!changeInput.isChecked) {
-    changeInput.inputStr = item.name
+    // changeInput.inputStr = item.name
+    // changeInput.isChecked = true
+    changeInput.inputStr = form.taskList[index].name
     changeInput.isChecked = true
+    form.taskList[index].showInp = true
   }
 }
-const editFinish = async (item: Project) => {
-  console.log('editFinish')
-  await axios.post('http://127.0.0.1:5000/renamepro/' + name, { src: name + '/' + item.name, dst: name + '/' + changeInput.inputStr })
+
+const editFinish = async (index: number) => {
+  console.log('editFinish' + index)
+  await axios.post('http://127.0.0.1:5000/renamepro/' + name, { src: name + '/' + form.taskList[index].name, dst: name + '/' + changeInput.inputStr })
     .then(res => {
       form.flag = res.data.flag
       form.message = res.data.message
@@ -199,8 +202,9 @@ const editFinish = async (item: Project) => {
     alert(form.message)
     return
   }
-  item.name = changeInput.inputStr
+  form.taskList[index].name = changeInput.inputStr
   changeInput.isChecked = false
+  form.taskList[index].showInp = false
 }
 const editGiveup = () => {
   console.log('edirGiveup')
@@ -250,23 +254,44 @@ onMounted(async () => {
   form.taskList = []
   // let num = form.data.length
   for (var key in form.data) {
-    console.log(form.data[key][0], form.data[key][1], form.data[key][2])
     const taskRecord = { name: form.data[key][0], language: form.data[key][1], id: key, lastupdate: form.data[key][2] }
     form.taskList.push(taskRecord)
   }
+  form.taskList.sort((a, b) => {
+    if (a.lastupdate < b.lastupdate) {
+      return 1
+    } else {
+      return -1
+    }
+  })
 })
 </script>
 
 <style scoped>
+.layout-container-demo {
+  height: 100%;
+}
 .layout-container-demo .el-header {
   position: relative;
   background-color: var(--el-color-primary-light-7);
   color: var(--el-text-color-primary);
+  justify-content: space-between;
+  display: flex;
+  flex-direction: row;
+}
+.ProjectCnt {
+  margin-top: 6px;
+}
+.ProjectCnt span {
+  font-size: 30px;
+  color: var(--el-color-primary-dark-2);
+  font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif ;
 }
 .layout-container-demo .el-aside {
   color: var(--el-text-color-primary);
   display: flex;
   flex-direction: column;
+  background-color: var(--el-color-primary-light-9);
 }
 .layout-container-demo .el-menu {
   border-right: none;
@@ -323,7 +348,7 @@ onMounted(async () => {
   min-height: 150px;
   box-shadow: rgb(0 0 0 / 27%) 1px 6px 20px;
   border-radius: 20px;
-  margin: 10% auto;
+  margin: 25% auto;
   display: flex;
   flex-direction: column;
   Vertical-align:middle;
