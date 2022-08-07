@@ -13,7 +13,10 @@
         </el-space>
     </el-aside>
     <el-container>
-      <el-header style="text-align: right; font-size: 12px">
+      <el-header v-if="form.taskList.length > 0">
+        <div class="ProjectCnt">
+          <span>No. of Project: {{ form.taskList.length }}</span>
+        </div>
         <div class="toolbar">
             <el-button type="primary" plain size="default" :icon="Plus" @click="dialogFormVisible = true" circle/>
         </div>
@@ -23,31 +26,29 @@
         <el-scrollbar max-height="600px" v-if="form.taskList.length > 0">
             <div v-for="( item, index ) in form.taskList" :key="item.id" class="scrollbar-demo-item">
                 <div class="detail_info" >
-                  <el-link type="info" :underline="false">{{item.language}}</el-link>
-                  <el-link type="primary" :underline="false" :icon="InfoFilled" v-if="!changeInput.isChecked" @click="ProjectDetail(item.name)">{{item.name}}</el-link>
-                  <el-input class="changeInp" size="large" ref="inputVal" v-if="changeInput.isChecked" :value="item.name"
+                  <el-link type="info" :underline="false">{{ item.language }}</el-link>
+                  <el-link type="primary" :underline="false" :icon="InfoFilled" @click="ProjectDetail(item.name)" v-if="!form.taskList[index].showInp">{{item.name}}</el-link>
+                  <el-input class="changeInp" size="large" ref="inputVal" v-if="form.taskList[index].showInp" :value="item.name"
                     v-model="changeInput.inputStr"
                     v-focus="changeInput.isChecked"
-                    @blur="editGiveup()"
-                    @keyup.enter="editFinish(item)"
+                    @blur="editGiveup(index)"
+                    @keyup.enter="editFinish(index)"
                     placeholder="file name">
                   </el-input>
                 </div>
                 <div class="detail_info">
                   <span class="time">{{item.lastupdate}}</span>
-                  <el-button type="primary" :icon="Edit" @click="editStart(item)" circle />
+                  <el-button type="primary" :icon="Edit" @click="editStart(index)" circle />
                   <el-button type="danger" :icon="Delete" @click="removeTask(index)" circle />
                 </div>
             </div>
             <span style="color: var(--el-color-info-light-5)">end of list</span>
         </el-scrollbar>
-        <v-else>
-          <div class="noTask">
-            <span>Welcom to use <span class="codingtitle">CODING-ONLINE</span></span>
-            <span>Please start your first Task</span>
-            <el-button type="primary" :icon="Plus" plain @click="dialogFormVisible = true">Create new Task</el-button>
-          </div>
-        </v-else>
+        <div class="noTask" v-else>
+          <span>Welcom to use <span class="codingtitle">CODING-ONLINE</span></span>
+          <span>Please start your first Task</span>
+          <el-button type="primary" :icon="Plus" plain @click="dialogFormVisible = true">Create new Task</el-button>
+        </div>
       </el-main>
     </el-container>
   </el-container>
@@ -125,7 +126,8 @@ const submitForm = async () => {
       name: form.name,
       language: form.language,
       id: count.value++,
-      lastupdate: 'time2'
+      lastupdate: 'time2',
+      showInp: false
     })
   }
 }
@@ -145,18 +147,18 @@ const logoutConfirm = async () => {
 }
 // 删除项目
 const removeTask = async (index: number) => {
-  await axios.post('http://127.0.0.1:5000/delete/' + name.value, { src: name.value + '/' + form.taskList[index].name, type: 'folder' })
-    .then(res => {
-      form.flag = res.data.flag
-      form.message = res.data
-    }).catch(function (error) {
-      console.log(error.response)
-    })
+  // await axios.post('http://127.0.0.1:5000/delete/' + name.value, { src: name.value + '/' + form.taskList[index].name, type: 'folder' })
+  //   .then(res => {
+  //     form.flag = res.data.flag
+  //     form.message = res.data
+  //   }).catch(function (error) {
+  //     console.log(error.response)
+  //   })
 
-  if (form.flag === false) {
-    alert('something wrong')
-    return
-  }
+  // if (form.flag === false) {
+  //   alert('something wrong')
+  //   return
+  // }
   form.taskList.splice(index, 1)
 }
 // 当前用户名 从rouetr获取
@@ -170,7 +172,7 @@ const form = reactive({
   flag: false,
   message: '',
   taskList: [
-    // { name: 'project 1', language: 'python', id: 0, lastupdate: 'time' }
+    { name: 'project 1', language: 'python', id: 0, lastupdate: 'time', showInp: false }
   ],
   isChecked: false
 })
@@ -182,19 +184,25 @@ interface Project {
   lastupdate: string
 }
 
-const editStart = (item: Project) => {
-  console.log('editStart')
+const editStart = (index: number) => {
+  console.log('editStart' + index)
   if (!changeInput.isChecked) {
-    changeInput.inputStr = item.name
+    // changeInput.inputStr = item.name
+    // changeInput.isChecked = true
+    changeInput.inputStr = form.taskList[index].name
     changeInput.isChecked = true
+    form.taskList[index].showInp = true
   }
 }
-const editFinish = (item: Project) => {
-  console.log('editFinish')
-  item.name = changeInput.inputStr
+const editFinish = (index: number) => {
+  console.log('editFinish' + index)
+  // item.name = changeInput.inputStr
+  // changeInput.isChecked = false
+  form.taskList[index].name = changeInput.inputStr
   changeInput.isChecked = false
+  form.taskList[index].showInp = false
 }
-const editGiveup = () => {
+const editGiveup = (index: number) => {
   console.log('edirGiveup')
   changeInput.isChecked = false
 }
@@ -223,15 +231,30 @@ const ProjectDetail = (Projectname:string) => {
 </script>
 
 <style scoped>
+.layout-container-demo {
+  height: 100%;
+}
 .layout-container-demo .el-header {
   position: relative;
   background-color: var(--el-color-primary-light-7);
   color: var(--el-text-color-primary);
+  justify-content: space-between;
+  display: flex;
+  flex-direction: row;
+}
+.ProjectCnt {
+  margin-top: 6px;
+}
+.ProjectCnt span {
+  font-size: 30px;
+  color: var(--el-color-primary-dark-2);
+  font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif ;
 }
 .layout-container-demo .el-aside {
   color: var(--el-text-color-primary);
   display: flex;
   flex-direction: column;
+  background-color: var(--el-color-primary-light-9);
 }
 .layout-container-demo .el-menu {
   border-right: none;
@@ -288,7 +311,7 @@ const ProjectDetail = (Projectname:string) => {
   min-height: 150px;
   box-shadow: rgb(0 0 0 / 27%) 1px 6px 20px;
   border-radius: 20px;
-  margin: 10% auto;
+  margin: 25% auto;
   display: flex;
   flex-direction: column;
   Vertical-align:middle;
