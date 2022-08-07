@@ -1,8 +1,11 @@
 # 管理用户账户信息
+from logging import error
 from tokenize import String, group
 import pandas as pd
 from openpyxl import load_workbook
 import os
+import datetime
+import numpy as np
 
 cur_user = ''
 
@@ -46,6 +49,70 @@ def createNewUser(username: String, userpassword: String):
         group_writer.save()
         return
 
+def saveLanguage(src, language):
+    if not os.path.exists("./userInfo.xlsx"):
+        raise error
+    username, proname = src.split('/')
+    book = load_workbook('./userInfo.xlsx')
+    group_writer = pd.ExcelWriter('./userInfo.xlsx', engine='openpyxl')
+    group_writer.book = book
+    group_writer.sheets = dict((ws.title, ws) for ws in book.worksheets)
+    t = datetime.datetime.now()
+    if username in group_writer.sheets:
+        group_writer.close()
+        df_old = pd.DataFrame(pd.read_excel('./userInfo.xlsx', sheet_name=username))
+        df = pd.DataFrame([{'proname': proname, 'language': language, 'lastupdate': t}])
+        book = load_workbook('./userInfo.xlsx')
+        group_writer = pd.ExcelWriter('./userInfo.xlsx', engine='openpyxl')
+        group_writer.book = book
+        group_writer.sheets = dict((ws.title, ws) for ws in book.worksheets)
+        df_rows = df_old.shape[0]
+        df.to_excel(group_writer, sheet_name=username, startrow=df_rows+1,header=False, index=False)
+        group_writer.save()
+    else:
+        df = pd.DataFrame([{'proname': proname, 'language': language, 'lastupdate': t}])
+        df.to_excel(group_writer, sheet_name=username, index=False)
+        group_writer.save()
+    return t
+
+def deletepro(src):
+    if not os.path.exists("./userInfo.xlsx"):
+        raise error
+    username, proname = src.split('/')
+    book = load_workbook('./userInfo.xlsx')
+    group_writer = pd.ExcelWriter('./userInfo.xlsx', engine='openpyxl')
+    group_writer.book = book
+    df = pd.DataFrame(pd.read_excel('userInfo.xlsx', sheet_name=username))
+    df_del = df[(df.proname!=proname)]
+    df_del.to_excel(group_writer, sheet_name=username, index=False)
+    group_writer.save()
+
+def renamepro(src, dst):
+    if not os.path.exists("./userInfo.xlsx"):
+        raise error
+    username, proname = src.split('/')
+    _, newname = dst.split('/')
+    book = load_workbook('./userInfo.xlsx')
+    group_writer = pd.ExcelWriter('./userInfo.xlsx', engine='openpyxl')
+    group_writer.book = book
+    df = pd.DataFrame(pd.read_excel('userInfo.xlsx', sheet_name=username))
+    df_del = df[(df.proname!=proname)]
+    df_old = df[(df.proname==proname)]
+    tmp = pd.DataFrame([{'proname': newname, 'language': df_old['language'], 'lastupdate': datetime.datetime.now()}])
+    frame = [df_del, tmp]
+    result = pd.concat(frame)
+    result.to_excel(group_writer, sheet_name=username, index=False)
+    group_writer.save()
+
+def showpro(username):
+    if not os.path.exists("./userInfo.xlsx"):
+        raise error
+    try:
+        df = pd.DataFrame(pd.read_excel('userInfo.xlsx', sheet_name=username))
+        ls = df.values.tolist()
+    except:
+        ls = []
+    return ls
 
 def setCurUser(username: String):
     global cur_user

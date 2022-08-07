@@ -49,17 +49,17 @@ const loginCheck = async () => {
   if (data.username.trim() === '' || data.password.trim() === '') {
     alert('Username or Password is missing')
   } else {
-    // await axios.get('http://127.0.0.1:5000/login', { params: { userName: data.username, userPassword: data.password } })
-    //   .then(res => {
-    //     data.flag = res.data.flag
-    //     data.message = res.data.message
-    //   }).catch(function (error) {
-    //     console.log(error.response)
-    //   })
-    // if (data.flag === false) {
-    //   alert(data.message)
-    //   return
-    // }
+    await axios.get('http://127.0.0.1:5000/login', { params: { userName: data.username, userPassword: data.password } })
+      .then(res => {
+        data.flag = res.data.flag
+        data.message = res.data.message
+      }).catch(function (error) {
+        console.log(error.response)
+      })
+    if (data.flag === false) {
+      alert(data.message)
+      return
+    }
     router.replace({ name: 'projectmanage', params: { username: data.username } })
   }
 }
