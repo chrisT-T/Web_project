@@ -9,10 +9,8 @@ declare module '@vue/runtime-core' {
   export interface GlobalComponents {
     DragBox: typeof import('./src/components/DragBox.vue')['default']
     DragItem: typeof import('./src/components/DragItem.vue')['default']
-    ElCol: typeof import('element-plus/es')['ElCol']
     ElIcon: typeof import('element-plus/es')['ElIcon']
     ElInput: typeof import('element-plus/es')['ElInput']
-    ElRow: typeof import('element-plus/es')['ElRow']
     ElTree: typeof import('element-plus/es')['ElTree']
     HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

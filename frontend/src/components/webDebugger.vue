@@ -3,7 +3,7 @@
     <h1> {{ status }} </h1>
     <drag-box style="width: 100%; height: 100%">
       <drag-item class="TermContainer">
-        <div id="debugTerm" @notify="handleResize"/>
+        <div id="debugTerm"/>
       </drag-item>
       <drag-item>
         <div class="debugConsole">
