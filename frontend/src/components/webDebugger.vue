@@ -54,7 +54,7 @@ export default class webDebugger extends Vue.with(webDebuggerProps) {
       this.pdbSocket = io(this.baseUrl + '/pdb')
 
       this.pdbSocket.on('connect', () => {
-        axios.post(this.baseUrl + '/pdb/debug', { token: this.pdbSocket.id, filepath: './test_script/echo.py' }).then(() => {
+        axios.post(this.baseUrl + '/pdb/debug', { token: this.pdbSocket.id, filepath: './test_script/test.py' }).then(() => {
           this.status = this.debuggerName
         })
       })

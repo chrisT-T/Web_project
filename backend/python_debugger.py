@@ -53,7 +53,6 @@ def debugger_connect():
 def debugger_disconnect():
     debugger_terminal_fd.pop(request.sid)
 
-
 def is_port_in_use(port):
     import socket
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
