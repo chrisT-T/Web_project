@@ -29,7 +29,6 @@ pdb_instance_lock = threading.Lock()
 def getStack():
     data = request.get_json()
     token:str = data['token']
-    print(pdb_instance.keys())
     pdb_instance_lock.acquire()
     if token in pdb_instance.keys():
         res = jsonify(pdb_instance[token].get_current_stack())

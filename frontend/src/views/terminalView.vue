@@ -1,7 +1,8 @@
 <template>
   <div>
     <h1>Web terminal</h1>
-    <web-debugger debuggerName='debugterm'/>
+    <!-- <web-terminal termName='webterm'/> -->
+    <web-debugger filePath='./test_script/test.py'/>
   </div>
 </template>
 
@@ -11,7 +12,9 @@ import { Options, Vue } from 'vue-class-component'
 import webDebugger from '@/components/webDebugger.vue'
 @Options({
   components: {
+    // webTerminal
     webDebugger
+
   }
 })
 export default class terminalView extends Vue {}
