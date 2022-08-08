@@ -22,20 +22,20 @@
         </div>
       </el-header>
       <el-main>
-        <el-scrollbar max-height="600px" v-if="form.taskList.length > 0">
+        <el-scrollbar v-if="form.taskList.length > 0">
             <div v-for="( item, index ) in form.taskList" :key="item.id" class="scrollbar-demo-item">
                 <div class="detail_info" >
                   <el-link type="info" :underline="false">{{ item.language }}</el-link>
-                  <el-link type="primary" :underline="false" :icon="InfoFilled" @click="ProjectDetail(item.name)" v-if="!form.taskList[index].showInp">{{item.name}}</el-link>
+                  <el-link class="name-link" type="primary" :underline="false" :icon="InfoFilled" @click="ProjectDetail(item.name)" v-if="!form.taskList[index].showInp">{{item.name}}</el-link>
                   <el-input class="changeInp" size="large" ref="inputVal" v-if="form.taskList[index].showInp" :value="item.name"
                     v-model="changeInput.inputStr"
-                    v-focus="changeInput.isChecked"
+                    v-focus="form.taskList[index].showInp"
                     @blur="editGiveup(index)"
                     @keyup.enter="editFinish(index)"
                     placeholder="file name">
                   </el-input>
                 </div>
-                <div class="detail_info">
+                <div class="detail_info_btn">
                   <span class="time">{{item.lastupdate}}</span>
                   <el-button type="primary" :icon="Edit" @click="editStart(index)" circle />
                   <el-button type="danger" :icon="Delete" @click="removeTask(index)" circle />
@@ -206,9 +206,10 @@ const editFinish = async (index: number) => {
   changeInput.isChecked = false
   form.taskList[index].showInp = false
 }
-const editGiveup = () => {
+const editGiveup = (index:number) => {
   console.log('edirGiveup')
   changeInput.isChecked = false
+  form.taskList[index].showInp = false
 }
 
 // 跳到项目详情页
@@ -333,7 +334,7 @@ onMounted(async () => {
   width: 90%;
 }
 .time {
-  margin: 40px;
+  margin: 0 20px 0 0;
 }
 .detail_info {
   overflow: hidden;
@@ -367,5 +368,14 @@ onMounted(async () => {
 .noTask .el-button {
   width: 200px;
   height: 40px;
+}
+.changeInp {
+  width: 250px;
+  border-color: var(--el-color-primary-dark-2);
+  font-size: 18px;
+  text-overflow: ellipsis;
+}
+.detail_info_btn {
+  min-width: 340px;
 }
 </style>

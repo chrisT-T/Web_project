@@ -152,6 +152,8 @@ div {
 .el-footer {
   background-color: var(--el-color-primary-dark-2);
   overflow: auto;
+  display: flex;
+  flex-direction: column;
 }
 .el-aside {
   background-color: var(--el-color-primary-light-8);

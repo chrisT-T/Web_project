@@ -75,6 +75,7 @@ interface Tree {
   id: number
   label: string
   type: string
+  route: string
   showInput: boolean
   children?: Tree[]
 }
@@ -88,6 +89,7 @@ const form = reactive({
     id: 0,
     label: '',
     type: '',
+    route: '',
     showInput: false
   },
   flag: false,
@@ -162,7 +164,8 @@ const submitCheck = (data: Tree, labelNew: string, typeNew: string) => {
       labelNew = labelNew + '.py'
       console.log(labelNew)
     }
-    const newChild = { id: id++, label: labelNew, type: typeNew, showInput: false, children: [] }
+    const newChild = { id: id++, label: labelNew, type: typeNew, route: data.route + '/' + data.label, showInput: false, children: [] }
+    console.log(newChild)
     if (!data.children) {
       data.children = []
     }
@@ -187,24 +190,28 @@ const dataSource = ref<Tree[]>([
     id: 1,
     label: 'Level one 1',
     type: 'folder',
+    route: '',
     showInput: false,
     children: [
       {
         id: 4,
         label: 'Level two 1-1',
         type: 'folder',
+        route: 'Level one 1',
         showInput: false,
         children: [
           {
             id: 9,
             label: 'Level three 1-1-1',
             type: 'folder',
+            route: 'Level one 1\\Level two 1-1',
             showInput: false
           },
           {
             id: 10,
             label: 'Level_three_1-1-2.py',
             type: 'file',
+            route: 'Level one 1\\Level two 1-1',
             showInput: false
           }
         ]
@@ -215,18 +222,21 @@ const dataSource = ref<Tree[]>([
     id: 2,
     label: 'Level one 2',
     type: 'folder',
+    route: '',
     showInput: false,
     children: [
       {
         id: 5,
         label: 'Level two 2-1',
         type: 'folder',
+        route: 'Level one 2',
         showInput: false
       },
       {
         id: 6,
         label: 'Level_two_2-2.py',
         type: 'file',
+        route: 'Level one 2',
         showInput: false
       }
     ]
@@ -235,18 +245,21 @@ const dataSource = ref<Tree[]>([
     id: 3,
     label: 'Level one 3',
     type: 'folder',
+    route: '',
     showInput: false,
     children: [
       {
         id: 7,
         label: 'Level two 3-1',
         type: 'folder',
+        route: 'Level one 3',
         showInput: false
       },
       {
         id: 8,
         label: 'Level_two_3-2.py',
         type: 'file',
+        route: 'Level one 3',
         showInput: false
       }
     ]
