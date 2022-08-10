@@ -83,7 +83,6 @@ import {
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import axios from 'axios'
-import { tr } from 'element-plus/es/locale'
 
 const formLabelWidth = '140px'
 const props = defineProps({

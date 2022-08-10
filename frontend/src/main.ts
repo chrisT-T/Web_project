@@ -11,9 +11,7 @@ const app = createApp(App)
   .use(VueAxios, axios)
 
 app.directive('focus', (el, binding) => {
-  if (binding.value) {
-    el.focus()
-  }
+  el.querySelector('input').focus()
 })
 
 app
