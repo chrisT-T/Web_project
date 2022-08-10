@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
-
+import terminalView from '../views/terminalView.vue'
+import DragView from '../views/DragView.vue'
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',

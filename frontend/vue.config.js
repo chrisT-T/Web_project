@@ -1,17 +1,32 @@
+const AutoImport = require('unplugin-auto-import/webpack')
+const Components = require('unplugin-vue-components/webpack')
+const { ElementPlusResolver } = require('unplugin-vue-components/resolvers')
 const { defineConfig } = require('@vue/cli-service')
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin')
-module.exports = defineConfig({
+module.exports = {
   transpileDependencies: true,
+  outputDir: './build',
+  // 和webpapck属性完全一致，最后会进行合并
   configureWebpack: {
-    plugins: [
-      new MonacoWebpackPlugin({
-        languages: ['python']
-      })
-    ],
     resolve: {
+      alias: {
+        components: '@/components'
+      },
       fallback: {
         path: false
       }
-    }
+    },
+    // 配置webpack自动按需引入element-plus，
+    plugins: [
+      new MonacoWebpackPlugin({
+        languages: ['python']
+      }),
+      AutoImport({
+        resolvers: [ElementPlusResolver()]
+      }),
+      Components({
+        resolvers: [ElementPlusResolver()]
+      })
+    ]
   }
-})
+}

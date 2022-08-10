@@ -8,6 +8,8 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "@element-plus/icons-vue": "^2.0.6",
+    "@vueuse/core": "^9.0.0",
     "axios": "^0.27.2",
     "core-js": "^3.8.3",
     "monaco-editor": "^0.33.0",
@@ -20,7 +22,10 @@
     "vue-axios": "^3.4.1",
     "vue-router": "^4.0.3",
     "vuedraggable": "^4.1.0",
-    "vuex": "^4.0.0"
+    "vuex": "^4.0.0",
+    "xterm": "^4.19.0",
+    "xterm-addon-attach": "^0.6.0",
+    "xterm-addon-fit": "^0.5.0"
   },
   "devDependencies": {
     "@types/splitpanes": "^2.2.1",
@@ -39,6 +44,8 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^6.0.0",
     "eslint-plugin-vue": "^8.0.3",
-    "typescript": "~4.5.5"
+    "typescript": "~4.5.5",
+    "unplugin-auto-import": "^0.11.1",
+    "unplugin-vue-components": "^0.22.0"
   }
 }

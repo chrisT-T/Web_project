@@ -1,11 +1,22 @@
 from distutils.log import error
 import json
 from flask import Flask, jsonify, request
+from flask_socketio import SocketIO
 from flask_cors import CORS
 import fileFunc, userInfo
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='.')
 CORS(app, resources=r'/*')
+app.config["fd"] = {}
+app.config["child_pid"] = {}
+
+# cmd for win
+app.config['cmd'] = 'bash'
+
+socketio = SocketIO(app, cors_allowed_origins="*")
+
+import python_debugger
+import web_terminal
 
 @app.route('/')
 def hello_world():
@@ -361,4 +372,4 @@ def getFileTree(username, projectname):
 
 
 if __name__ == "__main__":
-    app.run(port=5000, host='127.0.0.1')
+    socketio.run(app, port=5000, host='127.0.0.1')
