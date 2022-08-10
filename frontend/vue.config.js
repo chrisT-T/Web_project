@@ -27,12 +27,7 @@ module.exports = {
       Components({
         resolvers: [ElementPlusResolver()]
       })
-    ],
-    resolve: {
-      fallback: {
-        path: false
-      }
-    }
+    ]
   },
   devServer: {
     proxy: {
@@ -43,4 +38,4 @@ module.exports = {
       }
     }
   }
-})
+}
