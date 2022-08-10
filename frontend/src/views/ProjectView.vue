@@ -106,7 +106,9 @@ const changeInput = reactive({
 // 当前用户名 从rouetr获取
 const name = useRouter().currentRoute.value.params.username
 
+// 创建新项目的表单显示
 const dialogFormVisible = ref(false)
+
 // language options
 const options = [
   {
@@ -114,13 +116,6 @@ const options = [
     label: 'python'
   }
 ]
-
-interface Project {
-  name: string
-  language: string
-  id: number
-  lastupdate: string
-}
 
 const form = reactive({
   name: '',
@@ -178,6 +173,7 @@ const removeTask = async (index: number) => {
   form.taskList.splice(index, 1)
 }
 
+// 开始修改项目名称
 const editStart = (index: number) => {
   console.log('editStart' + index)
   if (!changeInput.isChecked) {
@@ -189,6 +185,7 @@ const editStart = (index: number) => {
   }
 }
 
+// 结束修改项目名称 提交后端修改项目名称
 const editFinish = async (index: number) => {
   console.log('editFinish' + index)
   await axios.post('http://127.0.0.1:5000/renamepro/' + name, { src: name + '/' + form.taskList[index].name, dst: name + '/' + changeInput.inputStr })
@@ -206,6 +203,8 @@ const editFinish = async (index: number) => {
   changeInput.isChecked = false
   form.taskList[index].showInp = false
 }
+
+// 放弃修改项目名称
 const editGiveup = (index:number) => {
   console.log('edirGiveup')
   changeInput.isChecked = false

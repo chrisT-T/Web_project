@@ -83,7 +83,6 @@ import {
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import axios from 'axios'
-import { tr } from 'element-plus/es/locale'
 
 const formLabelWidth = '140px'
 const props = defineProps({
@@ -91,6 +90,7 @@ const props = defineProps({
   projectname: String
 })
 
+// Tree接口
 interface Tree {
   // id: number
   label: string
@@ -102,6 +102,7 @@ interface Tree {
 }
 let id = 10000
 
+// 创建新文件/文件夹表单信息
 const form = reactive({
   dialogFormVisible: false,
   label: '',
@@ -118,6 +119,7 @@ const form = reactive({
   data: []
 })
 
+// 更改文件名
 const changeInput = reactive({
   isChecked: false,
   inputStr: ''
@@ -125,6 +127,9 @@ const changeInput = reactive({
 
 // 点击某个节点触发
 const handleNodeClick = (data: Tree, node: Node) => {
+  if (data.type === 'file') {
+    console.log('是可打开文件')
+  }
   console.log('node click')
   console.log(data)
   console.log(node)
@@ -187,7 +192,7 @@ const editGiveup = (data:Tree) => {
   changeInput.isChecked = false
   data.showInput = false
 }
-
+// 获得当前节点
 const currentTree = (data: Tree) => {
   form.currennode = data
   console.log(form.currennode)
