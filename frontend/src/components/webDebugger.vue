@@ -58,9 +58,9 @@ const props = defineProps({
 
 const size = 40 as number
 let baseUrl = 'http://127.0.0.1:' as string
-let status = 'distanced' as string
+const status = ref(null)
 const command = ref(null)
-let consoleOutput = '' as string
+const consoleOutput = ref(null)
 let stk = [] as StackItem[]
 let stkStr = '' as string
 const fitAddon = new FitAddon()
@@ -99,7 +99,7 @@ function initDebugger () {
     })
 
     pdbSocket.on('pdb_quit', (data) => {
-      status = data.flag
+      status.value = data.flag
       pdbSocket.disconnect()
       socket.disconnect()
       variables = [] as Tree[]
@@ -109,7 +109,8 @@ function initDebugger () {
     pdbSocket.on('pdb_output', (data: {'consoleOutput': string, 'token': string}) => {
       console.log(data)
       if (data.token === pdbSocket.id) {
-        consoleOutput += data.consoleOutput
+        consoleOutput.value += data.consoleOutput
+        console.log(consoleOutput)
         updateData()
       }
     })
@@ -129,7 +130,7 @@ function cont () {
 }
 
 function send () {
-  axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket.id, cmd: command })
+  axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket.id, cmd: command.value })
 }
 
 function next () {
@@ -157,6 +158,7 @@ function restart () {
     macOptionIsMeta: true
   })
   socket = io('http://127.0.0.1:5000/pdb')
+  pdbSocket = io()
   setTimeout(() => {
     initDebugger()
   }, 2000)
