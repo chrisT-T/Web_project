@@ -231,6 +231,7 @@ const logoutConfirm = async () => {
   router.replace('/login')
 }
 
+// 每次加载页面时从后端拿项目数据
 onMounted(async () => {
   // ElNotification({
   //   title: '使用指南 -- Project Management',

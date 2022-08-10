@@ -86,6 +86,7 @@ def logout(username):
     folder_list.clear()
     return "succeed logout"
 
+# 重命名项目
 @app.route('/renamepro/<username>', methods =["POST"])
 def renamepro(username):
     if username != userInfo.currentUser():
@@ -157,6 +158,7 @@ def rename(username):
         }
         return jsonify(data)
 
+# 删除项目
 @app.route('/deletepro/<username>', methods = ["POST"])
 def deletepro(username):
     if username != userInfo.currentUser():
@@ -230,7 +232,7 @@ def mkpro(username):
     src = request.get_json()['src']
     language = request.get_json()['type']
     if fileFunc.mkdir(src):
-        t = userInfo.saveLanguage(src, language)
+        t = userInfo.saveProject(src, language)
         data = {
             'flag': True,
             'message': None,
@@ -322,8 +324,8 @@ def download_file(username):
             'message': "The file does not exist"
         }
         return jsonify(data)
-        
 
+# 提供项目列表
 @app.route('/getPro/<username>', methods = ["GET"])
 def getPro(username):
     if username != userInfo.currentUser():
@@ -336,6 +338,7 @@ def getPro(username):
     }
     return jsonify(obj)
 
+# 提供某项目的文件树
 @app.route('/getFileTree/<username>/<projectname>', methods = ["GET"])
 def getFileTree(username, projectname):
     if username != userInfo.currentUser():
