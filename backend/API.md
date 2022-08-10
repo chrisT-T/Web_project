@@ -11,9 +11,6 @@ def signup()
   + post表单形式传入参数，或get传入参数
 + 返回值：
   + 格式json，有`flag`、`message`两个属性，`flag`为true时，代表`message`为空；`flag`为false时，`message`中含有具体错误类型（如 文件不存在，文件名重复...）
-  + 成功登陆则json还会返回`path_list`，是一个字典列表，含有该用户根目录下一级文件和文件夹名字
-
-
 
 
 ### 登陆
@@ -27,7 +24,6 @@ def login()
   + post表单形式传入参数，或get传入参数
 + 返回值：
   + 格式：json，带键值对`flag`、`message`，`flag`为true时，代表`message`为空；`flag`为false时，`message`中含有具体错误类型（如 文件不存在，文件名重复...）
-  + 成功登陆则json还会返回`path_list`，是一个字典列表，含有该用户根目录下一级文件和文件夹名字
 
 
 
@@ -43,6 +39,16 @@ def logout(username)
 + 返回值：
   + 没有发生错误，则返回 "succeed logout"
 
+### 项目重命名
+```python
+@app.route('/renamepro/<username>', methods =["POST"])
+def renamepro(username):
+```
++ 参数：
+  + url提供当前用户用户名
+  + json形式传入两参数`src`、`dst`，`src`为原本项目路径，`dst`为更改后项目路径，路径从用户名一级开始（如 `xiaoming/... `）
++ 返回值：
+  + 格式：json，带键值对`flag`、`message`，flag为true时，message为空；flag为false时，message指出具体错误（如 文件不存在，文件名重复...）
 
 ### 重命名
 
@@ -55,10 +61,17 @@ def rename(username)
   + json形式传入两参数`src`、`dst`，`src`为原本路径，`dst`为更改后路径，路径从用户名一级开始（如 `xiaoming/... `）
 + 返回值
   + 格式：json，带键值对`flag`、`message`，flag为true时，message为空；flag为false时，message指出具体错误（如 文件不存在，文件名重复...）
-  + 重命名成功则json还会返回`path_list`，是一个字典列表，含有该用户所有文件和文件夹路径
 
-
-
+### 删除项目
+```python
+@app.route('/deletepro/<username>', methods = ["POST"])
+def deletepro(username):
+```
++ 参数：
+  + url提供当前用户用户名
+  + json形式传入参数`src`，`src`为项目路径，路径从用户名一级开始（如 `xiaoming/... `）
++ 返回值
+  + 格式：json，带键值对`flag`、`message`，flag为true时，message为空；flag为false时，message指出具体错误（如 文件不存在，文件名重复...）
 ### 删除
 
 ```python
@@ -71,9 +84,18 @@ def delete(username)
 
 + 返回值
   + 格式：json，带键值对`flag`、`message`，flag为true时，message为空；flag为false时，message指出具体错误（如 文件不存在，文件名重复...）
-  + 删除成功则json还会返回`path_list`，是一个字典列表，含有该用户所有文件和文件夹路径
 
+### 新建项目
+```python
+@app.route('/mkpro/<username>', methods = ["POST"])
+def mkpro(username):
+```
++ 参数：
+  + url提供当前用户用户名
+  + json形式传入参数`src`，`src`为新文件夹的路径，路径从用户名一级开始（如 `xiaoming/... `）
 
++ 返回值：
+  + 格式：json，带键值对`flag`、`message`，flag为true时，message为空；flag为false时，message指出具体错误（如 文件不存在，文件名重复...）
 
 ### 新建文件夹
 
@@ -87,7 +109,6 @@ def mkdir(username)
 
 + 返回值：
   + 格式：json，带键值对`flag`、`message`，flag为true时，message为空；flag为false时，message指出具体错误（如 文件不存在，文件名重复...）
-  + 新建成功则json还会返回`path_list`，是一个字典列表，含有该用户所有文件和文件夹路径
 
 
 
@@ -103,8 +124,6 @@ def touch(username):
 
 + 返回值
   + 格式：json，带键值对`flag`、`message`，flag为true时，message为空；flag为false时，message指出具体错误（如 文件不存在，文件名重复...）
-  + 新建成功则json还会返回`path_list`，是一个字典列表，含有该用户所有文件和文件夹路径
-
 
 
 ## 上传文件
@@ -120,7 +139,6 @@ def upload_file(username)
 
 + 返回值
   + 格式：json，带键值对`flag`、`message`，flag为true时，message为空；flag为false时，message指出具体错误（如 文件不存在，文件名重复...）
-  + 上传成功则json还会返回`path_list`，是一个字典列表，含有该用户所有文件和文件夹路径
 
 
 
@@ -136,63 +154,23 @@ def download_file(username)
 
 + 返回值
   + 格式：json，带键值对`flag`、`message`，flag为true时，message为空；flag为false时，message指出具体错误（如 文件不存在，文件名重复...）
-  + 下载成功则json还会返回`path_list`，是一个字典列表，含有该用户所有文件和文件夹路径；以及一个字符串`text`，是待下载的内容
 
-
-
-### 返回一级目录
-
+### 获取项目列表
 ```python
-@app.route('/show/<username>', method = "POST")
-def show(username)
-```
-+ 参数：
-  + url提供当前用户用户名
-  + json形式传入参数`src`，`src`为目录的路径（路径非文件夹时会返回错误信息），路径从用户名一级开始（如 `xiaoming/... `）
-+ 返回值
-  + 格式：json，带键值对`flag`、`message`，flag为true时，message为空；flag为false时，message指出具体错误（如 文件不存在，文件名重复...）
-  + 下载成功则json还会返回`filelist`，是一个字典列表，字典内含有该用户当前目录下文件和文件夹名字`name`，以及`type`指明是文件`file`还是文件夹`folder`
-
-
-
-### 返回树形结构
-
-```python
-# 获取最外层tree数据结构
-@app.route('/getTreeData/<username>', method = "GET")
-def getTreeData(username)
-	...
-    obj = {
-            'code': 0,
-            'data': path_list,
-            'flag': True,
-            'message': None
-        }
-    ...
+@app.route('/getPro/<username>', methods = ["GET"])
+def getPro(username):
 ```
 + 参数：
   + url提供当前用户用户名
 + 返回值
-  + 格式：json，其中`data`是字典列表，字典有键`name`：文件（夹）名字；`type`：文件（夹）类型，`isLeaf`；是否是叶子，即是否是文件；`id`：用于逐级访问；`path`：该文件（夹）的路径，从用户名一级开始
+  + 格式：json，带键值对`flag`、`message`、`data`，flag为true时，message为空；flag为false时，message指出具体错误（如 文件不存在，文件名重复...）,`data` 中为项目列表
 
-
-
+### 获取项目文件树
 ```python
-# 根据id查询对应层级tree数据
-@app.route('/getTreeChildData/<username>', method = "GET")
-def getTreeChildData(username)
-	...
-    obj = {
-            'code': 0,
-            'data': path_list,
-            'flag': True,
-            'message': None
-        }
-    ...
+@app.route('/getFileTree/<username>/<projectname>', methods = ["GET"])
+def getFileTree(username, projectname):
 ```
 + 参数：
-  + url提供当前用户用户名
-  + get形式传入参数`id`，表示待展开的文件夹
+  + url提供当前用户用户名和项目名
 + 返回值
-  + 格式:json，其中`data`是字典列表，字典有键`name`：文件（夹）名字；`type`：文件（夹）类型，`isLeaf`；是否是叶子，即是否是文件；`id`：用于逐级访问；`path`：该文件（夹）的路径，从用户名一级开始
-
+  + 格式：json，带键值对`flag`、`message`、`fileTree`，flag为true时，message为空；flag为false时，message指出具体错误（如 文件不存在，文件名重复...）,`fileTree` 中为项目文件树
