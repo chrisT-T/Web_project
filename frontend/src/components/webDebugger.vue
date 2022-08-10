@@ -61,11 +61,10 @@ let baseUrl = 'http://127.0.0.1:' as string
 const status = ref(null)
 const command = ref(null)
 const consoleOutput = ref(null)
-let stk = [] as StackItem[]
-let stkStr = '' as string
+const stk = ref<StackItem[]>([])
 const fitAddon = new FitAddon()
-let variables = [] as Tree[]
-let curline = 1 as number
+const variables = ref<Tree[]>([])
+const curline = ref<number>(1)
 
 let term = new Terminal({
   cursorBlink: true,
@@ -102,8 +101,8 @@ function initDebugger () {
       status.value = data.flag
       pdbSocket.disconnect()
       socket.disconnect()
-      variables = [] as Tree[]
-      stk = [] as StackItem[]
+      variables.value = [] as Tree[]
+      stk.value = [] as StackItem[]
     })
 
     pdbSocket.on('pdb_output', (data: {'consoleOutput': string, 'token': string}) => {
@@ -159,9 +158,7 @@ function restart () {
   })
   socket = io('http://127.0.0.1:5000/pdb')
   pdbSocket = io()
-  setTimeout(() => {
-    initDebugger()
-  }, 2000)
+  initDebugger()
 }
 
 function updateData () {
@@ -171,7 +168,7 @@ function updateData () {
       const rawGlobals = JSON.parse(response.request.response).globals
       const locals = rawLocals.split('\n')
       const globals = rawGlobals.split('\n')
-      variables = []
+      variables.value = []
       const loc = { label: 'locals', children: [] } as Tree
       for (const i of locals) {
         (loc.children as Tree[]).push({ label: i, children: [] })
@@ -180,22 +177,14 @@ function updateData () {
       for (const i of globals) {
         (glob.children as Tree[]).push({ label: i, children: [] })
       }
-      variables.push(loc)
-      variables.push(glob)
-      curline = JSON.parse(response.request.response).current_line
+      variables.value.push(loc)
+      variables.value.push(glob)
+      curline.value = JSON.parse(response.request.response).current_line
     })
   axios.post(baseUrl + '/pdb/getstack', { token: pdbSocket.id }).then(
     (response) => {
       const stklist = JSON.parse(response.request.response)
-      // console.log(stklist)
-      // for (let i = 1; i < stklist.length; i++) {
-      // stk_file.push(stklist[i].match(/))
-      // }
-      stkStr = ''
-      for (const i of stklist) {
-        stkStr += i
-      }
-      stk = []
+      stk.value = []
       for (let i = 1; i < stklist.length; i++) {
         const funct = stklist[i].match(/, code (\S*)>/)[1]
         let fil = stklist[i].match(/file '(\S*)'/)[1]
@@ -204,7 +193,7 @@ function updateData () {
           fil = fil.match(/\/(\w*?).py/)[1] + '.py'
           console.log(fil)
         }
-        stk.splice(0, 0, { func: funct, file: fil })
+        stk.value.splice(0, 0, { func: funct, file: fil })
       }
     }
   )

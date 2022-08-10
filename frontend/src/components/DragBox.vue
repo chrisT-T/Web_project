@@ -13,7 +13,7 @@ let otherBoxWidth = 0 as number
 let resizeBox !: HTMLDivElement
 let currentBox !: HTMLDivElement
 let rightBox : HTMLDivElement
-const dragBox = ref(null) as unknown as HTMLDivElement
+const dragBox = ref<HTMLDivElement>()
 
 onMounted(() => {
   dragControlerDiv()
@@ -32,7 +32,7 @@ function onMouseDown (e : MouseEvent) {
   rightBox = (getNextElement(currentBox) as HTMLDivElement)
   if (!rightBox) return
   curLen = currentBox.clientWidth
-  otherBoxWidth = (dragBox as HTMLDivElement).clientWidth - curLen - rightBox.clientWidth
+  otherBoxWidth = dragBox.value.clientWidth - curLen - rightBox.clientWidth
   resizeBox.style.background = '#818181'
   startX = e.clientX
   document.addEventListener('mousemove', onMouseMove)
@@ -43,7 +43,7 @@ function onMouseMove (e : MouseEvent) {
   const endX = e.clientX
   const moveLen = endX - startX
   const curBoxLen = curLen + moveLen
-  const rightBoxLen = (dragBox as HTMLDivElement).clientWidth - curBoxLen - otherBoxWidth
+  const rightBoxLen = dragBox.value.clientWidth - curBoxLen - otherBoxWidth
   // if (curBoxLen <= 200 || rightBoxLen <= 200) return
   currentBox.style.width = curBoxLen + 'px'
   resizeBox.style.left = curBoxLen + 'px'
