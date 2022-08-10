@@ -7,6 +7,7 @@ import os
 import datetime
 import numpy as np
 
+# 记录当前用户
 cur_user = ''
 
 # 用户名密码是否输入正确
@@ -49,7 +50,8 @@ def createNewUser(username: String, userpassword: String):
         group_writer.save()
         return
 
-def saveLanguage(src, language):
+# 保存项目的相关信息
+def saveProject(src, language):
     if not os.path.exists("./userInfo.xlsx"):
         raise error
     username, proname = src.split('/')
@@ -75,6 +77,7 @@ def saveLanguage(src, language):
         group_writer.save()
     return t
 
+# 删除项目信息
 def deletepro(src):
     if not os.path.exists("./userInfo.xlsx"):
         raise error
@@ -90,6 +93,7 @@ def deletepro(src):
         writer.sheets = dict((ws.title, ws) for ws in book.worksheets)
         df_del.to_excel(writer, sheet_name=username, index=False)
 
+# 更新项目名字
 def renamepro(src, dst):
     if not os.path.exists("./userInfo.xlsx"):
         raise error
@@ -110,6 +114,7 @@ def renamepro(src, dst):
         writer.sheets = dict((ws.title, ws) for ws in book.worksheets)
         result.to_excel(writer, sheet_name=username, index=False)
 
+# 返回项目列表
 def showpro(username):
     if not os.path.exists("./userInfo.xlsx"):
         raise error
@@ -120,9 +125,11 @@ def showpro(username):
         ls = []
     return ls
 
+# 设置当前用户
 def setCurUser(username: String):
     global cur_user
     cur_user = username
 
+# 返回当前用户
 def currentUser():
     return cur_user

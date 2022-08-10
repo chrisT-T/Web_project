@@ -138,8 +138,8 @@ def walkone(inputSrc: String):
 
 # 接收文件夹路径，返回该文件夹下所有文件和文件夹
 # 返回一个列表，包括文件和文件夹
-# 若是文件，则是一个字典，有属性name type children，其中children为空列表
-# 若是文件夹，则是一个字典，有属性name type children，其中children一个结构类似于父列表的列表
+# 若是文件，则是一个字典，有属性label type route showInput isRoot children，其中children为空列表
+# 若是文件夹，则是一个字典，有属性label type route showInput isRoot children，其中children一个结构类似于父列表的列表
 def getData(src: String):
     # src从用户名一级开始
     flag, level0_list = walkone(src)
