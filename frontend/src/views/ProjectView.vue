@@ -214,7 +214,6 @@ const editGiveup = (index:number) => {
 
 // 跳到项目详情页
 const ProjectDetail = (Projectname:string) => {
-  console.log(Projectname)
   router.replace({ name: 'coding', params: { username: name, projectname: Projectname } })
 }
 

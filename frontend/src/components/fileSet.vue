@@ -72,7 +72,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, reactive } from 'vue'
+import { onMounted, ref, reactive } from 'vue'
 import Node from 'element-plus/es/components/tree/src/model/node'
 import {
   Plus,
@@ -87,11 +87,12 @@ import { tr } from 'element-plus/es/locale'
 
 const formLabelWidth = '140px'
 const props = defineProps({
-  name: String
+  name: String,
+  projectname: String
 })
 
 interface Tree {
-  id: number
+  // id: number
   label: string
   type: string
   route: string
@@ -113,7 +114,8 @@ const form = reactive({
     showInput: false
   },
   flag: false,
-  message: ''
+  message: '',
+  data: []
 })
 
 const changeInput = reactive({
@@ -128,6 +130,14 @@ const handleNodeClick = (data: Tree, node: Node) => {
   console.log(node)
 }
 
+function changeRoute (children: Tree[], pre: string, origin: string, newLabel: string) {
+  for (var key in children) {
+    children[key].route = pre + '/' + newLabel + children[key].route.slice(pre.length + 1 + origin.length)
+    if (children[key].type === 'folder') {
+      changeRoute(children[key].children, pre, origin, newLabel)
+    }
+  }
+}
 // 成功编辑并连接后端
 const editFinish = async (data:Tree) => {
   let editCheck = true
@@ -136,7 +146,7 @@ const editFinish = async (data:Tree) => {
     editCheck = false
   }
   if (editCheck) {
-    await axios.post('http://127.0.0.1:5000/rename/' + props.name, { src: props.name + '/' + data.label, dst: props.name + '/' + changeInput.inputStr })
+    await axios.post('http://127.0.0.1:5000/rename/' + props.name, { src: props.name + '/' + data.route + '/' + data.label, dst: props.name + '/' + data.route + '/' + changeInput.inputStr })
       .then(res => {
         form.flag = res.data.flag
         form.message = res.data.message
@@ -147,7 +157,11 @@ const editFinish = async (data:Tree) => {
       alert(form.message)
       return
     }
-    data.label = changeInput.inputStr
+    const pre = data.route
+    const origin = data.label
+    const newLabel = changeInput.inputStr
+    changeRoute(data.children, pre, origin, newLabel)
+    data.label = newLabel
     data.showInput = false
     changeInput.isChecked = false
   } else {
@@ -192,7 +206,7 @@ const submitCheck = async (data: Tree, labelNew: string, typeNew: string) => {
       labelNew = labelNew + '.py'
       console.log(labelNew)
       console.log(data.route)
-      await axios.post('http://127.0.0.1:5000/touch/' + props.name, { src: props.name + '/' + data.route + '/' + labelNew })
+      await axios.post('http://127.0.0.1:5000/touch/' + props.name, { src: props.name + '/' + data.route + '/' + data.label + '/' + labelNew })
         .then(res => {
           form.flag = res.data.flag
           form.message = res.data.message
@@ -204,7 +218,7 @@ const submitCheck = async (data: Tree, labelNew: string, typeNew: string) => {
         return
       }
     } else {
-      await axios.post('http://127.0.0.1:5000/mkdir/' + props.name, { src: props.name + '/' + data.route + '/' + labelNew })
+      await axios.post('http://127.0.0.1:5000/mkdir/' + props.name, { src: props.name + '/' + data.route + '/' + data.label + '/' + labelNew })
         .then(res => {
           form.flag = res.data.flag
           form.message = res.data.message
@@ -247,89 +261,44 @@ const remove = async (node: Node, data: Tree) => {
 }
 
 // TODO: 从后端获取这个项目的文件信息：需要增加id
-
 const dataSource = ref<Tree[]>([
   {
-    id: 1,
-    label: 'Level one 1',
+    // id: 1,
+    label: props.projectname,
     type: 'folder',
     route: '',
     isRoot: true,
     showInput: false,
-    children: [
-      {
-        id: 4,
-        label: 'Level two 1-1',
-        type: 'folder',
-        route: 'Level one 1',
-        showInput: false,
-        children: [
-          {
-            id: 9,
-            label: 'Level three 1-1-1',
-            type: 'folder',
-            route: 'Level one 1\\Level two 1-1',
-            showInput: false
-          },
-          {
-            id: 10,
-            label: 'Level_three_1-1-2.py',
-            type: 'file',
-            route: 'Level one 1\\Level two 1-1',
-            showInput: false
-          }
-        ]
-      },
-      {
-        id: 2,
-        label: 'Level one 2',
-        type: 'folder',
-        route: '',
-        showInput: false,
-        children: [
-          {
-            id: 5,
-            label: 'Level two 2-1',
-            type: 'folder',
-            route: 'Level one 2',
-            showInput: false
-          },
-          {
-            id: 6,
-            label: 'Level_two_2-2.py',
-            type: 'file',
-            route: 'Level one 2',
-            showInput: false
-          }
-        ]
-      },
-      {
-        id: 3,
-        label: 'Level one 3',
-        type: 'folder',
-        route: '',
-        showInput: false,
-        children: [
-          {
-            id: 7,
-            label: 'Level two 3-1',
-            type: 'folder',
-            route: 'Level one 3',
-            showInput: false
-          },
-          {
-            id: 8,
-            label: 'Level_two_3-2.py',
-            type: 'file',
-            route: 'Level one 3',
-            showInput: false
-          }
-        ]
-      }
-    ]
+    children: []
   }
-
 ])
+
+function fillData (children: Tree[], data: object) {
+  for (var key in data) {
+    const tree = { label: data[key].label, type: data[key].type, route: data[key].route, showInput: data[key].showInput, isRoot: data[key].isRoot, children: [] }
+    children.push(tree)
+    if (data[key].type === 'folder') {
+      fillData(tree.children, data[key].children)
+    }
+  }
+}
+
+onMounted(async () => {
+  await axios.get('http://127.0.0.1:5000/getFileTree/' + props.name + '/' + props.projectname)
+    .then(res => {
+      form.flag = res.data.flag
+      form.message = res.data.message
+      form.data = res.data.fileTree
+    }).catch(function (error) {
+      console.log(error.response)
+    })
+  if (form.flag === false) {
+    alert(form.message)
+    return
+  }
+  fillData(dataSource.value[0].children, form.data)
+})
+
 </script>
 
 <style>

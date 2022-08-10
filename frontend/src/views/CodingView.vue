@@ -10,7 +10,7 @@
           <el-button class="closeBtn" :icon="Fold" @click="closeAside" circle />
         </div>
         <el-aside :width="data.width">
-          <FileSet :name="name"></FileSet>
+          <FileSet :name="name" :projectname="projectname"></FileSet>
         </el-aside>
         <span class="resize_col" @mousedown="handleDragStart"></span>
         <el-container>
@@ -37,6 +37,9 @@ import FileSet from '../components/fileSet.vue'
 import { ElNotification } from 'element-plus'
 // 获取当前用户名
 const name = useRouter().currentRoute.value.params.username
+
+// 获取当前项目名
+const projectname = useRouter().currentRoute.value.params.projectname
 
 // 回到当前用户的项目管理区域
 const ProjectBack = () => {
