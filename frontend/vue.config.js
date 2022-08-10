@@ -27,6 +27,20 @@ module.exports = {
       Components({
         resolvers: [ElementPlusResolver()]
       })
-    ]
+    ],
+    resolve: {
+      fallback: {
+        path: false
+      }
+    }
+  },
+  devServer: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        ws: true,
+        changeOrigin: true
+      }
+    }
   }
-}
+})
