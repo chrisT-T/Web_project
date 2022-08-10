@@ -5,6 +5,7 @@
       node-key="id"
       default-expand-all
       :indent="5"
+      @node-click="handleNodeClick"
     >
       <template #default="{ node, data }">
         <span v-if="!data.isRoot" class="custom-tree-node">
@@ -119,6 +120,14 @@ const changeInput = reactive({
   isChecked: false,
   inputStr: ''
 })
+
+// 点击某个节点触发
+const handleNodeClick = (data: Tree, node: Node) => {
+  console.log('node click')
+  console.log(data)
+  console.log(node)
+}
+
 // 成功编辑并连接后端
 const editFinish = async (data:Tree) => {
   let editCheck = true
