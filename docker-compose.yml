@@ -1,3 +1,4 @@
+# 服务器部署用：sudo docker compose up -d
 version: "3.7"
 
 services:
