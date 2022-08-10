@@ -107,8 +107,9 @@ def download(src: String):
 
 # 输出指定路径一级目录
 # 传入参数src必须是目录名 若是文件名直接返回错误
-def walkone(src: String):
-    src = os.path.join(FILE_PATH, src)
+def walkone(inputSrc: String):
+    src = os.path.join(FILE_PATH, inputSrc)
+    route = inputSrc.split('/', 1)[1]
     if os.path.isfile(src):
         print ("shoule be a directory not a file")
         return False, []
@@ -119,7 +120,10 @@ def walkone(src: String):
         for dir in dirs:
             path = os.path.join(src, dir)
             tmp_dict = {}
-            tmp_dict['name'] = dir
+            tmp_dict['label'] = dir
+            tmp_dict['route'] = route
+            tmp_dict['isRoot'] = False
+            tmp_dict['showInput'] = False
             # 是目录
             if os.path.isdir(path):
                 tmp_dict['type'] = "folder"
@@ -132,54 +136,20 @@ def walkone(src: String):
         print ("the directory does not exist")
         return False, []
 
+# 接收文件夹路径，返回该文件夹下所有文件和文件夹
+# 返回一个列表，包括文件和文件夹
+# 若是文件，则是一个字典，有属性name type children，其中children为空列表
+# 若是文件夹，则是一个字典，有属性name type children，其中children一个结构类似于父列表的列表
+def getData(src: String):
+    # src从用户名一级开始
+    flag, level0_list = walkone(src)
+    if flag:
+        for f in level0_list:
+            if f['type'] == "file":
+                f['children'] = []
+            elif f['type'] == "folder":
+                new_src = os.path.join(src, f['label'])
+                _, f['children'] = getData(new_src)
 
-
-# 获取最外层tree数据结构
-def getTreeData(username: String, folder_list: List):
-    tmp_list = []
-    flag, level0_list = walkone(username)
-    if not flag:
-        return False
-    i = 1
-    for f in level0_list:
-        tmp_dict = {}
-        tmp_dict['name'] = f['name']
-        tmp_dict['id'] = str(i) * 3
-        tmp_dict['path'] = os.path.join(username, tmp_dict['name'])
-        if f['type'] == 'file':
-            tmp_dict['isLeaf'] = True
-        elif f['type'] == 'folder':
-            tmp_dict['isLeaf'] = False
-            folder_list.append(tmp_dict)  # 将文件夹加入文件夹列表
-
-        tmp_list.append(tmp_dict)
-        i += 1
-    return True, tmp_list
-
-
-# 根据id查询对应层级tree数据
-def getTreeChildData(id: String, folder_list: List):
-    tmp_list = []
-    for folder in folder_list:
-        # 找到目标文件夹
-        if folder['id'] == id:
-            
-            flag, level_list = walkone(folder['path'])
-            if not flag:
-                return False
-
-            i = 1
-            for f in level_list:
-                tmp_dict = {}
-                tmp_dict['name'] = f['name']
-                tmp_dict['id'] = id + '-' + str(i) * 3
-                tmp_dict['path'] = os.path.join(folder['path'], tmp_dict['name'])
-                if f['type'] == 'file':
-                    tmp_dict['isLeaf'] = True
-                elif f['type'] == 'folder':
-                    tmp_dict['isLeaf'] = False
-                    folder_list.append(tmp_dict)  # 将文件夹加入文件夹列表
-
-                tmp_list.append(tmp_dict)
-                i += 1
-    return True, tmp_list
+        return True, level0_list
+    return False, []

@@ -31,10 +31,8 @@ def signup():
         userInfo.setCurUser(user)
         fileFunc.mkdir(user)
         folder_list.clear()
-        flag, path_list = fileFunc.walkone(user)
 
         data = {
-            'path_list': path_list,
             'flag': True,
             'message': None,
         }
@@ -65,9 +63,7 @@ def login():
         userInfo.setCurUser(user)  
         folder_list.clear()
         # 成功登陆  
-        flag, path_list = fileFunc.walkone(user)
         data = {
-            'path_list': path_list,
             'flag': True,
             'message': None
         }
@@ -99,10 +95,8 @@ def renamepro(username):
     dst = request.get_json()['dst']
     result = fileFunc.rename(src, dst)
     if result == 0:
-        path_list = fileFunc.walk(username)
         userInfo.renamepro(src, dst)
         data = {
-            'path_list': path_list,
             'flag': True,
             'message': None
         }
@@ -136,11 +130,10 @@ def rename(username):
 
     src = request.get_json()['src']
     dst = request.get_json()['dst']
+    print(src, dst)
     result = fileFunc.rename(src, dst)
     if result == 0:
-        path_list = fileFunc.walk(username)
         data = {
-            'path_list': path_list,
             'flag': True,
             'message': None
         }
@@ -171,10 +164,8 @@ def deletepro(username):
 
     src = request.get_json()['src']
     if fileFunc.deleteFolder(src):
-        path_list = fileFunc.walk(username)
         userInfo.deletepro(src)
         data = {
-            'path_list': path_list,
             'flag': True,
             'message': None
         }
@@ -197,9 +188,7 @@ def delete(username):
     type = request.get_json()['type']
     if type == "folder":
         if fileFunc.deleteFolder(src):
-            path_list = fileFunc.walk(username)
             data = {
-                'path_list': path_list,
                 'flag': True,
                 'message': None
             }
@@ -241,10 +230,8 @@ def mkpro(username):
     src = request.get_json()['src']
     language = request.get_json()['type']
     if fileFunc.mkdir(src):
-        path_list = fileFunc.walk(username)
         t = userInfo.saveLanguage(src, language)
         data = {
-            'path_list': path_list,
             'flag': True,
             'message': None,
             'lastupdate': t
@@ -265,9 +252,7 @@ def mkdir(username):
 
     src = request.get_json()['src']
     if fileFunc.mkdir(src):
-        path_list = fileFunc.walk(username)
         data = {
-            'path_list': path_list,
             'flag': True,
             'message': None
         }
@@ -286,10 +271,9 @@ def touch(username):
         raise error
 
     src = request.get_json()['src']
+    print(src)
     if fileFunc.touch(src):
-        path_list = fileFunc.walk(username)
         data = {
-            'path_list': path_list,
             'flag': True,
             'message': None
         }
@@ -307,9 +291,7 @@ def upload_file(username):
     src = request.get_json()['src']
     text = request.get_json()['text']
     if fileFunc.upload(src, text):
-        path_list = fileFunc.walk(username)
         data = {
-            'path_list': path_list,
             'flag': True,
             'message': None
         }
@@ -328,9 +310,7 @@ def download_file(username):
     src = request.get_json()['src']
     flag, text = fileFunc.download(src)
     if flag:
-        path_list = fileFunc.walk(username)
         data = {
-            'path_list': path_list,
             'text': text,
             'flag': True,
             'message': None
@@ -344,29 +324,6 @@ def download_file(username):
         return jsonify(data)
         
 
-# 返回前端当前路径一级目录
-# 传入参数必须是文件夹路径
-@app.route('/show/<username>', methods = ["POST"])
-def show(username):
-    if username != userInfo.currentUser():
-        raise error
-    
-    src = request.get_json()['src']
-    flag, outputList = fileFunc.walkone(src)
-    if flag:
-        data = {
-            'filelist': outputList,
-            'flag': True,
-            'message': None
-        }
-        return jsonify(data)
-    else:
-        data = {
-            'flag': False,
-            'message': "Path error"
-        }
-        return jsonify(data)
-
 @app.route('/getPro/<username>', methods = ["GET"])
 def getPro(username):
     if username != userInfo.currentUser():
@@ -379,52 +336,26 @@ def getPro(username):
     }
     return jsonify(obj)
 
-# 获取最外层tree数据结构
-@app.route('/getTreeData/<username>', methods = ["GET"])
-def getTreeData(username):
+@app.route('/getFileTree/<username>/<projectname>', methods = ["GET"])
+def getFileTree(username, projectname):
     if username != userInfo.currentUser():
         raise error
-
-    flag, path_list = fileFunc.getTreeData(username, folder_list)
+    flag, fileTree = fileFunc.getData(username + '/' + projectname)
     if flag:
-        obj = {
-            'code': 0,
-            'data': path_list,
+        data = {
             'flag': True,
-            'message': None
+            'message': None,
+            'fileTree': fileTree
         }
+        return jsonify(data)
     else:
-        obj = {
-            'data' : None,
+        data = {
             'flag': False,
-            'message': "Failed to get"
+            'message': "cannot get the fileTree",
+            'fileTree': []
         }
-    print(path_list)
-    return jsonify(obj)
-
-
-# 根据id查询对应层级tree数据
-@app.route('/getTreeChildData/<username>', methods = ["GET"])
-def getTreeChildData(username):
-    if username != userInfo.currentUser():
-        raise error
-
-    id = request.args.get('id')
-    flag, path_list = fileFunc.getTreeChildData(id, folder_list)
-    if flag:
-        obj = {
-            'code': 0,
-            'data': path_list,
-            'flag': True,
-            'message': None
-        }
-    else:
-        obj = {
-            'flag': False,
-            'message': "Failed to get"
-        }
-    return jsonify(obj)
+        return jsonify(data)
 
 
 if __name__ == "__main__":
-    app.run(port=5000, host='127.0.0.1', debug=True)
+    app.run(port=5000, host='127.0.0.1')
