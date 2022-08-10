@@ -34,8 +34,9 @@
   </div>
 </template>
 
-<script lang="ts">
-import { Vue, prop } from 'vue-class-component'
+<script lang="ts" setup>
+
+import { ref, onMounted } from 'vue'
 import { Terminal } from 'xterm'
 import io from 'socket.io-client'
 import axios from 'axios'
@@ -51,181 +52,173 @@ interface StackItem {
   file: string
 }
 
-class webDebuggerProps {
-  filePath: string = prop({
-    required: true
+const props = defineProps({
+  filePath: String
+})
+
+const size = 40 as number
+let baseUrl = 'http://127.0.0.1:' as string
+let status = 'distanced' as string
+const command = ref(null)
+let consoleOutput = '' as string
+let stk = [] as StackItem[]
+let stkStr = '' as string
+const fitAddon = new FitAddon()
+let variables = [] as Tree[]
+let curline = 1 as number
+
+let term = new Terminal({
+  cursorBlink: true,
+  macOptionIsMeta: true
+})
+
+let socket = io('http://127.0.0.1:5000/pdb')
+
+let pdbSocket = io()
+
+function initDebugger () {
+  term.open(document.getElementById('debugTerm') as HTMLElement)
+  term.loadAddon(fitAddon)
+  fitAddon.fit()
+  term.writeln('Debugger Terminal\n')
+  term.onData((data) => {
+    socket.emit('debugger_term_input', { input: data, token: pdbSocket.id })
   })
 
-  components: object = {
-    VariableTable
-  }
+  socket.on('debugger_port', (data: {'port': number, 'token': string}) => {
+    console.log(data)
+    console.log(socket.id)
+    baseUrl += data.port.toString()
+
+    pdbSocket = io(baseUrl + '/pdb')
+
+    pdbSocket.on('connect', () => {
+      axios.post(baseUrl + '/pdb/debug', { token: pdbSocket.id, filepath: props.filePath }).then(() => {
+        console.log('Pdbsocket Connected')
+      })
+    })
+
+    pdbSocket.on('pdb_quit', (data) => {
+      status = data.flag
+      pdbSocket.disconnect()
+      socket.disconnect()
+      variables = [] as Tree[]
+      stk = [] as StackItem[]
+    })
+
+    pdbSocket.on('pdb_output', (data: {'consoleOutput': string, 'token': string}) => {
+      console.log(data)
+      if (data.token === pdbSocket.id) {
+        consoleOutput += data.consoleOutput
+        updateData()
+      }
+    })
+  })
+
+  socket.on('debugger_term_output', (data: {'output': string, 'token': string}) => {
+    console.log(data)
+    term.write(data.output)
+  })
+  setTimeout(() => {
+    term.clear()
+  }, 2000)
 }
 
-export default class webDebugger extends Vue.with(webDebuggerProps) {
-  size = 40 as number
-  baseUrl = 'http://127.0.0.1:' as string
-  status = 'distanced' as string
-  command = '' as string
-  consoleOutput = '' as string
-  stk = [] as StackItem[]
-  stkStr = '' as string
-  fitAddon = new FitAddon()
-  variables = [] as Tree[]
-  curline = 1 as number
+function cont () {
+  axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket.id, cmd: 'c' })
+}
 
+function send () {
+  axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket.id, cmd: command })
+}
+
+function next () {
+  axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket.id, cmd: 'n' })
+}
+
+function stepInto () {
+  axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket.id, cmd: 's' })
+}
+
+function stepOut () {
+  axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket.id, cmd: 'u' })
+}
+
+function stop () {
+  axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket.id, cmd: 'q' })
+}
+
+function restart () {
+  axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket.id, cmd: 'q' })
+  // axios.post (baseUrl + '/pdb/debug', { token: pdbSocket.id, filepath: filePath })
+  term.dispose()
   term = new Terminal({
     cursorBlink: true,
     macOptionIsMeta: true
   })
-
   socket = io('http://127.0.0.1:5000/pdb')
-
-  pdbSocket = io()
-
-  initDebugger () {
-    this.term.open(document.getElementById('debugTerm') as HTMLElement)
-    this.term.loadAddon(this.fitAddon)
-    this.fitAddon.fit()
-    this.term.writeln('Debugger Terminal\n')
-    this.term.onData((data) => {
-      this.socket.emit('debugger_term_input', { input: data, token: this.pdbSocket.id })
-    })
-
-    this.socket.on('debugger_port', (data: {'port': number, 'token': string}) => {
-      console.log(data)
-      console.log(this.socket.id)
-      this.baseUrl += data.port.toString()
-
-      this.pdbSocket = io(this.baseUrl + '/pdb')
-
-      this.pdbSocket.on('connect', () => {
-        axios.post(this.baseUrl + '/pdb/debug', { token: this.pdbSocket.id, filepath: this.filePath }).then(() => {
-          console.log('Pdbsocket Connected')
-        })
-      })
-
-      this.pdbSocket.on('pdb_quit', (data) => {
-        this.status = data.flag
-        this.pdbSocket.disconnect()
-        this.socket.disconnect()
-        this.variables = [] as Tree[]
-        this.stk = [] as StackItem[]
-      })
-
-      this.pdbSocket.on('pdb_output', (data: {'consoleOutput': string, 'token': string}) => {
-        console.log(data)
-        if (data.token === this.pdbSocket.id) {
-          this.consoleOutput += data.consoleOutput
-          this.updateData()
-        }
-      })
-    })
-
-    this.socket.on('debugger_term_output', (data: {'output': string, 'token': string}) => {
-      console.log(data)
-      this.term.write(data.output)
-    })
-    setTimeout(() => {
-      this.term.clear()
-    }, 2000)
-  }
-
-  cont () {
-    axios.post(this.baseUrl + '/pdb/runcmd', { token: this.pdbSocket.id, cmd: 'c' })
-  }
-
-  send () {
-    axios.post(this.baseUrl + '/pdb/runcmd', { token: this.pdbSocket.id, cmd: this.command })
-  }
-
-  next () {
-    axios.post(this.baseUrl + '/pdb/runcmd', { token: this.pdbSocket.id, cmd: 'n' })
-  }
-
-  stepInto () {
-    axios.post(this.baseUrl + '/pdb/runcmd', { token: this.pdbSocket.id, cmd: 's' })
-  }
-
-  stepOut () {
-    axios.post(this.baseUrl + '/pdb/runcmd', { token: this.pdbSocket.id, cmd: 'u' })
-  }
-
-  stop () {
-    axios.post(this.baseUrl + '/pdb/runcmd', { token: this.pdbSocket.id, cmd: 'q' })
-  }
-
-  restart () {
-    axios.post(this.baseUrl + '/pdb/runcmd', { token: this.pdbSocket.id, cmd: 'q' })
-    // axios.post (this.baseUrl + '/pdb/debug', { token: this.pdbSocket.id, filepath: this.filePath })
-    this.term.dispose()
-    this.term = new Terminal({
-      cursorBlink: true,
-      macOptionIsMeta: true
-    })
-    this.socket = io('http://127.0.0.1:5000/pdb')
-    setTimeout(() => {
-      this.initDebugger()
-    }, 2000)
-  }
-
-  updateData () {
-    axios.post(this.baseUrl + '/pdb/curframe', { token: this.pdbSocket.id })
-      .then((response) => {
-        const rawLocals = JSON.parse(response.request.response).locals
-        const rawGlobals = JSON.parse(response.request.response).globals
-        const locals = rawLocals.split('\n')
-        const globals = rawGlobals.split('\n')
-        this.variables = []
-        const loc = { label: 'locals', children: [] } as Tree
-        for (const i of locals) {
-          (loc.children as Tree[]).push({ label: i, children: [] })
-        }
-        const glob = { label: 'global', children: [] } as Tree
-        for (const i of globals) {
-          (glob.children as Tree[]).push({ label: i, children: [] })
-        }
-        this.variables.push(loc)
-        this.variables.push(glob)
-        this.curline = JSON.parse(response.request.response).current_line
-      })
-    axios.post(this.baseUrl + '/pdb/getstack', { token: this.pdbSocket.id }).then(
-      (response) => {
-        const stklist = JSON.parse(response.request.response)
-        // console.log(stklist)
-        // for (let i = 1; i < stklist.length; i++) {
-        // this.stk_file.push(stklist[i].match(/))
-        // }
-        this.stkStr = ''
-        for (const i of stklist) {
-          this.stkStr += i
-        }
-        this.stk = []
-        for (let i = 1; i < stklist.length; i++) {
-          const funct = stklist[i].match(/, code (\S*)>/)[1]
-          let fil = stklist[i].match(/file '(\S*)'/)[1]
-          if (/\//.test(fil)) {
-            console.log('yes')
-            fil = fil.match(/\/(\w*?).py/)[1] + '.py'
-            console.log(fil)
-          }
-          this.stk.splice(0, 0, { func: funct, file: fil })
-        }
-      }
-    )
-  }
-
-  test () {
-    this.fitAddon.fit()
-  }
-
-  mounted () {
-    this.initDebugger()
-    const resize = document.getElementsByClassName('resize')
-    for (const i of resize) {
-      i.addEventListener('mouseup', this.test)
-    }
-  }
+  setTimeout(() => {
+    initDebugger()
+  }, 2000)
 }
+
+function updateData () {
+  axios.post(baseUrl + '/pdb/curframe', { token: pdbSocket.id })
+    .then((response) => {
+      const rawLocals = JSON.parse(response.request.response).locals
+      const rawGlobals = JSON.parse(response.request.response).globals
+      const locals = rawLocals.split('\n')
+      const globals = rawGlobals.split('\n')
+      variables = []
+      const loc = { label: 'locals', children: [] } as Tree
+      for (const i of locals) {
+        (loc.children as Tree[]).push({ label: i, children: [] })
+      }
+      const glob = { label: 'global', children: [] } as Tree
+      for (const i of globals) {
+        (glob.children as Tree[]).push({ label: i, children: [] })
+      }
+      variables.push(loc)
+      variables.push(glob)
+      curline = JSON.parse(response.request.response).current_line
+    })
+  axios.post(baseUrl + '/pdb/getstack', { token: pdbSocket.id }).then(
+    (response) => {
+      const stklist = JSON.parse(response.request.response)
+      // console.log(stklist)
+      // for (let i = 1; i < stklist.length; i++) {
+      // stk_file.push(stklist[i].match(/))
+      // }
+      stkStr = ''
+      for (const i of stklist) {
+        stkStr += i
+      }
+      stk = []
+      for (let i = 1; i < stklist.length; i++) {
+        const funct = stklist[i].match(/, code (\S*)>/)[1]
+        let fil = stklist[i].match(/file '(\S*)'/)[1]
+        if (/\//.test(fil)) {
+          console.log('yes')
+          fil = fil.match(/\/(\w*?).py/)[1] + '.py'
+          console.log(fil)
+        }
+        stk.splice(0, 0, { func: funct, file: fil })
+      }
+    }
+  )
+}
+
+function test () {
+  fitAddon.fit()
+}
+
+onMounted(() => {
+  initDebugger()
+  const resize = document.getElementsByClassName('resize')
+  for (const i of resize) {
+    i.addEventListener('mouseup', test)
+  }
+})
 
 </script>
 

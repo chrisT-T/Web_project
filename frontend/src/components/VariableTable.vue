@@ -8,21 +8,17 @@
   </div>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 
-import { Vue, Options } from 'vue-class-component'
+import { onMounted } from 'vue'
 
-@Options({
-  props: {
-    data: Object
-  }
+const props = defineProps({
+  data: Object
 })
 
-export default class VariableTable extends Vue {
-  mounted () {
-    console.log(this.data)
-  }
-}
+onMounted(() => {
+  console.log(props.data)
+})
 </script>
 
 <style scoped>

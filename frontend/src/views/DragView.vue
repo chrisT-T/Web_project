@@ -8,15 +8,7 @@
   </div>
 </template>
 
-<script lang="ts">
-import { Options, Vue } from 'vue-class-component'
+<script lang="ts" setup>
 import DragBox from '@/components/DragBox.vue'
 import DragItem from '@/components/DragItem.vue'
-@Options({
-  components: {
-    DragBox,
-    DragItem
-  }
-})
-export default class DragView extends Vue {}
 </script>

@@ -7,12 +7,8 @@
   </div>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 
-import { Vue, Options } from 'vue-class-component'
-
-export default class DragItem extends Vue {
-}
 </script>
 
 <style scoped>

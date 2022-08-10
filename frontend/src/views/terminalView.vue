@@ -6,16 +6,7 @@
   </div>
 </template>
 
-<script lang="ts">
-import { Options, Vue } from 'vue-class-component'
+<script lang="ts" setup>
 // import webTerminal from '@/components/webTerminal.vue'
 import webDebugger from '@/components/webDebugger.vue'
-@Options({
-  components: {
-    // webTerminal
-    webDebugger
-
-  }
-})
-export default class terminalView extends Vue {}
 </script>

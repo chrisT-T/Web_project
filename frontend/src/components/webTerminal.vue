@@ -2,63 +2,56 @@
   <div>
     <h1> {{ status }} </h1>
     <div id="terminal"></div>
-    <div> <p> {{ pdbBuffer }} </p> </div>
   </div>
 </template>
 
-<script lang="ts">
-import { Vue, prop } from 'vue-class-component'
+<script lang="ts" setup>
+import { ref, onMounted } from 'vue'
 import { Terminal } from 'xterm'
 import io from 'socket.io-client'
 
-class webTerminalProps {
-  termName: string = prop({
-    required: true
-  })
-}
+const props = defineProps<{
+  termName: string
+}>()
 
-export default class webTerminal extends Vue.with(webTerminalProps) {
-  baseUrl = 'http://127.0.0.1:5000' as string
-  term = new Terminal()
-  status = 'disconnected'
-  socket = io('http://127.0.0.1:5000/pty', {
-    auth: {
-      token: this.termName
+let baseUrl = 'http://127.0.0.1:5000' as string
+let term = new Terminal()
+let status = 'disconnected'
+let socket = io('http://127.0.0.1:5000/pty', {
+  auth: {
+    token: props.termName
+  }
+})
+
+
+function initTerminal () {
+  term = new Terminal({
+    cursorBlink: true,
+    macOptionIsMeta: true
+  })
+
+  term.open(document.getElementById('terminal') as HTMLElement)
+
+  term.writeln('This is the online terminal')
+
+  term.onData((data) => {
+    socket.emit('pty-input', { input: data, token: props.termName })
+  })
+
+  socket.on('pty-output', (data: {'output': string, 'token': string}) => {
+    if (data.token === props.termName) {
+      term.write(data.output)
     }
   })
 
-  pdbBuffer = '' as string
-  pdbFlag = '' as string
-
-  initTerminal () {
-    this.term = new Terminal({
-      cursorBlink: true,
-      macOptionIsMeta: true
-    })
-
-    this.term.open(document.getElementById('terminal') as HTMLElement)
-
-    this.term.writeln('This is the online terminal')
-
-    this.term.onData((data) => {
-      this.socket.emit('pty-input', { input: data, token: this.termName })
-    })
-
-    this.socket.on('pty-output', (data: {'output': string, 'token': string}) => {
-      if (data.token === this.termName) {
-        this.term.write(data.output)
-      }
-    })
-
-    this.socket.on('connect', () => {
-      this.status = this.termName
-    })
-  }
-
-  mounted () {
-    this.initTerminal()
-  }
+  socket.on('connect', () => {
+    status = props.termName
+  })
 }
+
+onMounted(() => {
+  initTerminal()
+})
 </script>
 
 <style scoped>

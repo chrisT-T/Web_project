@@ -12,7 +12,6 @@ declare module '@vue/runtime-core' {
     ElIcon: typeof import('element-plus/es')['ElIcon']
     ElInput: typeof import('element-plus/es')['ElInput']
     ElTree: typeof import('element-plus/es')['ElTree']
-    HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     VariableTable: typeof import('./src/components/VariableTable.vue')['default']
