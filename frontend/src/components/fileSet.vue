@@ -152,7 +152,7 @@ const editFinish = async (data:Tree) => {
     editCheck = false
   }
   if (editCheck) {
-    await axios.post('http://127.0.0.1:5000/rename/' + props.name, { src: props.name + '/' + data.route + '/' + data.label, dst: props.name + '/' + data.route + '/' + changeInput.inputStr })
+    await axios.post('/api/rename/' + props.name, { src: props.name + '/' + data.route + '/' + data.label, dst: props.name + '/' + data.route + '/' + changeInput.inputStr })
       .then(res => {
         form.flag = res.data.flag
         form.message = res.data.message
@@ -212,7 +212,7 @@ const submitCheck = async (data: Tree, labelNew: string, typeNew: string) => {
       labelNew = labelNew + '.py'
       console.log(labelNew)
       console.log(data.route)
-      await axios.post('http://127.0.0.1:5000/touch/' + props.name, { src: props.name + '/' + data.route + '/' + data.label + '/' + labelNew })
+      await axios.post('/api/touch/' + props.name, { src: props.name + '/' + data.route + '/' + data.label + '/' + labelNew })
         .then(res => {
           form.flag = res.data.flag
           form.message = res.data.message
@@ -224,7 +224,7 @@ const submitCheck = async (data: Tree, labelNew: string, typeNew: string) => {
         return
       }
     } else {
-      await axios.post('http://127.0.0.1:5000/mkdir/' + props.name, { src: props.name + '/' + data.route + '/' + data.label + '/' + labelNew })
+      await axios.post('/api/mkdir/' + props.name, { src: props.name + '/' + data.route + '/' + data.label + '/' + labelNew })
         .then(res => {
           form.flag = res.data.flag
           form.message = res.data.message
@@ -248,7 +248,7 @@ const submitCheck = async (data: Tree, labelNew: string, typeNew: string) => {
 
 // 删除文件/文件夹
 const remove = async (node: Node, data: Tree) => {
-  await axios.post('http://127.0.0.1:5000/delete/' + props.name, { src: props.name + '/' + data.route + '/' + data.label, type: data.type })
+  await axios.post('/api/delete/' + props.name, { src: props.name + '/' + data.route + '/' + data.label, type: data.type })
     .then(res => {
       form.flag = res.data.flag
       form.message = res.data.message
@@ -292,7 +292,7 @@ function fillData (children: Tree[], data: object) {
 
 // 每次加载页面时从后端拿文件树
 onMounted(async () => {
-  await axios.get('http://127.0.0.1:5000/getFileTree/' + props.name + '/' + props.projectname)
+  await axios.get('/api/getFileTree/' + props.name + '/' + props.projectname)
     .then(res => {
       form.flag = res.data.flag
       form.message = res.data.message

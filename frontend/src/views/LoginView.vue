@@ -50,7 +50,7 @@ const loginCheck = async () => {
   if (data.username.trim() === '' || data.password.trim() === '') {
     alert('Username or Password is missing')
   } else {
-    await axios.get('http://127.0.0.1:5000/login', { params: { userName: data.username, userPassword: data.password } })
+    await axios.get('/api/login', { params: { userName: data.username, userPassword: data.password } })
       .then(res => {
         data.flag = res.data.flag
         data.message = res.data.message
@@ -70,7 +70,7 @@ const SignupCheck = async () => {
   if (data.username.trim() === '' || data.password.trim() === '') {
     alert('Username or Password is missing')
   } else {
-    await axios.get('http://127.0.0.1:5000/signup', { params: { userName: data.username, userPassword: data.password } })
+    await axios.get('/api/signup', { params: { userName: data.username, userPassword: data.password } })
       .then(res => {
         data.flag = res.data.flag
         data.message = res.data.message

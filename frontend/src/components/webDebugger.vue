@@ -71,7 +71,7 @@ let term = new Terminal({
   macOptionIsMeta: true
 })
 
-let socket = io('http://127.0.0.1:5000/pdb')
+let socket = io('/api/pdb')
 
 let pdbSocket = io()
 
@@ -156,7 +156,7 @@ function restart () {
     cursorBlink: true,
     macOptionIsMeta: true
   })
-  socket = io('http://127.0.0.1:5000/pdb')
+  socket = io('/api/pdb')
   pdbSocket = io()
   initDebugger()
 }

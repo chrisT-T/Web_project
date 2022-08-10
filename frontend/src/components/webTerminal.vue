@@ -17,7 +17,7 @@ const props = defineProps<{
 let baseUrl = 'http://127.0.0.1:5000' as string
 let term = new Terminal()
 let status = 'disconnected'
-let socket = io('http://127.0.0.1:5000/pty', {
+let socket = io('/api/pty', {
   auth: {
     token: props.termName
   }
