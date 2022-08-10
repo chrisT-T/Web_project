@@ -156,13 +156,38 @@ const currentTree = (data: Tree) => {
 }
 
 // 创建新文件/文件夹
-const submitCheck = (data: Tree, labelNew: string, typeNew: string) => {
+const submitCheck = async (data: Tree, labelNew: string, typeNew: string) => {
   if (labelNew === '' || typeNew === '') {
     alert('Name or type is missing')
   } else {
     if (typeNew === 'file') {
       labelNew = labelNew + '.py'
       console.log(labelNew)
+      console.log(data.route)
+      await axios.post('http://127.0.0.1:5000/touch/' + props.name, { src: props.name + '/' + data.route + '/' + labelNew})
+      .then(res => {
+        form.flag = res.data.flag
+        form.message = res.data.message
+      }).catch(function (error) {
+        console.log(error.response)
+      })
+      if (form.flag === false) {
+        alert(form.message)
+        return
+      }
+    }
+    else {
+      await axios.post('http://127.0.0.1:5000/mkdir/' + props.name, { src: props.name + '/' + data.route + '/' + labelNew})
+      .then(res => {
+        form.flag = res.data.flag
+        form.message = res.data.message
+      }).catch(function (error) {
+        console.log(error.response)
+      })
+      if (form.flag === false) {
+        alert(form.message)
+        return
+      }
     }
     const newChild = { id: id++, label: labelNew, type: typeNew, route: data.route + '/' + data.label, showInput: false, children: [] }
     console.log(newChild)
@@ -175,7 +200,18 @@ const submitCheck = (data: Tree, labelNew: string, typeNew: string) => {
 }
 
 // 删除文件/文件夹
-const remove = (node: Node, data: Tree) => {
+const remove = async (node: Node, data: Tree) => {
+  await axios.post('http://127.0.0.1:5000/delete/' + props.name, { src: props.name + '/' + data.route + '/' + data.label, type: data.type})
+      .then(res => {
+        form.flag = res.data.flag
+        form.message = res.data.message
+      }).catch(function (error) {
+        console.log(error.response)
+      })
+  if (form.flag === false) {
+        alert(form.message)
+        return
+      }
   const parent = node.parent
   const children: Tree[] = parent.data.children || parent.data
   const index = children.findIndex((d) => d.id === data.id)

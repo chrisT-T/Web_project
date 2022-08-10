@@ -23,7 +23,11 @@ def mkdir(path: String):
 # 新建文件
 def touch(path: String):
     path = os.path.join(FILE_PATH, path)
-    open(path, 'w').close()
+    if os.path.exists(path):
+        return False
+    else:
+        open(path, 'w').close()
+        return True
 
 
 
