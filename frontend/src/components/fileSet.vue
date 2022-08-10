@@ -135,6 +135,7 @@ const handleNodeClick = (data: Tree, node: Node) => {
   console.log(node)
 }
 
+// 在某个文件夹被重命名后，将该文件夹中的文件及文件夹的 route 更新
 function changeRoute (children: Tree[], pre: string, origin: string, newLabel: string) {
   for (var key in children) {
     children[key].route = pre + '/' + newLabel + children[key].route.slice(pre.length + 1 + origin.length)
@@ -265,7 +266,7 @@ const remove = async (node: Node, data: Tree) => {
   dataSource.value = [...dataSource.value]
 }
 
-// TODO: 从后端获取这个项目的文件信息：需要增加id
+// 文件树的数据结构
 const dataSource = ref<Tree[]>([
   {
     // id: 1,
@@ -278,6 +279,7 @@ const dataSource = ref<Tree[]>([
   }
 ])
 
+// 将从后端拿到的文件树的数据填充到前端的 dataSource 中去
 function fillData (children: Tree[], data: object) {
   for (var key in data) {
     const tree = { label: data[key].label, type: data[key].type, route: data[key].route, showInput: data[key].showInput, isRoot: data[key].isRoot, children: [] }
@@ -288,6 +290,7 @@ function fillData (children: Tree[], data: object) {
   }
 }
 
+// 每次加载页面时从后端拿文件树
 onMounted(async () => {
   await axios.get('http://127.0.0.1:5000/getFileTree/' + props.name + '/' + props.projectname)
     .then(res => {

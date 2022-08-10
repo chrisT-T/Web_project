@@ -45,6 +45,7 @@ const data = reactive({
   message: ''
 })
 
+// 登录
 const loginCheck = async () => {
   if (data.username.trim() === '' || data.password.trim() === '') {
     alert('Username or Password is missing')
@@ -64,6 +65,7 @@ const loginCheck = async () => {
   }
 }
 
+// 注册并登录
 const SignupCheck = async () => {
   if (data.username.trim() === '' || data.password.trim() === '') {
     alert('Username or Password is missing')
