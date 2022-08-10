@@ -4,9 +4,10 @@
       :data="dataSource"
       node-key="id"
       default-expand-all
+      :indent="5"
     >
       <template #default="{ node, data }">
-        <span class="custom-tree-node">
+        <span v-if="!data.isRoot" class="custom-tree-node">
           <el-dropdown v-if="!data.showInput" trigger="contextmenu">
             <span class="el-dropdown-link" @dblclick="editStart(data)">
               {{ node.label }}
@@ -19,6 +20,22 @@
               </el-dropdown-menu>
             </template>
           </el-dropdown>
+          <el-input size="small" ref="inputVal" v-if="data.showInput" :value="data.label"
+            v-model="changeInput.inputStr"
+            v-focus="data.showInput"
+            @blur="editGiveup(data)"
+            @keyup.enter="editFinish(data)"
+            placeholder="file name">
+          </el-input>
+        </span>
+        <span v-else class="tree-root">
+          <span class="el-dropdown-link" v-if="!data.showInput" @dblclick="editStart(data)">
+            {{ node.label }}
+          </span>
+          <span class="tree-root-btn-gp" v-if="!data.showInput">
+            <el-button class="tree-btn" :icon="Plus" @click="currentTree(data)" text />
+            <el-button class="tree-btn" :icon="EditPen" style="margin: 0px; padding: 0px" @click="editStart(data)" text />
+          </span>
           <el-input size="small" ref="inputVal" v-if="data.showInput" :value="data.label"
             v-model="changeInput.inputStr"
             v-focus="data.showInput"
@@ -65,6 +82,7 @@ import {
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import axios from 'axios'
+import { tr } from 'element-plus/es/locale'
 
 const formLabelWidth = '140px'
 const props = defineProps({
@@ -77,6 +95,7 @@ interface Tree {
   type: string
   route: string
   showInput: boolean
+  isRoot?: boolean
   children?: Tree[]
 }
 let id = 10000
@@ -164,26 +183,25 @@ const submitCheck = async (data: Tree, labelNew: string, typeNew: string) => {
       labelNew = labelNew + '.py'
       console.log(labelNew)
       console.log(data.route)
-      await axios.post('http://127.0.0.1:5000/touch/' + props.name, { src: props.name + '/' + data.route + '/' + labelNew})
-      .then(res => {
-        form.flag = res.data.flag
-        form.message = res.data.message
-      }).catch(function (error) {
-        console.log(error.response)
-      })
+      await axios.post('http://127.0.0.1:5000/touch/' + props.name, { src: props.name + '/' + data.route + '/' + labelNew })
+        .then(res => {
+          form.flag = res.data.flag
+          form.message = res.data.message
+        }).catch(function (error) {
+          console.log(error.response)
+        })
       if (form.flag === false) {
         alert(form.message)
         return
       }
-    }
-    else {
-      await axios.post('http://127.0.0.1:5000/mkdir/' + props.name, { src: props.name + '/' + data.route + '/' + labelNew})
-      .then(res => {
-        form.flag = res.data.flag
-        form.message = res.data.message
-      }).catch(function (error) {
-        console.log(error.response)
-      })
+    } else {
+      await axios.post('http://127.0.0.1:5000/mkdir/' + props.name, { src: props.name + '/' + data.route + '/' + labelNew })
+        .then(res => {
+          form.flag = res.data.flag
+          form.message = res.data.message
+        }).catch(function (error) {
+          console.log(error.response)
+        })
       if (form.flag === false) {
         alert(form.message)
         return
@@ -201,17 +219,17 @@ const submitCheck = async (data: Tree, labelNew: string, typeNew: string) => {
 
 // 删除文件/文件夹
 const remove = async (node: Node, data: Tree) => {
-  await axios.post('http://127.0.0.1:5000/delete/' + props.name, { src: props.name + '/' + data.route + '/' + data.label, type: data.type})
-      .then(res => {
-        form.flag = res.data.flag
-        form.message = res.data.message
-      }).catch(function (error) {
-        console.log(error.response)
-      })
+  await axios.post('http://127.0.0.1:5000/delete/' + props.name, { src: props.name + '/' + data.route + '/' + data.label, type: data.type })
+    .then(res => {
+      form.flag = res.data.flag
+      form.message = res.data.message
+    }).catch(function (error) {
+      console.log(error.response)
+    })
   if (form.flag === false) {
-        alert(form.message)
-        return
-      }
+    alert(form.message)
+    return
+  }
   const parent = node.parent
   const children: Tree[] = parent.data.children || parent.data
   const index = children.findIndex((d) => d.id === data.id)
@@ -227,6 +245,7 @@ const dataSource = ref<Tree[]>([
     label: 'Level one 1',
     type: 'folder',
     route: '',
+    isRoot: true,
     showInput: false,
     children: [
       {
@@ -251,55 +270,56 @@ const dataSource = ref<Tree[]>([
             showInput: false
           }
         ]
-      }
-    ]
-  },
-  {
-    id: 2,
-    label: 'Level one 2',
-    type: 'folder',
-    route: '',
-    showInput: false,
-    children: [
-      {
-        id: 5,
-        label: 'Level two 2-1',
-        type: 'folder',
-        route: 'Level one 2',
-        showInput: false
       },
       {
-        id: 6,
-        label: 'Level_two_2-2.py',
-        type: 'file',
-        route: 'Level one 2',
-        showInput: false
-      }
-    ]
-  },
-  {
-    id: 3,
-    label: 'Level one 3',
-    type: 'folder',
-    route: '',
-    showInput: false,
-    children: [
-      {
-        id: 7,
-        label: 'Level two 3-1',
+        id: 2,
+        label: 'Level one 2',
         type: 'folder',
-        route: 'Level one 3',
-        showInput: false
+        route: '',
+        showInput: false,
+        children: [
+          {
+            id: 5,
+            label: 'Level two 2-1',
+            type: 'folder',
+            route: 'Level one 2',
+            showInput: false
+          },
+          {
+            id: 6,
+            label: 'Level_two_2-2.py',
+            type: 'file',
+            route: 'Level one 2',
+            showInput: false
+          }
+        ]
       },
       {
-        id: 8,
-        label: 'Level_two_3-2.py',
-        type: 'file',
-        route: 'Level one 3',
-        showInput: false
+        id: 3,
+        label: 'Level one 3',
+        type: 'folder',
+        route: '',
+        showInput: false,
+        children: [
+          {
+            id: 7,
+            label: 'Level two 3-1',
+            type: 'folder',
+            route: 'Level one 3',
+            showInput: false
+          },
+          {
+            id: 8,
+            label: 'Level_two_3-2.py',
+            type: 'file',
+            route: 'Level one 3',
+            showInput: false
+          }
+        ]
       }
     ]
   }
+
 ])
 </script>
 
@@ -327,5 +347,17 @@ const dataSource = ref<Tree[]>([
 .el-tree {
   width: 100%;
   background-color: transparent;
+}
+.tree-btn {
+  margin: 0;
+}
+.tree-root {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.tree-root-btn-gp {
+  margin-right: 15px;
 }
 </style>
