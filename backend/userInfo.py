@@ -16,7 +16,7 @@ def isCorrect(username: String, userpassword: String):
         return False
     else:
         df = pd.DataFrame(pd.read_excel('./userInfo.xlsx', sheet_name="userInfo"))
-        result = df[(df.username==username) & (df.password==userpassword)]
+        result = df[(df.username==username) & (df.password==str(userpassword))]
         return not result.empty
 
 # 该用户名是否已被注册
