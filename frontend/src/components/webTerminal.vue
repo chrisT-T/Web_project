@@ -1,7 +1,7 @@
 <template>
   <div>
     <h1> {{ status }} </h1>
-    <div id="terminal"></div>
+    <div ref="termDiv"></div>
   </div>
 </template>
 
@@ -10,18 +10,11 @@ import { ref, onMounted } from 'vue'
 import { Terminal } from 'xterm'
 import io from 'socket.io-client'
 
-const props = defineProps<{
-  termName: string
-}>()
-
 const baseUrl = 'http://127.0.0.1:5000' as string
+const termDiv = ref<HTMLDivElement>()
 let term = new Terminal()
 const status = ref<string>('disconnected')
-const socket = io('http://127.0.0.1:5000/pty', {
-  auth: {
-    token: props.termName
-  }
-})
+const socket = io('http://127.0.0.1:5000/pty')
 
 function initTerminal () {
   term = new Terminal({
@@ -29,7 +22,7 @@ function initTerminal () {
     macOptionIsMeta: true
   })
 
-  term.open(document.getElementById('terminal') as HTMLElement)
+  term.open(termDiv.value)
 
   term.writeln('This is the online terminal')
 
@@ -44,7 +37,7 @@ function initTerminal () {
   })
 
   socket.on('connect', () => {
-    status.value = props.termName
+    status.value = socket.id
   })
 }
 
@@ -54,5 +47,5 @@ onMounted(() => {
 </script>
 
 <style scoped>
-  @import 'xterm/css/xterm.css';
+  /* @import 'xterm/css/xterm.css'; */
 </style>

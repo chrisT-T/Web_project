@@ -23,7 +23,13 @@
                   <web-debugger :key='debuggerPath' :file-path='debuggerPath'></web-debugger>
                 </el-tab-pane>
                 <el-tab-pane label="Config" name="second">
-                  <web-Terminal termName="term1"></web-Terminal>
+                  <div>
+                    <el-tabs v-model="editableTabsValue" type="card" editable class="demo-tabs" @edit="handleTabsEdit" tab-position="top">
+                      <el-tab-pane v-for="item in editableTabs" :key="item.name" :label="item.title" :name="item.name">
+                        <component :is=item.content></component>
+                      </el-tab-pane>
+                    </el-tabs>
+                  </div>
                 </el-tab-pane>
                 <el-tab-pane label="Role" name="third">Role</el-tab-pane>
                 <el-tab-pane label="Task" name="fourth">Task</el-tab-pane>
@@ -145,6 +151,52 @@ const handleClick = (tab: TabsPaneContext, event: Event) => {
   console.log(tab, event)
 }
 
+// code for multi terminal
+let tabIndex = 2
+const editableTabsValue = ref('1')
+const editableTabs = ref([
+  {
+    title: 'Tab 1',
+    name: '1',
+    // eslint-disable-next-line
+    content: webTerminal
+  },
+  {
+    title: 'Tab 2',
+    name: '2',
+    // eslint-disable-next-line
+    content: webTerminal
+  }
+])
+
+const handleTabsEdit = (targetName: string, action: 'remove' | 'add') => {
+  if (action === 'add') {
+    const newTabName = `${++tabIndex}`
+    editableTabs.value.push({
+      title: 'New Tab',
+      name: newTabName,
+      content: webTerminal
+    })
+    editableTabsValue.value = newTabName
+  } else if (action === 'remove') {
+    const tabs = editableTabs.value
+    let activeName = editableTabsValue.value
+    if (activeName === targetName) {
+      tabs.forEach((tab, index) => {
+        if (tab.name === targetName) {
+          const nextTab = tabs[index + 1] || tabs[index - 1]
+          if (nextTab) {
+            activeName = nextTab.name
+          }
+        }
+      })
+    }
+
+    editableTabsValue.value = activeName
+    editableTabs.value = tabs.filter((tab) => tab.name !== targetName)
+  }
+}
+
 </script>
 
 <style scoped>
@@ -203,5 +255,11 @@ div {
 }
 .btnArea .el-button {
   margin: 5px 2px;
+}
+.demo-tabs > .el-tabs__content {
+  padding: 32px;
+  color: #6b778c;
+  font-size: 32px;
+  font-weight: 600;
 }
 </style>
