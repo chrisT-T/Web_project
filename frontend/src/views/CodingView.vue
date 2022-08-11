@@ -22,7 +22,9 @@
                 <el-tab-pane label="Debugger" name="first">
                   <web-debugger :key='debuggerPath' :file-path='debuggerPath'></web-debugger>
                 </el-tab-pane>
-                <el-tab-pane label="Config" name="second">Config</el-tab-pane>
+                <el-tab-pane label="Config" name="second">
+                  <web-Terminal termName="term1"></web-Terminal>
+                </el-tab-pane>
                 <el-tab-pane label="Role" name="third">Role</el-tab-pane>
                 <el-tab-pane label="Task" name="fourth">Task</el-tab-pane>
               </el-tabs>
@@ -46,6 +48,7 @@ import {
 
 import FileSet from '../components/fileSet.vue'
 import webDebugger from '../components/webDebugger.vue'
+import webTerminal from '../components/webTerminal.vue'
 import { ElNotification } from 'element-plus'
 import type { TabsPaneContext } from 'element-plus'
 

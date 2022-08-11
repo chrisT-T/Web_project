@@ -1,3 +1,4 @@
+from lib2to3.pgen2 import token
 from app import app, socketio
 from flask import request
 import os
@@ -7,8 +8,9 @@ import pty
 
 @socketio.on("pty-input", namespace="/pty")
 def pty_input(data):
-    if app.config['fd'][data['token']]:
-        os.write(app.config['fd'][data['token']], data['input'].encode())
+    token = request.sid
+    if app.config['fd'][token]:
+        os.write(app.config['fd'][token], data['input'].encode())
 
 def forward_pty_output():
     max_read_bytes = 1024 * 20
@@ -22,22 +24,11 @@ def forward_pty_output():
                     output = os.read(app.config["fd"][key], max_read_bytes).decode()
                     socketio.emit("pty-output", {"output": output, 'token': key}, namespace="/pty")
 
-@app.route('/run', methods=['POST'])
-def run():
-    data = request.get_json()
-    os.write(app.config['fd'][data.get('token')], f"python3 { data.get('path') } \n".encode())
-
-@app.route('/runpdb', methods=['POST'])
-def runpdb():
-    data = request.get_json()
-    os.write(app.config['fd'][data.get('token')], f"python3 -m pdb { data.get('path') } \n".encode())
 
 @socketio.on("connect", namespace='/pty')
-def connect(data) :
-    print('new client', data['token'])
-
-    token = data['token']
-
+def connect() :
+    token = request.sid
+    
     if token in app.config['child_pid'].keys():
         return
 
