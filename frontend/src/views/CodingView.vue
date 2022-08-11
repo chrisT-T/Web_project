@@ -22,7 +22,7 @@
                 <el-tab-pane label="Debugger" name="first">
                   <web-debugger :key='debuggerPath' :file-path='debuggerPath'></web-debugger>
                 </el-tab-pane>
-                <el-tab-pane label="Config" name="second">
+                <el-tab-pane label="Terminal" name="second">
                   <div>
                     <el-tabs v-model="editableTabsValue" type="card" editable class="demo-tabs" @edit="handleTabsEdit" tab-position="top">
                       <el-tab-pane v-for="item in editableTabs" :key="item.name" :label="item.title" :name="item.name">
@@ -31,8 +31,6 @@
                     </el-tabs>
                   </div>
                 </el-tab-pane>
-                <el-tab-pane label="Role" name="third">Role</el-tab-pane>
-                <el-tab-pane label="Task" name="fourth">Task</el-tab-pane>
               </el-tabs>
             </div>
           </el-footer>
@@ -156,13 +154,13 @@ let tabIndex = 2
 const editableTabsValue = ref('1')
 const editableTabs = ref([
   {
-    title: 'Tab 1',
+    title: 'Terminal 1',
     name: '1',
     // eslint-disable-next-line
     content: webTerminal
   },
   {
-    title: 'Tab 2',
+    title: 'Terminal 2',
     name: '2',
     // eslint-disable-next-line
     content: webTerminal
@@ -173,7 +171,7 @@ const handleTabsEdit = (targetName: string, action: 'remove' | 'add') => {
   if (action === 'add') {
     const newTabName = `${++tabIndex}`
     editableTabs.value.push({
-      title: 'New Tab',
+      title: 'Terminal ' + tabIndex,
       name: newTabName,
       content: webTerminal
     })
