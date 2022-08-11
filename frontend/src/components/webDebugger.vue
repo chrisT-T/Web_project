@@ -1,35 +1,43 @@
 <template>
   <div>
-    <drag-box style="width: 100%; height: 100%">
-      <drag-item class="TermContainer">
-        <div id="debugTerm"/>
-      </drag-item>
-      <drag-item>
-        <div class="debugConsole">
-          <p style="text-align: left; font-size: 20px; font-weight: bold;"> Debug Console:</p>
-          <p>{{ consoleOutput }}</p>
-          <p style="margin-bottom: 70px; font-weight: bold;">Current Line: {{curline}}</p>
-          <el-input name="command" id="command" v-model="command" @keyup.enter="send" style="position: absolute; bottom: 0"/>
-          <div style="display: flex; position: absolute; bottom: 30px; left: -6px">
-            <el-icon @click="cont" title="Continue" :size="size"><CaretRight /></el-icon>
-            <el-icon @click="next" title="Step Over" :size="size"><Right /></el-icon>
-            <el-icon @click="stepInto" title="Step Into" :size="size"><Download /></el-icon>
-            <el-icon @click="stepOut" title="Step Out" :size="size"><Upload /></el-icon>
-            <el-icon @click="restart" title="Restart" :size="size"><RefreshLeft /></el-icon>
-            <el-icon @click="stop" title="Stop" :size="size"><CloseBold /></el-icon>
-          </div>
-        </div>
-      </drag-item>
-      <drag-item>
-        <variable-table :data="variables"></variable-table>
-      </drag-item>
-      <drag-item class="stkContainer">
-        <p style="text-align: left; font-size: 20px; font-weight: bold;"> Stack:</p>
-        <div v-for="(item,index) in stk" :key="index">
-          <span class="stkFunc">{{item.func}}</span><span class="stkFile" style="margin-right:5px;">{{item.file}}</span><br>
-        </div>
-      </drag-item>
-    </drag-box>
+    <el-tabs v-model="activeName" class="demo-tabs" @tab-click="handleClick">
+      <el-tab-pane label="Debugger Terminal" name="first">
+        <drag-item class="TermContainer">
+          <div id="debugTerm"/>
+        </drag-item>
+      </el-tab-pane>
+      <el-tab-pane label="Config" name="second">
+        <drag-box style="width: 100%; height: 100%">
+
+          <drag-item>
+            <div class="debugConsole">
+              <p style="text-align: left; font-size: 20px; font-weight: bold;"> Debug Console:</p>
+              <p>{{ consoleOutput }}</p>
+              <p style="margin-bottom: 70px; font-weight: bold;">Current Line: {{curline}}</p>
+              <el-input name="command" id="command" v-model="command" @keyup.enter="send" style="position: absolute; bottom: 0"/>
+              <div style="display: flex; position: absolute; bottom: 30px; left: -6px">
+                <el-icon @click="cont" title="Continue" :size="size"><CaretRight /></el-icon>
+                <el-icon @click="next" title="Step Over" :size="size"><Right /></el-icon>
+                <el-icon @click="stepInto" title="Step Into" :size="size"><Download /></el-icon>
+                <el-icon @click="stepOut" title="Step Out" :size="size"><Upload /></el-icon>
+                <el-icon @click="restart" title="Restart" :size="size"><RefreshLeft /></el-icon>
+                <el-icon @click="stop" title="Stop" :size="size"><CloseBold /></el-icon>
+              </div>
+            </div>
+          </drag-item>
+          <drag-item>
+            <variable-table :data="variables"></variable-table>
+          </drag-item>
+          <drag-item class="stkContainer">
+            <p style="text-align: left; font-size: 20px; font-weight: bold;"> Stack:</p>
+            <div v-for="(item,index) in stk" :key="index">
+              <span class="stkFunc">{{item.func}}</span><span class="stkFile" style="margin-right:5px;">{{item.file}}</span><br>
+            </div>
+          </drag-item>
+        </drag-box>
+      </el-tab-pane>
+    </el-tabs>
+
   </div>
 </template>
 
@@ -41,6 +49,13 @@ import io from 'socket.io-client'
 import axios from 'axios'
 import { FitAddon } from 'xterm-addon-fit'
 import VariableTable from '@/components/VariableTable.vue'
+import type { TabsPaneContext } from 'element-plus'
+
+const activeName = ref('first')
+
+const handleClick = (tab: TabsPaneContext, event: Event) => {
+  console.log(tab, event)
+}
 
 interface Tree {
   label: string

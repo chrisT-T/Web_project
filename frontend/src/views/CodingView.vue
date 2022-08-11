@@ -17,8 +17,16 @@
           <el-main>Main</el-main>
           <span class="resize_row" @mousedown="handleDragStartrow"></span>
           <el-footer :height="data.height">
-            {{ debuggerPath }}
-            <web-debugger :key='debuggerPath' :file-path='debuggerPath'></web-debugger>
+            <div>
+              <el-tabs v-model="activeName" class="demo-tabs" @tab-click="handleClick" tab-position="left">
+                <el-tab-pane label="Debugger" name="first">
+                  <web-debugger :key='debuggerPath' :file-path='debuggerPath'></web-debugger>
+                </el-tab-pane>
+                <el-tab-pane label="Config" name="second">Config</el-tab-pane>
+                <el-tab-pane label="Role" name="third">Role</el-tab-pane>
+                <el-tab-pane label="Task" name="fourth">Task</el-tab-pane>
+              </el-tabs>
+            </div>
           </el-footer>
         </el-container>
       </el-container>
@@ -39,6 +47,7 @@ import {
 import FileSet from '../components/fileSet.vue'
 import webDebugger from '../components/webDebugger.vue'
 import { ElNotification } from 'element-plus'
+import type { TabsPaneContext } from 'element-plus'
 
 // 获取当前用户名
 const name = useRouter().currentRoute.value.params.username
@@ -119,7 +128,6 @@ const handleDragStartrow = (event: MouseEvent) => {
     isMouseDown = false
   }
 }
-
 const debuggerPath = ref<string>('')
 
 // run debugger
@@ -127,6 +135,13 @@ function runDebugger (filePath: string) {
   console.log('coding view ' + filePath)
   debuggerPath.value = './userfile/' + filePath
 }
+
+const activeName = ref('first')
+
+const handleClick = (tab: TabsPaneContext, event: Event) => {
+  console.log(tab, event)
+}
+
 </script>
 
 <style scoped>
