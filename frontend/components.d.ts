@@ -41,6 +41,7 @@ declare module '@vue/runtime-core' {
     MonacoEditor: typeof import('./src/components/EditorPanel/MonacoEditor/MonacoEditor.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    TerminalPanel: typeof import('./src/components/TerminalPanel.vue')['default']
     VariableTable: typeof import('./src/components/VariableTable.vue')['default']
     WebDebugger: typeof import('./src/components/webDebugger.vue')['default']
     WebTerminal: typeof import('./src/components/webTerminal.vue')['default']
