@@ -1,6 +1,5 @@
 <template>
   <div>
-    <h1> {{ status }} </h1>
     <drag-box style="width: 100%; height: 100%">
       <drag-item class="TermContainer">
         <div id="debugTerm"/>
@@ -76,6 +75,7 @@ let socket = io('http://127.0.0.1:5000/pdb')
 let pdbSocket = io()
 
 function initDebugger () {
+  console.log('from debugger: ' + props.filePath)
   term.open(document.getElementById('debugTerm') as HTMLElement)
   term.loadAddon(fitAddon)
   fitAddon.fit()

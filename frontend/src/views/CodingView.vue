@@ -10,13 +10,16 @@
           <el-button class="closeBtn" :icon="Fold" @click="closeAside" circle />
         </div>
         <el-aside :width="data.width">
-          <FileSet :name="name" :projectname="projectname"></FileSet>
+          <FileSet :name="name" :projectname="projectname" @debug-start="(path) => runDebugger(path)"></FileSet>
         </el-aside>
         <span class="resize_col" @mousedown="handleDragStart"></span>
         <el-container>
           <el-main>Main</el-main>
           <span class="resize_row" @mousedown="handleDragStartrow"></span>
-          <el-footer :height="data.height">Footer</el-footer>
+          <el-footer :height="data.height">
+            {{ debuggerPath }}
+            <web-debugger :key='debuggerPath' :file-path='debuggerPath'></web-debugger>
+          </el-footer>
         </el-container>
       </el-container>
     </el-container>
@@ -25,7 +28,7 @@
 
 <script lang="ts" setup>
 import router from '@/router'
-import { reactive } from 'vue'
+import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   Fold,
@@ -34,7 +37,9 @@ import {
 } from '@element-plus/icons-vue'
 
 import FileSet from '../components/fileSet.vue'
+import webDebugger from '../components/webDebugger.vue'
 import { ElNotification } from 'element-plus'
+
 // 获取当前用户名
 const name = useRouter().currentRoute.value.params.username
 
@@ -113,6 +118,14 @@ const handleDragStartrow = (event: MouseEvent) => {
     if (!isMouseDown) return false
     isMouseDown = false
   }
+}
+
+const debuggerPath = ref<string>('')
+
+// run debugger
+function runDebugger (filePath: string) {
+  console.log('coding view ' + filePath)
+  debuggerPath.value = './userfile/' + filePath
 }
 </script>
 

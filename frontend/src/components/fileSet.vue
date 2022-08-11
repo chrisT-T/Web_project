@@ -18,6 +18,7 @@
                 <el-dropdown-item :icon="Plus" @click="currentTree(data)" :disabled="data.type === 'file'">Append</el-dropdown-item>
                 <el-dropdown-item :icon="DeleteFilled" @click="remove(node, data)">Delete</el-dropdown-item>
                 <el-dropdown-item :icon="EditPen" @click="editStart(data)">Change name</el-dropdown-item>
+                <el-dropdown-item :icon="EditPen" @click="debugStart(data)">Run in Debug mode</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -83,6 +84,8 @@ import {
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import axios from 'axios'
+
+const emit = defineEmits <{(e : 'debugStart', path :string) : void}>()
 
 const formLabelWidth = '140px'
 const props = defineProps({
@@ -288,6 +291,14 @@ function fillData (children: Tree[], data: object) {
       fillData(tree.children, data[key].children)
     }
   }
+}
+
+// code for debugger
+
+const debugStart = (data:Tree) => {
+  const filepath = props.name + '/' + data.route + '/' + data.label as string
+  console.log(filepath)
+  emit('debugStart', filepath)
 }
 
 // 每次加载页面时从后端拿文件树
