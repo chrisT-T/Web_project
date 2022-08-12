@@ -20,10 +20,10 @@
             <div>
               <el-tabs v-model="activeName" class="demo-tabs" @tab-click="handleClick" tab-position="left">
                 <el-tab-pane label="Debugger" name="first">
-                  <web-debugger :key='debuggerPath' :file-path='debuggerPath'></web-debugger>
+                  <web-debugger :key='debuggerPath' :file-path='debuggerPath' ref="tDebugger"></web-debugger>
                 </el-tab-pane>
                 <el-tab-pane label="Terminal" name="second">
-                  <terminal-panel ref="terminalPanels"></terminal-panel>
+                  <terminal-panel ref="terminalPanels" @get-pdb-port="(port) => test(port)"></terminal-panel>
                 </el-tab-pane>
               </el-tabs>
             </div>
@@ -133,7 +133,7 @@ const handleDragStartrow = (event: MouseEvent) => {
 
 const debuggerPath = ref<string>('')
 const terminalPanels = ref<any>()
-
+const tDebugger = ref()
 // run debugger
 function runDebugger (filePath: string) {
   console.log('coding view ' + filePath)
@@ -145,6 +145,11 @@ const activeName = ref('first')
 
 const handleClick = (tab: TabsPaneContext, event: Event) => {
   console.log(tab, event)
+}
+
+function test (port) {
+  console.log(port)
+  tDebugger.value.initDebugger(port)
 }
 
 </script>

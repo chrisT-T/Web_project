@@ -30,6 +30,7 @@ function init () {
   })
 
   socket.on('debugger_port', (data: {'port': number, 'token': string}) => {
+    console.log('debugger terminal get the port' + data)
     emit('getPdbPort', data.port)
   })
 

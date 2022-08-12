@@ -2,7 +2,7 @@
   <div>
     <el-tabs v-model="editableTabsValue" type="card" editable class="demo-tabs" @edit="handleTabsEdit" tab-position="top">
       <el-tab-pane v-for="item in editableTabs" :key="item.name" :label="item.title" :name="item.name">
-      <component :is=item.content></component>
+      <component :is=item.content v-bind="$attrs"></component>
       </el-tab-pane>
     </el-tabs>
   </div>

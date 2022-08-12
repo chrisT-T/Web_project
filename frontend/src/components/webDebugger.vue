@@ -1,30 +1,26 @@
 <template>
   <div>
     <el-tabs v-model="activeName" class="demo-tabs" @tab-click="handleClick">
-      <el-tab-pane label="Debugger Terminal" name="first">
-        <drag-item class="TermContainer">
-          <div id="debugTerm"/>
+      <el-tab-pane label="Debugger Output" name="first">
+        <drag-item>
+          <div class="debugConsole">
+            <p style="text-align: left; font-size: 20px; font-weight: bold;"> Debug Console:</p>
+            <p>{{ consoleOutput }}</p>
+            <p style="margin-bottom: 70px; font-weight: bold;">Current Line: {{curline}}</p>
+            <el-input name="command" id="command" v-model="command" @keyup.enter="send" style="position: absolute; bottom: 0"/>
+            <div style="display: flex; position: absolute; bottom: 30px; left: -6px">
+              <el-icon @click="cont" title="Continue" :size="size"><CaretRight /></el-icon>
+              <el-icon @click="next" title="Step Over" :size="size"><Right /></el-icon>
+              <el-icon @click="stepInto" title="Step Into" :size="size"><Download /></el-icon>
+              <el-icon @click="stepOut" title="Step Out" :size="size"><Upload /></el-icon>
+              <el-icon @click="restart" title="Restart" :size="size"><RefreshLeft /></el-icon>
+              <el-icon @click="stop" title="Stop" :size="size"><CloseBold /></el-icon>
+            </div>
+          </div>
         </drag-item>
       </el-tab-pane>
       <el-tab-pane label="Config" name="second">
         <drag-box style="width: 100%; height: 100%">
-
-          <drag-item>
-            <div class="debugConsole">
-              <p style="text-align: left; font-size: 20px; font-weight: bold;"> Debug Console:</p>
-              <p>{{ consoleOutput }}</p>
-              <p style="margin-bottom: 70px; font-weight: bold;">Current Line: {{curline}}</p>
-              <el-input name="command" id="command" v-model="command" @keyup.enter="send" style="position: absolute; bottom: 0"/>
-              <div style="display: flex; position: absolute; bottom: 30px; left: -6px">
-                <el-icon @click="cont" title="Continue" :size="size"><CaretRight /></el-icon>
-                <el-icon @click="next" title="Step Over" :size="size"><Right /></el-icon>
-                <el-icon @click="stepInto" title="Step Into" :size="size"><Download /></el-icon>
-                <el-icon @click="stepOut" title="Step Out" :size="size"><Upload /></el-icon>
-                <el-icon @click="restart" title="Restart" :size="size"><RefreshLeft /></el-icon>
-                <el-icon @click="stop" title="Stop" :size="size"><CloseBold /></el-icon>
-              </div>
-            </div>
-          </drag-item>
           <drag-item>
             <variable-table :data="variables"></variable-table>
           </drag-item>
@@ -80,63 +76,33 @@ const fitAddon = new FitAddon()
 const variables = ref<Tree[]>([])
 const curline = ref<number>(1)
 
-let term = new Terminal({
-  cursorBlink: true,
-  macOptionIsMeta: true
-})
-
-let socket = io('http://127.0.0.1:5000/pdb')
-
 let pdbSocket = io()
 
-function initDebugger () {
-  console.log('from debugger: ' + props.filePath)
-  term.open(document.getElementById('debugTerm') as HTMLElement)
-  term.loadAddon(fitAddon)
-  fitAddon.fit()
-  term.writeln('Debugger Terminal\n')
-  term.onData((data) => {
-    socket.emit('debugger_term_input', { input: data, token: pdbSocket.id })
+function initDebugger (port: number) {
+  baseUrl += port.toString()
+  pdbSocket = io(baseUrl + '/pdb')
+
+  pdbSocket.on('connect', () => {
+    axios.post(baseUrl + '/pdb/debug', { token: pdbSocket.id, filepath: props.filePath }).then(() => {
+      console.log('Pdbsocket Connected')
+    })
   })
 
-  socket.on('debugger_port', (data: {'port': number, 'token': string}) => {
+  pdbSocket.on('pdb_quit', (data) => {
+    status.value = data.flag
+    pdbSocket.disconnect()
+    variables.value = [] as Tree[]
+    stk.value = [] as StackItem[]
+  })
+
+  pdbSocket.on('pdb_output', (data: {'consoleOutput': string, 'token': string}) => {
     console.log(data)
-    console.log(socket.id)
-    baseUrl += data.port.toString()
-
-    pdbSocket = io(baseUrl + '/pdb')
-
-    pdbSocket.on('connect', () => {
-      axios.post(baseUrl + '/pdb/debug', { token: pdbSocket.id, filepath: props.filePath }).then(() => {
-        console.log('Pdbsocket Connected')
-      })
-    })
-
-    pdbSocket.on('pdb_quit', (data) => {
-      status.value = data.flag
-      pdbSocket.disconnect()
-      socket.disconnect()
-      variables.value = [] as Tree[]
-      stk.value = [] as StackItem[]
-    })
-
-    pdbSocket.on('pdb_output', (data: {'consoleOutput': string, 'token': string}) => {
-      console.log(data)
-      if (data.token === pdbSocket.id) {
-        consoleOutput.value += data.consoleOutput
-        console.log(consoleOutput)
-        updateData()
-      }
-    })
+    if (data.token === pdbSocket.id) {
+      consoleOutput.value += data.consoleOutput
+      console.log(consoleOutput)
+      updateData()
+    }
   })
-
-  socket.on('debugger_term_output', (data: {'output': string, 'token': string}) => {
-    console.log(data)
-    term.write(data.output)
-  })
-  setTimeout(() => {
-    term.clear()
-  }, 2000)
 }
 
 function cont () {
@@ -166,14 +132,7 @@ function stop () {
 function restart () {
   axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket.id, cmd: 'q' })
   // axios.post (baseUrl + '/pdb/debug', { token: pdbSocket.id, filepath: filePath })
-  term.dispose()
-  term = new Terminal({
-    cursorBlink: true,
-    macOptionIsMeta: true
-  })
-  socket = io('http://127.0.0.1:5000/pdb')
   pdbSocket = io()
-  initDebugger()
 }
 
 function updateData () {
@@ -219,13 +178,15 @@ function test () {
 }
 
 onMounted(() => {
-  initDebugger()
   const resize = document.getElementsByClassName('resize')
   for (const i of resize) {
     i.addEventListener('mouseup', test)
   }
 })
 
+defineExpose({
+  initDebugger
+})
 </script>
 
 <style scoped>
