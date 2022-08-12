@@ -24,16 +24,7 @@
           <el-main>Main</el-main>
           <span class="resize_row" @mousedown="handleDragStartrow"></span>
           <el-footer :height="data.height">
-            <div>
-              <el-tabs v-model="activeName" class="demo-tabs" @tab-click="handleClick" tab-position="left">
-                <el-tab-pane label="Debugger" name="first">
-                  <web-debugger :key='debuggerPath' :file-path='debuggerPath' ref="tDebugger" @debugger-data-update="updateDebuggerSideBar"></web-debugger>
-                </el-tab-pane>
-                <el-tab-pane label="Terminal" name="second">
-                  <terminal-panel ref="terminalPanels" @get-pdb-port="(port) => test(port)"></terminal-panel>
-                </el-tab-pane>
-              </el-tabs>
-            </div>
+            <coding-footer ref="tFooter" @debugger-data-update="updateDebuggerSideBar"></coding-footer>
           </el-footer>
         </el-container>
       </el-container>
@@ -52,12 +43,8 @@ import {
 } from '@element-plus/icons-vue'
 
 import FileSet from '../components/fileSet.vue'
-import webDebugger from '../components/webDebugger.vue'
-import webTerminal from '../components/webTerminal.vue'
-import TerminalPanel from '../components/TerminalPanel.vue'
-import { ElNotification } from 'element-plus'
-import type { TabsPaneContext } from 'element-plus'
 import DebugSideBar from '../components/DebugSideBar.vue'
+import CodingFooter from '../components/CodingFooter.vue'
 
 // 获取当前用户名
 const name = useRouter().currentRoute.value.params.username
@@ -139,28 +126,16 @@ const handleDragStartrow = (event: MouseEvent) => {
   }
 }
 
-const debuggerPath = ref<string>('')
-const terminalPanels = ref<any>()
-const tDebugger = ref()
+const tFooter = ref()
 const tDebugSideBar = ref()
 // run debugger
 function runDebugger (filePath: string) {
   console.log('coding view ' + filePath)
-  debuggerPath.value = './userfile/' + filePath
-  terminalPanels.value.startDebuggerTerminal()
+  tFooter.value.setDebuggerPath('./userfile/' + filePath)
+  tFooter.value.startDebuggerTerminal()
 }
 
-const activeName = ref('first')
 const sidebarActiveName = ref('first')
-
-const handleClick = (tab: TabsPaneContext, event: Event) => {
-  console.log(tab, event)
-}
-
-function test (port: number) {
-  console.log(port)
-  tDebugger.value.initDebugger(port)
-}
 
 function updateDebuggerSideBar (port: number, token: string) {
   console.log('update test', port)

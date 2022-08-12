@@ -12,8 +12,6 @@
 import { ref } from 'vue'
 import webTerminal from './webTerminal.vue'
 import DebuggerTerminal from './DebuggerTerminal.vue'
-import io from 'socket.io-client'
-import { Terminal } from 'xterm'
 let tabIndex = 2
 const editableTabsValue = ref('1')
 const editableTabs = ref([

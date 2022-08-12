@@ -7,6 +7,7 @@ export {}
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
+    CodingFooter: typeof import('./src/components/CodingFooter.vue')['default']
     DebuggerTerminal: typeof import('./src/components/DebuggerTerminal.vue')['default']
     DebugSideBar: typeof import('./src/components/DebugSideBar.vue')['default']
     EditorBase: typeof import('./src/components/EditorPanel/EditorBase.vue')['default']
