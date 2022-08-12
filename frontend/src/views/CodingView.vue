@@ -10,8 +10,14 @@
           <el-button class="closeBtn" :icon="Fold" @click="closeAside" circle />
         </div>
         <el-aside :width="data.width">
-          <!-- <FileSet :name="name" :projectname="projectname" @debug-start="(path) => runDebugger(path)"></FileSet> -->
-          <DebugSideBar token="1"></DebugSideBar>
+          <el-tabs v-model="activeName" class="demo-tabs" tab-position="left">
+            <el-tab-pane label="File" name="first">
+              <FileSet :name="name" :projectname="projectname" @debug-start="(path) => runDebugger(path)"></FileSet>
+              </el-tab-pane>
+            <el-tab-pane label="Debug" name="second">
+              <DebugSideBar ref="tDebugSideBar" token="1"></DebugSideBar>
+            </el-tab-pane>
+          </el-tabs>
         </el-aside>
         <span class="resize_col" @mousedown="handleDragStart"></span>
         <el-container>
@@ -21,14 +27,10 @@
             <div>
               <el-tabs v-model="activeName" class="demo-tabs" @tab-click="handleClick" tab-position="left">
                 <el-tab-pane label="Debugger" name="first">
-                  <web-debugger :key='debuggerPath' :file-path='debuggerPath' ref="tDebugger"></web-debugger>
+                  <web-debugger :key='debuggerPath' :file-path='debuggerPath' ref="tDebugger" @debugger-data-update="updateDebuggerSideBar"></web-debugger>
                 </el-tab-pane>
                 <el-tab-pane label="Terminal" name="second">
-<<<<<<< HEAD
-                  <terminal-panel style="width:100%; height:100%"></terminal-panel>
-=======
                   <terminal-panel ref="terminalPanels" @get-pdb-port="(port) => test(port)"></terminal-panel>
->>>>>>> 6ed311cd395730a4677bb27cc041205e3a7949b2
                 </el-tab-pane>
               </el-tabs>
             </div>
@@ -140,6 +142,7 @@ const handleDragStartrow = (event: MouseEvent) => {
 const debuggerPath = ref<string>('')
 const terminalPanels = ref<any>()
 const tDebugger = ref()
+const tDebugSideBar = ref()
 // run debugger
 function runDebugger (filePath: string) {
   console.log('coding view ' + filePath)
@@ -156,6 +159,11 @@ const handleClick = (tab: TabsPaneContext, event: Event) => {
 function test (port) {
   console.log(port)
   tDebugger.value.initDebugger(port)
+}
+
+function updateDebuggerSideBar (port: number, token: string) {
+  console.log('update test', port)
+  tDebugSideBar.value.updateData(port, token)
 }
 
 </script>

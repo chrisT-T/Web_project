@@ -7,13 +7,8 @@ export {}
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
-<<<<<<< HEAD
+    DebuggerTerminal: typeof import('./src/components/DebuggerTerminal.vue')['default']
     DebugSideBar: typeof import('./src/components/DebugSideBar.vue')['default']
-=======
-    DebuggerTerminal: typeof import('./src/components/debuggerTerminal.vue')['default']
-    DragBox: typeof import('./src/components/DragBox.vue')['default']
-    DragItem: typeof import('./src/components/DragItem.vue')['default']
->>>>>>> 6ed311cd395730a4677bb27cc041205e3a7949b2
     EditorBase: typeof import('./src/components/EditorPanel/EditorBase.vue')['default']
     EditorPanel: typeof import('./src/components/EditorPanel/EditorPanel.vue')['default']
     EditorSample: typeof import('./src/components/EditorPanel/EditorSample.vue')['default']

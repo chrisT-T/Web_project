@@ -47,26 +47,39 @@ const baseUrl = 'http://127.0.0.1:' as string
 const variables = ref<Tree[]>([{ label: 'locals', children: [] }, { label: 'global', children: [] }])
 const stk = ref<StackItem[]>([])
 
-function updateData () {
-  axios.post(baseUrl + '/pdb/curframe', { token: props.token })
+function updateData (port: number, token: string) {
+  console.log('update date in side bar ' + port, baseUrl + port.toString() + '/pdb/curframe')
+  axios.post(baseUrl + port.toString() + '/pdb/curframe', { token })
     .then((response) => {
-      const rawLocals = JSON.parse(response.request.response).locals
-      const rawGlobals = JSON.parse(response.request.response).globals
-      const locals = rawLocals.split('\n')
-      const globals = rawGlobals.split('\n')
-      variables.value = []
-      const loc = { label: 'locals', children: [] } as Tree
-      for (const i of locals) {
-        (loc.children as Tree[]).push({ label: i, children: [] })
+      try {
+        console.log(JSON.parse(response.request.response))
+        const rawLocals = JSON.parse(response.request.response).locals as string
+        const rawGlobals = JSON.parse(response.request.response).globals as string
+        const locals = rawLocals.split('\n')
+        const globals = rawGlobals.split('\n')
+        variables.value = []
+        const loc = { label: 'locals', children: [] } as Tree
+        const glob = { label: 'global', children: [] } as Tree
+        for (const i of locals) {
+          (loc.children as Tree[]).push({ label: i, children: [] })
+        }
+        for (const i of globals) {
+          (glob.children as Tree[]).push({ label: i, children: [] })
+        }
+        variables.value.push(loc)
+        variables.value.push(glob)
+      } catch (e: TypeError) {
+        console.log(e)
+        variables.value = []
+        const loc = { label: 'locals', children: [] } as Tree
+        const glob = { label: 'global', children: [] } as Tree
+        variables.value.push(loc)
+        variables.value.push(glob)
+      } finally {
+        console.log('finally')
       }
-      const glob = { label: 'global', children: [] } as Tree
-      for (const i of globals) {
-        (glob.children as Tree[]).push({ label: i, children: [] })
-      }
-      variables.value.push(loc)
-      variables.value.push(glob)
     })
-  axios.post(baseUrl + '/pdb/getstack', { token: props.token }).then(
+  axios.post(baseUrl + port.toString() + '/pdb/getstack', { token }).then(
     (response) => {
       const stklist = JSON.parse(response.request.response)
       stk.value = []
@@ -83,6 +96,10 @@ function updateData () {
     }
   )
 }
+
+defineExpose({
+  updateData
+})
 </script>
 
 <style scoped>

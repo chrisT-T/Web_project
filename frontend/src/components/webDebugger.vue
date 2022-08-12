@@ -1,10 +1,7 @@
 <template>
   <div>
     <el-tabs v-model="activeName" class="demo-tabs" @tab-click="handleClick">
-      <el-tab-pane label="Debugger Terminal" name="first">
-        <div id="debugTerm"/>
-      </el-tab-pane>
-      <el-tab-pane label="Config" name="second">
+      <el-tab-pane label="Config" name="first">
         <splitpanes class="default-theme">
           <pane>
             <div class="debugConsole">
@@ -70,74 +67,42 @@ const props = defineProps({
 
 const size = 40 as number
 let baseUrl = 'http://127.0.0.1:' as string
-const status = ref(null)
 const command = ref(null)
 const consoleOutput = ref(null)
 const stk = ref<StackItem[]>([])
-const fitAddon = new FitAddon()
 const variables = ref<Tree[]>([])
 const curline = ref<number>(1)
 
-let term = new Terminal({
-  cursorBlink: true,
-  macOptionIsMeta: true
-})
-
-let socket = io('http://127.0.0.1:5000/pdb')
-
 let pdbSocket = io()
 
-function initDebugger () {
-  console.log('from debugger: ' + props.filePath)
-  term.open(document.getElementById('debugTerm') as HTMLElement)
-  term.loadAddon(fitAddon)
-  term.writeln('Debugger Terminal\n')
-  term.onData((data) => {
-    socket.emit('debugger_term_input', { input: data, token: pdbSocket.id })
+const emit = defineEmits <{(e: 'debuggerDataUpdate', port: number, token: string): void}>()
+
+function initDebugger (port: number) {
+  baseUrl += port.toString()
+
+  pdbSocket = io(baseUrl + '/pdb')
+
+  pdbSocket.on('connect', () => {
+    axios.post(baseUrl + '/pdb/debug', { token: pdbSocket.id, filepath: props.filePath }).then(() => {
+      console.log('Pdbsocket Connected')
+    })
   })
 
-  socket.on('debugger_port', (data: {'port': number, 'token': string}) => {
+  pdbSocket.on('pdb_quit', (data) => {
+    pdbSocket.disconnect()
+    variables.value = [] as Tree[]
+    stk.value = [] as StackItem[]
+  })
+
+  pdbSocket.on('pdb_output', (data: {'consoleOutput': string, 'token': string}) => {
     console.log(data)
-    console.log(socket.id)
-    baseUrl += data.port.toString()
-
-    pdbSocket = io(baseUrl + '/pdb')
-
-    pdbSocket.on('connect', () => {
-      axios.post(baseUrl + '/pdb/debug', { token: pdbSocket.id, filepath: props.filePath }).then(() => {
-        console.log('Pdbsocket Connected')
-      })
-    })
-
-    pdbSocket.on('pdb_quit', (data) => {
-      status.value = data.flag
-      pdbSocket.disconnect()
-      socket.disconnect()
-      variables.value = [] as Tree[]
-      stk.value = [] as StackItem[]
-    })
-
-    pdbSocket.on('pdb_output', (data: {'consoleOutput': string, 'token': string}) => {
-      console.log(data)
-      if (data.token === pdbSocket.id) {
-        consoleOutput.value += data.consoleOutput
-        console.log(consoleOutput)
-        updateData()
-      }
-    })
-
-    setTimeout(() => {
-      fitAddon.fit()
-    }, 20)
+    if (data.token === pdbSocket.id) {
+      consoleOutput.value += data.consoleOutput
+      updateData()
+      console.log('consoleOutpu ', port)
+      emit('debuggerDataUpdate', port, pdbSocket.id)
+    }
   })
-
-  socket.on('debugger_term_output', (data: {'output': string, 'token': string}) => {
-    console.log(data)
-    term.write(data.output)
-  })
-  setTimeout(() => {
-    term.clear()
-  }, 2000)
 }
 
 function cont () {
@@ -145,6 +110,7 @@ function cont () {
 }
 
 function send () {
+  console.log('pdb command send ' + baseUrl + '/pdb/runcmd')
   axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket.id, cmd: command.value })
 }
 
@@ -167,14 +133,7 @@ function stop () {
 function restart () {
   axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket.id, cmd: 'q' })
   // axios.post (baseUrl + '/pdb/debug', { token: pdbSocket.id, filepath: filePath })
-  term.dispose()
-  term = new Terminal({
-    cursorBlink: true,
-    macOptionIsMeta: true
-  })
-  socket = io('http://127.0.0.1:5000/pdb')
   pdbSocket = io()
-  initDebugger()
 }
 
 function updateData () {
@@ -220,13 +179,15 @@ function fit () {
 }
 
 onMounted(() => {
-  initDebugger()
   const resize = document.getElementsByClassName('resize')
   for (const i of resize) {
     i.addEventListener('mouseup', fit)
   }
 })
 
+defineExpose({
+  initDebugger
+})
 </script>
 
 <style scoped>
