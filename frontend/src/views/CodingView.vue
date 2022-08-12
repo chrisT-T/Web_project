@@ -160,13 +160,13 @@ div {
   cursor: col-resize;
   float: left;
   border-radius: 5px;
-  width: 2px;
+  width: 4px;
 }
 .resize_row {
   cursor:row-resize;
   float: left;
   border-radius: 5px;
-  height: 2px;
+  height: 4px;
 }
 .backBtn, .saveBtn {
   height: 30px;
@@ -214,9 +214,19 @@ div {
   color: white;
 }
 .demo-tabs :deep(.el-tabs__item:hover){
-  color: rgb(0, 204, 255);
+  color: rgb(255, 0, 0);
 }
 .demo-tabs :deep(.el-tabs__active-bar){
-  background-color: var(--el-color-primary-light-3);;
+  background-color: var(--el-color-primary-light-3);
+}
+
+.demo-tabs :deep(.el-tabs__item:hover) {
+    color: #b88230;
+}
+.demo-tabs :deep(.is-active.el-tabs__item) {
+    color: #3700ff
+}
+.demo-tabs :deep(.el-tabs__item) {
+    color: black;
 }
 </style>
