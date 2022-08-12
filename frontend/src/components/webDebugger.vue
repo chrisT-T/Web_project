@@ -2,14 +2,11 @@
   <div>
     <el-tabs v-model="activeName" class="demo-tabs" @tab-click="handleClick">
       <el-tab-pane label="Debugger Terminal" name="first">
-        <drag-item class="TermContainer">
-          <div id="debugTerm"/>
-        </drag-item>
+        <div id="debugTerm"/>
       </el-tab-pane>
       <el-tab-pane label="Config" name="second">
-        <drag-box style="width: 100%; height: 100%">
-
-          <drag-item>
+        <splitpanes class="default-theme">
+          <pane>
             <div class="debugConsole">
               <p style="text-align: left; font-size: 20px; font-weight: bold;"> Debug Console:</p>
               <p>{{ consoleOutput }}</p>
@@ -24,17 +21,17 @@
                 <el-icon @click="stop" title="Stop" :size="size"><CloseBold /></el-icon>
               </div>
             </div>
-          </drag-item>
-          <drag-item>
+          </pane>
+          <pane>
             <variable-table :data="variables"></variable-table>
-          </drag-item>
-          <drag-item class="stkContainer">
+          </pane>
+          <pane class="stkContainer">
             <p style="text-align: left; font-size: 20px; font-weight: bold;"> Stack:</p>
             <div v-for="(item,index) in stk" :key="index">
               <span class="stkFunc">{{item.func}}</span><span class="stkFile" style="margin-right:5px;">{{item.file}}</span><br>
             </div>
-          </drag-item>
-        </drag-box>
+          </pane>
+        </splitpanes>
       </el-tab-pane>
     </el-tabs>
 
@@ -50,6 +47,7 @@ import axios from 'axios'
 import { FitAddon } from 'xterm-addon-fit'
 import VariableTable from '@/components/VariableTable.vue'
 import type { TabsPaneContext } from 'element-plus'
+import { Splitpanes, Pane } from 'splitpanes'
 
 const activeName = ref('first')
 
@@ -93,7 +91,6 @@ function initDebugger () {
   console.log('from debugger: ' + props.filePath)
   term.open(document.getElementById('debugTerm') as HTMLElement)
   term.loadAddon(fitAddon)
-  fitAddon.fit()
   term.writeln('Debugger Terminal\n')
   term.onData((data) => {
     socket.emit('debugger_term_input', { input: data, token: pdbSocket.id })
@@ -128,6 +125,10 @@ function initDebugger () {
         updateData()
       }
     })
+
+    setTimeout(() => {
+      fitAddon.fit()
+    }, 20)
   })
 
   socket.on('debugger_term_output', (data: {'output': string, 'token': string}) => {
@@ -214,7 +215,7 @@ function updateData () {
   )
 }
 
-function test () {
+function fit () {
   fitAddon.fit()
 }
 
@@ -222,7 +223,7 @@ onMounted(() => {
   initDebugger()
   const resize = document.getElementsByClassName('resize')
   for (const i of resize) {
-    i.addEventListener('mouseup', test)
+    i.addEventListener('mouseup', fit)
   }
 })
 
@@ -230,6 +231,8 @@ onMounted(() => {
 
 <style scoped>
   @import 'xterm/css/xterm.css';
+  @import 'splitpanes/dist/splitpanes.css';
+
   .debugConsole {
     white-space: pre;
     text-align: left;

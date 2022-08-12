@@ -10,7 +10,8 @@
           <el-button class="closeBtn" :icon="Fold" @click="closeAside" circle />
         </div>
         <el-aside :width="data.width">
-          <FileSet :name="name" :projectname="projectname" @debug-start="(path) => runDebugger(path)"></FileSet>
+          <!-- <FileSet :name="name" :projectname="projectname" @debug-start="(path) => runDebugger(path)"></FileSet> -->
+          <DebugSideBar token="1"></DebugSideBar>
         </el-aside>
         <span class="resize_col" @mousedown="handleDragStart"></span>
         <el-container>
@@ -23,7 +24,7 @@
                   <web-debugger :key='debuggerPath' :file-path='debuggerPath'></web-debugger>
                 </el-tab-pane>
                 <el-tab-pane label="Terminal" name="second">
-                  <terminal-panel></terminal-panel>
+                  <terminal-panel style="width:100%; height:100%"></terminal-panel>
                 </el-tab-pane>
               </el-tabs>
             </div>
@@ -50,6 +51,7 @@ import webTerminal from '../components/webTerminal.vue'
 import TerminalPanel from '../components/TerminalPanel.vue'
 import { ElNotification } from 'element-plus'
 import type { TabsPaneContext } from 'element-plus'
+import DebugSideBar from '../components/DebugSideBar.vue'
 
 // 获取当前用户名
 const name = useRouter().currentRoute.value.params.username
@@ -68,7 +70,7 @@ const data = reactive({
   isClose: false,
   originX: 200,
   originY: 20,
-  height: '50px',
+  height: '300px',
   old_height: '0px',
   old_height_2: 0,
   height_2: 50
@@ -204,4 +206,21 @@ div {
   margin: 5px 2px;
 }
 
+.term_panel {
+  width: 100%;
+  height: 100vh;
+}
+/* footer中颜色 */
+.demo-tabs :deep(.is-active.el-tabs__item) {
+  color: rgb(0, 204, 255);
+}
+.demo-tabs :deep(.el-tabs__item){
+  color: white;
+}
+.demo-tabs :deep(.el-tabs__item:hover){
+  color: rgb(0, 204, 255);
+}
+.demo-tabs :deep(.el-tabs__active-bar){
+  background-color: var(--el-color-primary-light-3);;
+}
 </style>

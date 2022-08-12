@@ -1,4 +1,4 @@
-from test_script import echo
+# from test_script import echo
 
 def testFunc():
     res = 0

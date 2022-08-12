@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-tabs v-model="editableTabsValue" type="card" editable class="demo-tabs" @edit="handleTabsEdit" tab-position="top">
+    <el-tabs v-model="editableTabsValue" type="card" editable class="demo-tabs" @edit="handleTabsEdit" tab-position="top" strech>
       <el-tab-pane v-for="item in editableTabs" :key="item.name" :label="item.title" :name="item.name">
       <component :is=item.content></component>
       </el-tab-pane>
@@ -15,12 +15,12 @@ let tabIndex = 2
 const editableTabsValue = ref('1')
 const editableTabs = ref([
   {
-    title: 'Terminal 1',
+    title: 'Terminal',
     name: '1',
     content: webTerminal
   },
   {
-    title: 'Terminal 2',
+    title: 'Terminal',
     name: '2',
     content: webTerminal
   }
@@ -30,7 +30,7 @@ const handleTabsEdit = (targetName: string, action: 'remove' | 'add') => {
   if (action === 'add') {
     const newTabName = `${++tabIndex}`
     editableTabs.value.push({
-      title: 'Terminal ' + tabIndex,
+      title: 'Terminal',
       name: newTabName,
       content: webTerminal
     })

@@ -1,8 +1,5 @@
 <template>
-  <div>
-    <h1> {{ status }} </h1>
-    <div ref="termDiv"></div>
-  </div>
+  <div ref="termDiv"></div>
 </template>
 
 <script lang="ts" setup>
