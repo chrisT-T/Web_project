@@ -10,7 +10,7 @@
           <el-button class="closeBtn" :icon="Fold" @click="closeAside" circle />
         </div>
         <el-aside :width="data.width">
-          <el-tabs v-model="activeName" class="demo-tabs" tab-position="left">
+          <el-tabs v-model="sidebarActiveName" class="demo-tabs" tab-position="left">
             <el-tab-pane label="File" name="first">
               <FileSet :name="name" :projectname="projectname" @debug-start="(path) => runDebugger(path)"></FileSet>
               </el-tab-pane>
@@ -151,12 +151,13 @@ function runDebugger (filePath: string) {
 }
 
 const activeName = ref('first')
+const sidebarActiveName = ref('first')
 
 const handleClick = (tab: TabsPaneContext, event: Event) => {
   console.log(tab, event)
 }
 
-function test (port) {
+function test (port: number) {
   console.log(port)
   tDebugger.value.initDebugger(port)
 }
