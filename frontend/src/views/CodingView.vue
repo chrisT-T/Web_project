@@ -23,7 +23,7 @@
                   <web-debugger :key='debuggerPath' :file-path='debuggerPath'></web-debugger>
                 </el-tab-pane>
                 <el-tab-pane label="Terminal" name="second">
-                  <terminal-panel></terminal-panel>
+                  <terminal-panel ref="terminalPanels"></terminal-panel>
                 </el-tab-pane>
               </el-tabs>
             </div>
@@ -130,12 +130,15 @@ const handleDragStartrow = (event: MouseEvent) => {
     isMouseDown = false
   }
 }
+
 const debuggerPath = ref<string>('')
+const terminalPanels = ref<any>()
 
 // run debugger
 function runDebugger (filePath: string) {
   console.log('coding view ' + filePath)
   debuggerPath.value = './userfile/' + filePath
+  terminalPanels.value.startDebuggerTerminal()
 }
 
 const activeName = ref('first')

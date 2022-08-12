@@ -11,6 +11,9 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import webTerminal from './webTerminal.vue'
+import DebuggerTerminal from './DebuggerTerminal.vue'
+import io from 'socket.io-client'
+import { Terminal } from 'xterm'
 let tabIndex = 2
 const editableTabsValue = ref('1')
 const editableTabs = ref([
@@ -54,6 +57,19 @@ const handleTabsEdit = (targetName: string, action: 'remove' | 'add') => {
   }
 }
 
+function startDebuggerTerminal () {
+  const newTabName = `${++tabIndex}`
+  editableTabs.value.push({
+    title: 'Terminal ' + tabIndex,
+    name: newTabName,
+    content: DebuggerTerminal
+  })
+  editableTabsValue.value = newTabName
+}
+
+defineExpose({
+  startDebuggerTerminal
+})
 </script>
 
 <style scope>
