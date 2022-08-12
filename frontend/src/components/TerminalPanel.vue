@@ -60,7 +60,7 @@ const handleTabsEdit = (targetName: string, action: 'remove' | 'add') => {
 function startDebuggerTerminal () {
   const newTabName = `${++tabIndex}`
   editableTabs.value.push({
-    title: 'Terminal ' + tabIndex,
+    title: 'Py Debugger',
     name: newTabName,
     content: DebuggerTerminal
   })

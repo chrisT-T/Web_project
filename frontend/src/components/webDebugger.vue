@@ -7,25 +7,18 @@
             <div class="debugConsole">
               <p style="text-align: left; font-size: 20px; font-weight: bold;"> Debug Console:</p>
               <p>{{ consoleOutput }}</p>
-              <p style="margin-bottom: 70px; font-weight: bold;">Current Line: {{curline}}</p>
               <el-input  name="command" id="command" v-model="command" @keyup.enter="send" style="position: absolute; bottom: 0"/>
-              <div v-if="isDebugging" style="display: flex; position: absolute; bottom: 30px; left: -6px">
-                <el-icon @click="cont" title="Continue" :size="size"><CaretRight /></el-icon>
-                <el-icon @click="next" title="Step Over" :size="size"><Right /></el-icon>
-                <el-icon @click="stepInto" title="Step Into" :size="size"><Download /></el-icon>
-                <el-icon @click="stepOut" title="Step Out" :size="size"><Upload /></el-icon>
-                <el-icon @click="restart" title="Restart" :size="size"><RefreshLeft /></el-icon>
-                <el-icon @click="stop" title="Stop" :size="size"><CloseBold /></el-icon>
-              </div>
             </div>
           </pane>
           <pane>
-            <variable-table :data="variables"></variable-table>
-          </pane>
-          <pane class="stkContainer">
-            <p style="text-align: left; font-size: 20px; font-weight: bold;"> Stack:</p>
-            <div v-for="(item,index) in stk" :key="index">
-              <span class="stkFunc">{{item.func}}</span><span class="stkFile" style="margin-right:5px;">{{item.file}}</span><br>
+            <p style="margin-bottom: 70px; font-weight: bold;">Current Line: {{curline}}</p>
+            <div v-if="isDebugging" style="display: flex;">
+              <el-icon @click="cont" title="Continue" :size="size"><CaretRight /></el-icon>
+              <el-icon @click="next" title="Step Over" :size="size"><Right /></el-icon>
+              <el-icon @click="stepInto" title="Step Into" :size="size"><Download /></el-icon>
+              <el-icon @click="stepOut" title="Step Out" :size="size"><Upload /></el-icon>
+              <el-icon @click="restart" title="Restart" :size="size"><RefreshLeft /></el-icon>
+              <el-icon @click="stop" title="Stop" :size="size"><CloseBold /></el-icon>
             </div>
           </pane>
         </splitpanes>
@@ -101,7 +94,6 @@ function initDebugger (port: number) {
     console.log(data)
     if (data.token === pdbSocket.id) {
       consoleOutput.value += data.consoleOutput
-      updateData()
       console.log('consoleOutpu ', port)
       emit('debuggerDataUpdate', port, pdbSocket.id)
     }
@@ -143,44 +135,6 @@ function restart () {
   axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket.id, cmd: 'q' })
   // axios.post (baseUrl + '/pdb/debug', { token: pdbSocket.id, filepath: filePath })
   pdbSocket = io()
-}
-
-function updateData () {
-  axios.post(baseUrl + '/pdb/curframe', { token: pdbSocket.id })
-    .then((response) => {
-      const rawLocals = JSON.parse(response.request.response).locals
-      const rawGlobals = JSON.parse(response.request.response).globals
-      const locals = rawLocals.split('\n')
-      const globals = rawGlobals.split('\n')
-      variables.value = []
-      const loc = { label: 'locals', children: [] } as Tree
-      for (const i of locals) {
-        (loc.children as Tree[]).push({ label: i, children: [] })
-      }
-      const glob = { label: 'global', children: [] } as Tree
-      for (const i of globals) {
-        (glob.children as Tree[]).push({ label: i, children: [] })
-      }
-      variables.value.push(loc)
-      variables.value.push(glob)
-      curline.value = JSON.parse(response.request.response).current_line
-    })
-  axios.post(baseUrl + '/pdb/getstack', { token: pdbSocket.id }).then(
-    (response) => {
-      const stklist = JSON.parse(response.request.response)
-      stk.value = []
-      for (let i = 1; i < stklist.length; i++) {
-        const funct = stklist[i].match(/, code (\S*)>/)[1]
-        let fil = stklist[i].match(/file '(\S*)'/)[1]
-        if (/\//.test(fil)) {
-          console.log('yes')
-          fil = fil.match(/\/(\w*?).py/)[1] + '.py'
-          console.log(fil)
-        }
-        stk.value.splice(0, 0, { func: funct, file: fil })
-      }
-    }
-  )
 }
 
 function fit () {
