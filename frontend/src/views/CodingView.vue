@@ -21,10 +21,14 @@
             <div>
               <el-tabs v-model="activeName" class="demo-tabs" @tab-click="handleClick" tab-position="left">
                 <el-tab-pane label="Debugger" name="first">
-                  <web-debugger :key='debuggerPath' :file-path='debuggerPath'></web-debugger>
+                  <web-debugger :key='debuggerPath' :file-path='debuggerPath' ref="tDebugger"></web-debugger>
                 </el-tab-pane>
                 <el-tab-pane label="Terminal" name="second">
+<<<<<<< HEAD
                   <terminal-panel style="width:100%; height:100%"></terminal-panel>
+=======
+                  <terminal-panel ref="terminalPanels" @get-pdb-port="(port) => test(port)"></terminal-panel>
+>>>>>>> 6ed311cd395730a4677bb27cc041205e3a7949b2
                 </el-tab-pane>
               </el-tabs>
             </div>
@@ -132,18 +136,26 @@ const handleDragStartrow = (event: MouseEvent) => {
     isMouseDown = false
   }
 }
-const debuggerPath = ref<string>('')
 
+const debuggerPath = ref<string>('')
+const terminalPanels = ref<any>()
+const tDebugger = ref()
 // run debugger
 function runDebugger (filePath: string) {
   console.log('coding view ' + filePath)
   debuggerPath.value = './userfile/' + filePath
+  terminalPanels.value.startDebuggerTerminal()
 }
 
 const activeName = ref('first')
 
 const handleClick = (tab: TabsPaneContext, event: Event) => {
   console.log(tab, event)
+}
+
+function test (port) {
+  console.log(port)
+  tDebugger.value.initDebugger(port)
 }
 
 </script>
