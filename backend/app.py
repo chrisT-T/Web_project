@@ -303,7 +303,7 @@ def touch(username):
 def upload_file(username):
     src = request.get_json()['src']
     text = request.get_json()['text']
-    if fileFunc.upload(src, text):
+    if fileFunc.upload(username + '/' + src, text):
         data = {
             'flag': True,
             'message': None
@@ -320,8 +320,8 @@ def upload_file(username):
 # 前端以get形式提供文件路径   xiaoming/file.txt
 @app.route('/api/download/<username>', methods = ["GET"])
 def download_file(username):
-    src = request.get_json()['src']
-    flag, text = fileFunc.download(src)
+    src = request.args.get('src')
+    flag, text = fileFunc.download(f'{username}/{src}')
     if flag:
         data = {
             'text': text,

@@ -2,8 +2,8 @@
   <div class="editor-container">
     <EditorBase  ref="baseEditor" @save-file="saveCurrentFile"> </EditorBase>
 
-    <p>{{ fileItems }}</p>
-    <p>{{ fileStatus }}</p>
+    <!-- <p>{{ fileItems }}</p>
+    <p>{{ fileStatus }}</p> -->
 
   </div>
   <!-- 这里是要直接用在 View 里面的 Editor，作为拥有者管理各个 Editor 的状态 -->
@@ -45,6 +45,7 @@ const fileStatus = ref <Map<string, FileStatus>>(new Map<string, FileStatus>())
 const fileModels = shallowRef <Map<string, FileModel>>(new Map<string, FileModel>())
 
 function addFile (path: string, value: string) {
+  console.log('addFile', path)
   if (!fileStatus.value.has(path)) {
     fileStatus.value.set(path, {
       modified: false,
@@ -52,6 +53,7 @@ function addFile (path: string, value: string) {
     })
   } else {
     const status = fileStatus.value.get(path) as FileStatus
+    status.openCount++
     fileStatus.value.set(path, status)
   }
   if (!fileModels.value.has(path)) {
