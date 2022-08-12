@@ -8,8 +8,8 @@
               <p style="text-align: left; font-size: 20px; font-weight: bold;"> Debug Console:</p>
               <p>{{ consoleOutput }}</p>
               <p style="margin-bottom: 70px; font-weight: bold;">Current Line: {{curline}}</p>
-              <el-input name="command" id="command" v-model="command" @keyup.enter="send" style="position: absolute; bottom: 0"/>
-              <div style="display: flex; position: absolute; bottom: 30px; left: -6px">
+              <el-input  name="command" id="command" v-model="command" @keyup.enter="send" style="position: absolute; bottom: 0"/>
+              <div v-if="isDebugging" style="display: flex; position: absolute; bottom: 30px; left: -6px">
                 <el-icon @click="cont" title="Continue" :size="size"><CaretRight /></el-icon>
                 <el-icon @click="next" title="Step Over" :size="size"><Right /></el-icon>
                 <el-icon @click="stepInto" title="Step Into" :size="size"><Download /></el-icon>
@@ -43,8 +43,10 @@ import io from 'socket.io-client'
 import axios from 'axios'
 import { FitAddon } from 'xterm-addon-fit'
 import VariableTable from '@/components/VariableTable.vue'
-import type { TabsPaneContext } from 'element-plus'
+import type { TabsPaneContext, Action } from 'element-plus'
 import { Splitpanes, Pane } from 'splitpanes'
+// element plus msg box
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 const activeName = ref('first')
 
@@ -72,7 +74,7 @@ const consoleOutput = ref(null)
 const stk = ref<StackItem[]>([])
 const variables = ref<Tree[]>([])
 const curline = ref<number>(1)
-
+const isDebugging = ref<boolean>(false)
 let pdbSocket = io()
 
 const emit = defineEmits <{(e: 'debuggerDataUpdate', port: number, token: string): void}>()
@@ -84,7 +86,7 @@ function initDebugger (port: number) {
 
   pdbSocket.on('connect', () => {
     axios.post(baseUrl + '/pdb/debug', { token: pdbSocket.id, filepath: props.filePath }).then(() => {
-      console.log('Pdbsocket Connected')
+      isDebugging.value = true
     })
   })
 
@@ -92,6 +94,7 @@ function initDebugger (port: number) {
     pdbSocket.disconnect()
     variables.value = [] as Tree[]
     stk.value = [] as StackItem[]
+    isDebugging.value = false
   })
 
   pdbSocket.on('pdb_output', (data: {'consoleOutput': string, 'token': string}) => {
@@ -111,7 +114,13 @@ function cont () {
 
 function send () {
   console.log('pdb command send ' + baseUrl + '/pdb/runcmd')
-  axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket.id, cmd: command.value })
+  if (isDebugging.value === true) {
+    axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket.id, cmd: command.value })
+  } else {
+    ElMessageBox.alert('Debugger is not running', 'Debug Error', {
+      confirmButtonText: 'OK'
+    })
+  }
 }
 
 function next () {
