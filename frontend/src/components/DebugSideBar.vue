@@ -1,23 +1,25 @@
 <template>
 <splitpanes horizontal>
-  <pane>
-    <div class="variables"  >
-      <p class="heading" >VARIABLES <span class="buttons"><el-icon><Remove /></el-icon></span></p>
-      <el-tree :default-expand-all="true" :data="variables" style="height:100%" :props="{
-        label: 'label',
-        children: 'children',
-      }"></el-tree>
-    </div>
+  <pane min-size="20">
+    <p class="heading">VARIABLES <span class="buttons"><el-icon title="Collapse All" :size="iconSize" class="is-loading"><Remove /></el-icon></span></p>
+    <el-tree :default-expand-all="true" :data="variables" style="height:100%" :props="{
+      label: 'label',
+      children: 'children',
+    }"></el-tree>
   </pane>
-  <pane>
-    <div class="watch">
-      <p class="heading" >WATCH
-        <span class="buttons">
-          <el-icon title="Add Expression"><CirclePlus /></el-icon>
-          <el-icon title="Remove All Expresions"><CircleClose /></el-icon>
-          <el-icon><Remove /></el-icon>
-        </span>
-      </p>
+  <pane min-size="20">
+    <p class="heading">WATCH
+      <span class="buttons">
+        <el-icon title="Add Expression" :size="iconSize"><CirclePlus /></el-icon>
+        <el-icon title="Remove All Expresions" :size="iconSize" :class="watchAvailable"><CircleClose /></el-icon>
+        <el-icon title="Collapse All" :size="iconSize" :class="watchAvailable"><Remove /></el-icon>
+      </span>
+    </p>
+  </pane>
+  <pane min-size="20">
+    <p class="heading">CALL STACK </p>
+    <div v-for="(item,index) in stk" :key="index">
+      <span class="stkFunc">{{item.func}}</span><span class="stkFile">{{item.file}}</span><br>
     </div>
   </pane>
 </splitpanes>
@@ -25,7 +27,7 @@
 
 <script lang="ts" setup>
 
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { Splitpanes, Pane } from 'splitpanes'
 import axios from 'axios'
 
@@ -46,7 +48,8 @@ const props = defineProps({
 const baseUrl = 'http://127.0.0.1:' as string
 const variables = ref<Tree[]>([{ label: 'locals', children: [] }, { label: 'global', children: [] }])
 const stk = ref<StackItem[]>([])
-
+const iconSize = 20
+let watchAvailable = 'disabled'
 function updateData () {
   axios.post(baseUrl + '/pdb/curframe', { token: props.token })
     .then((response) => {
@@ -82,16 +85,32 @@ function updateData () {
       }
     }
   )
+  watchAvailable = ''
 }
 </script>
 
 <style scoped>
+* {
+  font-family:'Courier New', Courier, monospace
+}
 .heading {
   text-align: left;
+  font-size: 15px;
+  margin: 2px;
+  padding: 6px 2px 2px;
 }
 
 .buttons {
   float:right;
+  margin:-3px 0 0;
 }
-
+.splitpanes .splitpanes__splitter{
+  background-color: black;
+}
+:deep(.el-tree) {
+  background-color: var(--el-color-primary-light-8);;
+}
+.disabled {
+  color: rgb(192, 192, 192)
+}
 </style>

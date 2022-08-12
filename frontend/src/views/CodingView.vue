@@ -24,11 +24,7 @@
                   <web-debugger :key='debuggerPath' :file-path='debuggerPath' ref="tDebugger"></web-debugger>
                 </el-tab-pane>
                 <el-tab-pane label="Terminal" name="second">
-<<<<<<< HEAD
-                  <terminal-panel style="width:100%; height:100%"></terminal-panel>
-=======
                   <terminal-panel ref="terminalPanels" @get-pdb-port="(port) => test(port)"></terminal-panel>
->>>>>>> 6ed311cd395730a4677bb27cc041205e3a7949b2
                 </el-tab-pane>
               </el-tabs>
             </div>
