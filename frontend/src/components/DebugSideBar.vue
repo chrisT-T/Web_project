@@ -130,4 +130,7 @@ defineExpose({
 .disabled {
   color: rgb(192, 192, 192)
 }
+:deep(.el-tabs__content) {
+  width: 100%;
+}
 </style>
