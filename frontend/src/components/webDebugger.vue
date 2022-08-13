@@ -86,12 +86,13 @@ function initDebugger (port: number) {
 
   pdbSocket.on('connect', () => {
     console.log('connect running', pdbSocket.id)
+    console.log(breakPoints)
     axios.post(baseUrl + '/pdb/debug', { token: pdbSocket.id, filepath: props.filePath }).then(() => {
       isDebugging.value = true
     })
     breakPoints.forEach((value, key) => {
       value.forEach((lineno) => {
-        // console.log(key, lineno, `b ${props.userPath}/${key}: ${lineno}`)
+        console.log(key, lineno, `b ${props.userPath}/${key}: ${lineno}`)
         axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket.id, cmd: `b ${props.userPath}/${key}: ${lineno}` })
       })
     })
