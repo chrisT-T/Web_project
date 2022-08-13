@@ -21,11 +21,15 @@
         </el-aside>
         <span class="resize_col" @mousedown="handleDragStart"></span>
         <el-container>
-          <el-main>Main</el-main>
-          <span class="resize_row" @mousedown="handleDragStartrow"></span>
-          <el-footer :height="data.height">
-            <coding-footer ref="tFooter" @debugger-data-update="updateDebuggerSideBar"></coding-footer>
-          </el-footer>
+          <splitpanes horizontal>
+            <pane size="80">
+              <EditorPanel ref="editorPanel" @save-file="saveFile"></EditorPanel>
+            </pane>
+            <pane size="20">
+              <el-footer>
+                 <coding-footer ref="tFooter" @debugger-data-update="updateDebuggerSideBar"></coding-footer>
+              </el-footer>
+            </pane>
         </el-container>
       </el-container>
     </el-container>
@@ -41,8 +45,13 @@ import {
   HomeFilled,
   Checked
 } from '@element-plus/icons-vue'
+import axios from 'axios'
 
 import FileSet from '../components/fileSet.vue'
+import { ElNotification } from 'element-plus'
+import EditorPanel from '@/components/EditorPanel/EditorPanel.vue'
+import { Splitpanes, Pane } from 'splitpanes'
+import 'splitpanes/dist/splitpanes.css'
 import DebugSideBar from '../components/DebugSideBar.vue'
 import CodingFooter from '../components/CodingFooter.vue'
 
@@ -51,6 +60,9 @@ const name = useRouter().currentRoute.value.params.username
 
 // 获取当前项目名
 const projectname = useRouter().currentRoute.value.params.projectname
+
+// 获取 EditorPanel 的 ref
+const editorPanel = ref<InstanceType<typeof EditorPanel> | null>(null)
 
 // 回到当前用户的项目管理区域
 const ProjectBack = () => {
@@ -126,6 +138,41 @@ const handleDragStartrow = (event: MouseEvent) => {
   }
 }
 
+function saveFile (path: string, value: string) {
+  console.log(path, value)
+  axios.post(`/api/upload/${name}`, {
+    src: path,
+    text: value
+  }).then((res) => {
+    console.log(res)
+    ElNotification({
+      title: 'Success',
+      message: '保存成功',
+      type: 'success'
+    })
+  }).catch((err) => {
+    console.log(err)
+    ElNotification({
+      title: 'Error',
+      message: '保存失败',
+      type: 'error'
+    })
+  })
+}
+
+function openFile (path: string) {
+  console.log(path)
+  axios.get(`/api/download/${name}`, {
+    params: {
+      src: path
+    }
+  }).then((res) => {
+    console.log(res)
+    editorPanel.value?.addFile(path, res.data.text)
+  }).catch((err) => {
+    console.log(err)
+  })
+}
 const tFooter = ref()
 const tDebugSideBar = ref()
 // run debugger
@@ -141,7 +188,6 @@ function updateDebuggerSideBar (port: number, token: string) {
   console.log('update test', port)
   tDebugSideBar.value.updateData(port, token)
 }
-
 </script>
 
 <style scoped>
@@ -181,8 +227,10 @@ div {
   background-color: var(--el-color-primary);
 }
 .el-footer {
+  width: 100%;
+  height: 100%;
   background-color: var(--el-color-primary-dark-2);
-  overflow: auto;
+  /* overflow: auto; */
   display: flex;
   flex-direction: column;
 }

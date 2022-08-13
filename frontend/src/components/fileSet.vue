@@ -93,6 +93,10 @@ const props = defineProps({
   projectname: String
 })
 
+// eslint-disable-next-line func-call-spacing
+const emit = defineEmits<{
+  (e : 'openFile', path: string) : void,
+}>()
 // Tree接口
 interface Tree {
   // id: number
@@ -132,6 +136,7 @@ const changeInput = reactive({
 const handleNodeClick = (data: Tree, node: Node) => {
   if (data.type === 'file') {
     console.log('是可打开文件')
+    emit('openFile', data.route + '/' + data.label)
   }
   console.log('node click')
   console.log(data)
