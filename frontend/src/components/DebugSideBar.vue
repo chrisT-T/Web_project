@@ -127,7 +127,7 @@ defineExpose({
 }
 
 .buttons {
-  float:right;
+  float:inline-end;
   margin:-3px 0 0;
 }
 .splitpanes .splitpanes__splitter{
@@ -138,5 +138,8 @@ defineExpose({
 }
 .disabled {
   color: rgb(192, 192, 192)
+}
+:deep(.el-tabs__content) {
+  width: 100%;
 }
 </style>

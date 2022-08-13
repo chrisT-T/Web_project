@@ -40,3 +40,17 @@ defineExpose({
   startDebuggerTerminal
 })
 </script>
+
+<style scoped>
+.demo-tabs :deep(.is-active.el-tabs__item),.demo-tabs :deep(.el-tabs__item:hover){
+  color: white;
+}
+
+.demo-tabs :deep(.el-tabs__item){
+  color: black;
+}
+.demo-tabs :deep(.el-tabs__active-bar) {
+  background-color: var(--el-color-primary-light-3);
+}
+
+</style>
