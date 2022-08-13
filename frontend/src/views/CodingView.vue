@@ -193,8 +193,9 @@ function updateDebuggerSideBar (port: number, token: string) {
 }
 
 function updateFocusLine (lineno: number, path: string) {
-  const relPath = path.replace('./userfile/', '')
+  const relPath = path.replace('./userfile/' + name + '/', '')
   console.log(lineno, path, relPath)
+  editorPanel.value?.clearFocusLine()
   editorPanel.value?.focusLine(relPath, lineno)
 }
 </script>
