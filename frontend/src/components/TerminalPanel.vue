@@ -9,7 +9,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { ref, markRaw } from 'vue'
 import webTerminal from './webTerminal.vue'
 import DebuggerTerminal from './DebuggerTerminal.vue'
 let tabIndex = 2
@@ -18,12 +18,12 @@ const editableTabs = ref([
   {
     title: 'Terminal',
     name: '1',
-    content: webTerminal
+    content: markRaw(webTerminal)
   },
   {
     title: 'Terminal',
     name: '2',
-    content: webTerminal
+    content: markRaw(webTerminal)
   }
 ])
 
@@ -33,7 +33,7 @@ const handleTabsEdit = (targetName: string, action: 'remove' | 'add') => {
     editableTabs.value.push({
       title: 'Terminal',
       name: newTabName,
-      content: webTerminal
+      content: markRaw(webTerminal)
     })
     editableTabsValue.value = newTabName
   } else if (action === 'remove') {
@@ -60,7 +60,7 @@ function startDebuggerTerminal () {
   editableTabs.value.push({
     title: 'Py Debugger',
     name: newTabName,
-    content: DebuggerTerminal
+    content: markRaw(DebuggerTerminal)
   })
   editableTabsValue.value = newTabName
 }

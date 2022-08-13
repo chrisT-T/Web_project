@@ -32,7 +32,7 @@
 
 import { ref, onMounted } from 'vue'
 import { Terminal } from 'xterm'
-import io from 'socket.io-client'
+import io, { Socket } from 'socket.io-client'
 import axios from 'axios'
 import { FitAddon } from 'xterm-addon-fit'
 import VariableTable from '@/components/VariableTable.vue'
@@ -70,7 +70,7 @@ const variables = ref<Tree[]>([])
 const curline = ref<number>(1)
 const isDebugging = ref<boolean>(false)
 let breakPoints = new Map<string, Array<number>>()
-let pdbSocket = io()
+let pdbSocket = null as Socket | null
 
 const emit = defineEmits <{(e: 'debuggerDataUpdate', port: number, token: string): void}>()
 
@@ -80,25 +80,27 @@ function setBreakPoints (tBreakPoints: Map<string, number[]>) {
 }
 
 function initDebugger (port: number) {
-  baseUrl += port.toString()
+  baseUrl = 'http://127.0.0.1:' + port.toString()
 
   pdbSocket = io(baseUrl + '/pdb')
+  console.log('initDebugger in webDebugger' + port)
 
   pdbSocket.on('connect', () => {
-    console.log('connect running', pdbSocket.id)
-    axios.post(baseUrl + '/pdb/debug', { token: pdbSocket.id, filepath: props.filePath }).then(() => {
+    console.log('connect running', pdbSocket?.id)
+    console.log(breakPoints)
+    axios.post(baseUrl + '/pdb/debug', { token: pdbSocket?.id, filepath: props.filePath }).then(() => {
       isDebugging.value = true
     })
     breakPoints.forEach((value, key) => {
       value.forEach((lineno) => {
-        // console.log(key, lineno, `b ${props.userPath}/${key}: ${lineno}`)
-        axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket.id, cmd: `b ${props.userPath}/${key}: ${lineno}` })
+        console.log(key, lineno, `b ${props.userPath}/${key}: ${lineno}`)
+        axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket?.id, cmd: `b ${props.userPath}/${key}: ${lineno}` })
       })
     })
   })
 
   pdbSocket.on('pdb_quit', (data) => {
-    pdbSocket.disconnect()
+    pdbSocket?.disconnect()
     variables.value = [] as Tree[]
     stk.value = [] as StackItem[]
     isDebugging.value = false
@@ -106,22 +108,22 @@ function initDebugger (port: number) {
 
   pdbSocket.on('pdb_output', (data: {'consoleOutput': string, 'token': string}) => {
     console.log(data)
-    if (data.token === pdbSocket.id) {
+    if (data.token === pdbSocket?.id) {
       consoleOutput.value += data.consoleOutput
       console.log('consoleOutpu ', port)
-      emit('debuggerDataUpdate', port, pdbSocket.id)
+      emit('debuggerDataUpdate', port, pdbSocket?.id)
     }
   })
 }
 
 function cont () {
-  axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket.id, cmd: 'c' })
+  axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket?.id, cmd: 'c' })
 }
 
 function send () {
-  console.log('pdb command send ' + baseUrl + '/pdb/runcmd')
+  console.log('pdb command send ' + baseUrl + '/pdb/runcmd', pdbSocket?.id)
   if (isDebugging.value === true) {
-    axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket.id, cmd: command.value })
+    axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket?.id, cmd: command.value })
   } else {
     ElMessageBox.alert('Debugger is not running', 'Debug Error', {
       confirmButtonText: 'OK'
@@ -130,23 +132,23 @@ function send () {
 }
 
 function next () {
-  axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket.id, cmd: 'n' })
+  axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket?.id, cmd: 'n' })
 }
 
 function stepInto () {
-  axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket.id, cmd: 's' })
+  axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket?.id, cmd: 's' })
 }
 
 function stepOut () {
-  axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket.id, cmd: 'u' })
+  axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket?.id, cmd: 'u' })
 }
 
 function stop () {
-  axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket.id, cmd: 'q' })
+  axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket?.id, cmd: 'q' })
 }
 
 function restart () {
-  axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket.id, cmd: 'q' })
+  axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket?.id, cmd: 'q' })
   // axios.post (baseUrl + '/pdb/debug', { token: pdbSocket.id, filepath: filePath })
   pdbSocket = io()
 }

@@ -15,7 +15,7 @@
               <FileSet :name="name" :projectname="projectname" @debug-start="(path) => runDebugger(path)" @open-file="openFile"></FileSet>
             </el-tab-pane>
             <el-tab-pane label="Debug" name="second">
-              <DebugSideBar ref="tDebugSideBar"></DebugSideBar>
+              <DebugSideBar ref="tDebugSideBar" token="1" @update-focus-line="updateFocusLine"></DebugSideBar>
             </el-tab-pane>
           </el-tabs>
         </el-aside>
@@ -190,6 +190,13 @@ const sidebarActiveName = ref('first')
 function updateDebuggerSideBar (port: number, token: string) {
   console.log('update test', port)
   tDebugSideBar.value.updateData(port, token)
+}
+
+function updateFocusLine (lineno: number, path: string) {
+  const relPath = path.replace('./userfile/' + name + '/', '')
+  console.log(lineno, path, relPath)
+  editorPanel.value?.clearFocusLine()
+  editorPanel.value?.focusLine(relPath, lineno)
 }
 </script>
 

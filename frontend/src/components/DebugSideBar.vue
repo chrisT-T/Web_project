@@ -52,6 +52,11 @@ const props = defineProps({
   token: String
 })
 
+// eslint-disable-next-line func-call-spacing
+const emit = defineEmits<{
+  (e: 'updateFocusLine', lineno: number, file: string): void
+}>()
+
 const baseUrl = 'http://127.0.0.1:' as string
 const variables = ref<Tree[]>([{ label: 'locals', children: [] }, { label: 'global', children: [] }])
 const stk = ref<StackItem[]>([])
@@ -82,6 +87,10 @@ function updateData (port: number, token: string) {
         }
         variables.value.push(loc)
         variables.value.push(glob)
+
+        const currentLine = JSON.parse(response.request.response).current_line as number
+        const rawpath = JSON.parse(response.request.response).rawfilename as string
+        emit('updateFocusLine', currentLine, rawpath)
       } catch (e: TypeError) {
         console.log(e)
         variables.value = []
