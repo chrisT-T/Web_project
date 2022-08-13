@@ -28,7 +28,7 @@ def hello_world():
 folder_list = []
 
 # 注册
-@app.route('/signup', methods=["POST", "GET"])
+@app.route('/api/signup', methods=["POST", "GET"])
 def signup():
     if request.method == "POST":
         user = request.form['userName']
@@ -60,7 +60,7 @@ def signup():
 # 前端请求登陆 发送请求 
 # 可以不注销上个账号直接登陆 上个账号会被挤掉
 # 参数：用户名userName、密码userPassword 
-@app.route('/login', methods = ["POST", "GET"])
+@app.route('/api/login', methods = ["POST", "GET"])
 def login():
     if request.method == "POST":
         user = request.form['userName']
@@ -88,7 +88,7 @@ def login():
 
 
 # 注销
-@app.route('/logout/<username>', methods = ["POST"])
+@app.route('/api/logout/<username>', methods = ["POST"])
 def logout(username):
     if username != userInfo.currentUser():
         raise error
@@ -98,7 +98,7 @@ def logout(username):
     return "succeed logout"
 
 # 重命名项目
-@app.route('/renamepro/<username>', methods =["POST"])
+@app.route('/api/renamepro/<username>', methods =["POST"])
 def renamepro(username):
     if username != userInfo.currentUser():
         raise error
@@ -135,7 +135,7 @@ def renamepro(username):
 # 重命名文件（夹）
 # 前端json形式传入 
 # 路径从用户名开始   xiaoming/...  
-@app.route('/rename/<username>', methods =["POST"])
+@app.route('/api/rename/<username>', methods =["POST"])
 def rename(username):
     if username != userInfo.currentUser():
         raise error
@@ -170,7 +170,7 @@ def rename(username):
         return jsonify(data)
 
 # 删除项目
-@app.route('/deletepro/<username>', methods = ["POST"])
+@app.route('/api/deletepro/<username>', methods = ["POST"])
 def deletepro(username):
     if username != userInfo.currentUser():
         raise error
@@ -192,7 +192,7 @@ def deletepro(username):
     return jsonify(data)
 
 # 删除文件(夹)
-@app.route('/delete/<username>', methods = ["POST"])
+@app.route('/api/delete/<username>', methods = ["POST"])
 def delete(username):
     if username != userInfo.currentUser():
         raise error
@@ -235,7 +235,7 @@ def delete(username):
         return jsonify(data)
 
 #新建项目
-@app.route('/mkpro/<username>', methods = ["POST"])
+@app.route('/api/mkpro/<username>', methods = ["POST"])
 def mkpro(username):
     if username != userInfo.currentUser():
         raise error
@@ -258,7 +258,7 @@ def mkpro(username):
         return jsonify(data)
 
 # 新建文件夹
-@app.route('/mkdir/<username>', methods = ["POST"])
+@app.route('/api/mkdir/<username>', methods = ["POST"])
 def mkdir(username):
     if username != userInfo.currentUser():
         raise error
@@ -278,7 +278,7 @@ def mkdir(username):
         return jsonify(data)
 
 # 新建文件
-@app.route('/touch/<username>', methods = ["POST"])
+@app.route('/api/touch/<username>', methods = ["POST"])
 def touch(username):
     if username != userInfo.currentUser():
         raise error
@@ -299,7 +299,7 @@ def touch(username):
         return jsonify(data)
 
 # 前端向后端上传文件
-@app.route('/upload/<username>', methods = ["POST"])
+@app.route('/api/upload/<username>', methods = ["POST"])
 def upload_file(username):
     src = request.get_json()['src']
     text = request.get_json()['text']
@@ -318,7 +318,7 @@ def upload_file(username):
 
 # 前端从后端下载文件
 # 前端以get形式提供文件路径   xiaoming/file.txt
-@app.route('/download/<username>', methods = ["GET"])
+@app.route('/api/download/<username>', methods = ["GET"])
 def download_file(username):
     src = request.get_json()['src']
     flag, text = fileFunc.download(src)
@@ -337,7 +337,7 @@ def download_file(username):
         return jsonify(data)
 
 # 提供项目列表
-@app.route('/getPro/<username>', methods = ["GET"])
+@app.route('/api/getPro/<username>', methods = ["GET"])
 def getPro(username):
     if username != userInfo.currentUser():
         raise error
@@ -350,7 +350,7 @@ def getPro(username):
     return jsonify(obj)
 
 # 提供某项目的文件树
-@app.route('/getFileTree/<username>/<projectname>', methods = ["GET"])
+@app.route('/api/getFileTree/<username>/<projectname>', methods = ["GET"])
 def getFileTree(username, projectname):
     if username != userInfo.currentUser():
         raise error

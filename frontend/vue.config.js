@@ -5,7 +5,7 @@ const { defineConfig } = require('@vue/cli-service')
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin')
 module.exports = {
   transpileDependencies: true,
-  outputDir: './build',
+  outputDir: './dist',
   // 和webpapck属性完全一致，最后会进行合并
   configureWebpack: {
     resolve: {
@@ -28,5 +28,14 @@ module.exports = {
         resolvers: [ElementPlusResolver()]
       })
     ]
+  },
+  devServer: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        ws: true,
+        changeOrigin: true
+      }
+    }
   }
 }

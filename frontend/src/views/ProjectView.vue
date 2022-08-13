@@ -135,7 +135,7 @@ const submitForm = async () => {
   if (form.name === '' || form.language === '') {
     alert('Empty enter form')
   } else {
-    await axios.post('http://127.0.0.1:5000/mkpro/' + name, { src: name + '/' + form.name, type: form.language })
+    await axios.post('/api/mkpro/' + name, { src: name + '/' + form.name, type: form.language })
       .then(res => {
         form.flag = res.data.flag
         form.message = res.data.message
@@ -158,7 +158,7 @@ const submitForm = async () => {
 
 // 删除项目
 const removeTask = async (index: number) => {
-  await axios.post('http://127.0.0.1:5000/deletepro/' + name, { src: name + '/' + form.taskList[index].name })
+  await axios.post('/api/deletepro/' + name, { src: name + '/' + form.taskList[index].name })
     .then(res => {
       form.flag = res.data.flag
       form.message = res.data.message
@@ -188,7 +188,7 @@ const editStart = (index: number) => {
 // 结束修改项目名称 提交后端修改项目名称
 const editFinish = async (index: number) => {
   console.log('editFinish' + index)
-  await axios.post('http://127.0.0.1:5000/renamepro/' + name, { src: name + '/' + form.taskList[index].name, dst: name + '/' + changeInput.inputStr })
+  await axios.post('/api/renamepro/' + name, { src: name + '/' + form.taskList[index].name, dst: name + '/' + changeInput.inputStr })
     .then(res => {
       form.flag = res.data.flag
       form.message = res.data.message
@@ -218,7 +218,7 @@ const ProjectDetail = (Projectname:string) => {
 
 // 登出确认
 const logoutConfirm = async () => {
-  await axios.post('http://127.0.0.1:5000/logout/' + name)
+  await axios.post('/api/logout/' + name)
     .then(res => {
       form.message = res.data
     }).catch(function (error) {
@@ -240,7 +240,7 @@ onMounted(async () => {
   //   duration: 0,
   //   offset: 300
   // })
-  await axios.get('http://127.0.0.1:5000/getPro/' + name)
+  await axios.get('/api/getPro/' + name)
     .then(res => {
       form.data = res.data.data
       form.flag = res.data.flag

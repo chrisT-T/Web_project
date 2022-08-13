@@ -3,3 +3,4 @@ flask_cors==3.0.10
 numpy==1.21.2
 openpyxl==3.0.10
 pandas==1.4.1
+flask_socketio==5.2.0

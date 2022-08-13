@@ -68,6 +68,7 @@ const stk = ref<StackItem[]>([])
 const variables = ref<Tree[]>([])
 const curline = ref<number>(1)
 const isDebugging = ref<boolean>(false)
+
 let pdbSocket = io()
 
 const emit = defineEmits <{(e: 'debuggerDataUpdate', port: number, token: string): void}>()
