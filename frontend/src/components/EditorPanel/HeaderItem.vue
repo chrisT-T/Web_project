@@ -44,18 +44,18 @@ const emit = defineEmits(['toFocus', 'close'])
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: #4D4D4D;
+  background-color: #66b1ff;
   width: min-content;
   min-width: 50px;
   padding: 5px 5px;
-  color: #aaaaaa;
+  color: #eeeeee;
   user-select: none;
 }
 
 /* focus 之后的背景色  ?  还有前面的字*/
 .background-focus {
-  background-color: #2D2D2D;
-  color: #ffffff !important;
+  background-color:   #3375b9;
+  color: #FFFFFF !important;
 }
 
 .save-focus {
@@ -95,7 +95,7 @@ p {
 .editor-header-item-close::after {
     position: absolute;
     content: ' ';
-    background-color: #aaaaaa;
+    background-color: #cccccc;
     width: 1px;
     height: v-bind(closeOperatorSize);
 }
