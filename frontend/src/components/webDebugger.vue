@@ -80,9 +80,10 @@ function setBreakPoints (tBreakPoints: Map<string, number[]>) {
 }
 
 function initDebugger (port: number) {
-  baseUrl += port.toString()
+  baseUrl = 'http://127.0.0.1:' + port.toString()
 
   pdbSocket = io(baseUrl + '/pdb')
+  console.log('initDebugger in webDebugger' + port)
 
   pdbSocket.on('connect', () => {
     console.log('connect running', pdbSocket.id)
