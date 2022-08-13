@@ -15,10 +15,10 @@
         <span class="resize_col" @mousedown="handleDragStart"></span>
         <el-container>
           <splitpanes horizontal>
-            <pane>
+            <pane size="80">
               <EditorPanel ref="editorPanel" @save-file="saveFile"></EditorPanel>
             </pane>
-            <pane>
+            <pane size="20">
               <el-footer>
                 footer
               </el-footer>

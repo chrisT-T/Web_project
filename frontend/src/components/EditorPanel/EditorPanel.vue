@@ -126,9 +126,9 @@ function focusLine (path : string, line : number) {
   changeFocusToFile(path, line)
 }
 
-tmpAddFile('a.py', 'print("hello world test1")')
-tmpAddFile('b.py', 'print("hello world test2")')
-tmpAddFile('c.py', 'print("hello world test3")')
+// tmpAddFile('a.py', 'print("hello world test1")')
+// tmpAddFile('b.py', 'print("hello world test2")')
+// tmpAddFile('c.py', 'print("hello world test3")')
 
 provide('fileStatus', fileStatus)
 provide('fileItems', fileItems)
