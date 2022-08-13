@@ -19,7 +19,7 @@
         <el-icon title="Collapse All" :size="iconSize" :class="watchAvailable"><Remove /></el-icon>
       </span>
     </p>
-    <el-tree :default-expand-all="true" :data="watch">
+    <el-tree :default-expand-all="true" :data="watchData">
     </el-tree>
     <el-input placeholder="Expression to watch"  v-model="watchToBeAdded" @blur="closeInput" @keyup.enter="addWatch" ref="watchInput" v-if="addingWatch"></el-input>
   </pane>
@@ -60,7 +60,8 @@ const emit = defineEmits<{
 const baseUrl = 'http://127.0.0.1:' as string
 const variables = ref<Tree[]>([{ label: 'locals', children: [] }, { label: 'global', children: [] }])
 const stk = ref<StackItem[]>([])
-const watchList = ref<[]>([])
+const watchList = ref<string[]>([])
+const watchData = ref<Tree[]>([])
 const watchInput = ref()
 const watchToBeAdded = ref('')
 const addingWatch = ref(false)
@@ -159,5 +160,8 @@ function addWatch (e) {
 }
 :deep(.el-tabs__content) {
   width: 100%;
+}
+:deep(.el-tree__empty-block) {
+  display: none;
 }
 </style>
