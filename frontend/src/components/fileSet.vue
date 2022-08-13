@@ -324,7 +324,7 @@ onMounted(async () => {
 
 </script>
 
-<style>
+<style scoped>
 .custom-tree-node {
   flex: 1;
   display: flex;
@@ -332,6 +332,7 @@ onMounted(async () => {
   justify-content: space-between;
   font-size: 14px;
   padding-right: 8px;
+  width: 100%;
 }
 .el-select {
   width: 70%;

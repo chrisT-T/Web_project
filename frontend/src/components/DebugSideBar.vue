@@ -1,7 +1,11 @@
 <template>
 <splitpanes horizontal>
   <pane min-size="20">
-    <p class="heading">VARIABLES <span class="buttons"><el-icon title="Collapse All" :size="iconSize" class="is-loading"><Remove /></el-icon></span></p>
+    <p class="heading">VARIABLES
+      <span class="buttons">
+        <el-icon title="Collapse All" :size="iconSize" class="is-loading"><Remove /></el-icon>
+      </span>
+    </p>
     <el-tree :default-expand-all="true" :data="variables" style="height:100%" :props="{
       label: 'label',
       children: 'children',
@@ -10,11 +14,14 @@
   <pane min-size="20">
     <p class="heading">WATCH
       <span class="buttons">
-        <el-icon title="Add Expression" :size="iconSize"><CirclePlus /></el-icon>
+        <el-icon title="Add Expression" :size="iconSize" @click="() => {addingWatch=true, watchInput.value.focus}"><CirclePlus /></el-icon>
         <el-icon title="Remove All Expresions" :size="iconSize" :class="watchAvailable"><CircleClose /></el-icon>
         <el-icon title="Collapse All" :size="iconSize" :class="watchAvailable"><Remove /></el-icon>
       </span>
     </p>
+    <el-tree :default-expand-all="true" :data="watch">
+    </el-tree>
+    <el-input placeholder="Expression to watch"  v-model="watchToBeAdded" @blur="closeInput" @keyup.enter="addWatch" ref="watchInput" v-if="addingWatch"></el-input>
   </pane>
   <pane min-size="20">
     <p class="heading">CALL STACK </p>
@@ -48,6 +55,10 @@ const props = defineProps({
 const baseUrl = 'http://127.0.0.1:' as string
 const variables = ref<Tree[]>([{ label: 'locals', children: [] }, { label: 'global', children: [] }])
 const stk = ref<StackItem[]>([])
+const watchList = ref<[]>([])
+const watchInput = ref()
+const watchToBeAdded = ref('')
+const addingWatch = ref(false)
 const iconSize = 20
 let watchAvailable = 'disabled'
 function updateData (port: number, token: string) {
@@ -104,12 +115,19 @@ function updateData (port: number, token: string) {
 defineExpose({
   updateData
 })
+
+function closeInput () {
+  addingWatch.value = false
+}
+// 添加 watch 对象
+function addWatch (e) {
+  alert('add Watch' + e.target.value)
+  e.target.value = ''
+  closeInput()
+}
 </script>
 
 <style scoped>
-* {
-  font-family:'Courier New', Courier, monospace
-}
 .heading {
   text-align: left;
   font-size: 15px;
