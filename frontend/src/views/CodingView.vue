@@ -258,26 +258,4 @@ div {
   height: 100vh;
 }
 /* footer中颜色 */
-.demo-tabs :deep(.is-active.el-tabs__item) {
-  color: rgb(0, 204, 255);
-}
-.demo-tabs :deep(.el-tabs__item){
-  color: white;
-}
-.demo-tabs :deep(.el-tabs__item:hover){
-  color: rgb(255, 0, 0);
-}
-.demo-tabs :deep(.el-tabs__active-bar){
-  background-color: var(--el-color-primary-light-3);
-}
-
-.demo-tabs :deep(.el-tabs__item:hover) {
-    color: #b88230;
-}
-.demo-tabs :deep(.is-active.el-tabs__item) {
-    color: #3700ff
-}
-.demo-tabs :deep(.el-tabs__item) {
-    color: black;
-}
 </style>

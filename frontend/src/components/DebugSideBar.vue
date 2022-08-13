@@ -118,7 +118,7 @@ defineExpose({
 }
 
 .buttons {
-  float:right;
+  float:inline-end;
   margin:-3px 0 0;
 }
 .splitpanes .splitpanes__splitter{
