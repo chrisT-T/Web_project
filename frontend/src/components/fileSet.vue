@@ -85,8 +85,6 @@ import {
 import { ElMessage } from 'element-plus'
 import axios from 'axios'
 
-const emit = defineEmits <{(e : 'debugStart', path :string) : void}>()
-
 const formLabelWidth = '140px'
 const props = defineProps({
   name: String,
@@ -95,6 +93,7 @@ const props = defineProps({
 
 // eslint-disable-next-line func-call-spacing
 const emit = defineEmits<{
+  (e : 'debugStart', path :string) : void,
   (e : 'openFile', path: string) : void,
 }>()
 // Tree接口

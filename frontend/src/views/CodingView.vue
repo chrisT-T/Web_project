@@ -12,8 +12,8 @@
         <el-aside :width="data.width">
           <el-tabs v-model="sidebarActiveName" class="demo-tabs" tab-position="left">
             <el-tab-pane label="File" name="first">
-              <FileSet :name="name" :projectname="projectname" @debug-start="(path) => runDebugger(path)"></FileSet>
-              </el-tab-pane>
+              <FileSet :name="name" :projectname="projectname" @debug-start="(path) => runDebugger(path)" @open-file="openFile"></FileSet>
+            </el-tab-pane>
             <el-tab-pane label="Debug" name="second">
               <DebugSideBar ref="tDebugSideBar" token="1"></DebugSideBar>
             </el-tab-pane>
@@ -30,6 +30,7 @@
                  <coding-footer ref="tFooter" @debugger-data-update="updateDebuggerSideBar"></coding-footer>
               </el-footer>
             </pane>
+          </splitpanes>
         </el-container>
       </el-container>
     </el-container>
