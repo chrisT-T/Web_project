@@ -20,7 +20,7 @@ class PdbExt(Pdb):
     def get_current_frame_data(self):
         filename = self.curframe.f_code.co_filename
         lines, start_line = inspect.findsource(self.curframe)
-        return {
+        res = {
             'dirname': os.path.dirname(os.path.abspath(filename)) + os.path.sep,
             'filename': os.path.basename(filename),
             'file_listing': ''.join(lines),
@@ -29,6 +29,7 @@ class PdbExt(Pdb):
             'globals': self.get_globals(),
             'locals': self.get_locals()
         }
+        return res
 
     """
     The following three functions comes from the project: web-pdb

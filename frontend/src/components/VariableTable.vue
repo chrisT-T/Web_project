@@ -15,13 +15,12 @@ import { onMounted } from 'vue'
 const props = defineProps({
   data: Object
 })
-
-onMounted(() => {
-  console.log(props.data)
-})
 </script>
 
 <style scoped>
+* {
+  color: white;
+}
 .variable_table {
   display: block;
   width: 200px;
@@ -31,5 +30,8 @@ onMounted(() => {
   text-align: left;
   font-size: 20px;
   font-weight: bold;
+}
+:deep(.el-tree__empty-text) {
+  color: white;
 }
 </style>
