@@ -14,7 +14,7 @@
   <pane min-size="20">
     <p class="heading">WATCH
       <span class="buttons">
-        <el-icon title="Add Expression" :size="iconSize" @click="() => {addingWatch=true, watchInput.value.focus}"><CirclePlus /></el-icon>
+        <el-icon title="Add Expression" :size="iconSize" @click="addExpression"><CirclePlus /></el-icon>
         <el-icon title="Remove All Expresions" :size="iconSize" :class="watchAvailable"><CircleClose /></el-icon>
         <el-icon title="Collapse All" :size="iconSize" :class="watchAvailable"><Remove /></el-icon>
       </span>
@@ -34,7 +34,7 @@
 
 <script lang="ts" setup>
 
-import { ref } from 'vue'
+import { ref, nextTick } from 'vue'
 import { Splitpanes, Pane } from 'splitpanes'
 import axios from 'axios'
 
@@ -63,7 +63,7 @@ const stk = ref<StackItem[]>([])
 const watchList = ref<[]>([])
 const watchInput = ref()
 const watchToBeAdded = ref('')
-const addingWatch = ref(false)
+const addingWatch = ref<boolean>(false)
 const iconSize = 20
 let watchAvailable = 'disabled'
 function updateData (port: number, token: string) {
@@ -133,6 +133,12 @@ function addWatch (e) {
   alert('add Watch' + e.target.value)
   e.target.value = ''
   closeInput()
+}
+
+async function addExpression () {
+  addingWatch.value = true
+  await nextTick()
+  watchInput.value.focus()
 }
 </script>
 
