@@ -57,7 +57,8 @@ interface StackItem {
 }
 
 const props = defineProps({
-  filePath: String
+  filePath: String,
+  userPath: String
 })
 
 const size = 40 as number
@@ -68,10 +69,15 @@ const stk = ref<StackItem[]>([])
 const variables = ref<Tree[]>([])
 const curline = ref<number>(1)
 const isDebugging = ref<boolean>(false)
-
+let breakPoints = new Map<string, Array<number>>()
 let pdbSocket = io()
 
 const emit = defineEmits <{(e: 'debuggerDataUpdate', port: number, token: string): void}>()
+
+function setBreakPoints (tBreakPoints: Map<string, number[]>) {
+  breakPoints = tBreakPoints
+  console.log(breakPoints)
+}
 
 function initDebugger (port: number) {
   baseUrl += port.toString()
@@ -79,8 +85,15 @@ function initDebugger (port: number) {
   pdbSocket = io(baseUrl + '/pdb')
 
   pdbSocket.on('connect', () => {
+    console.log('connect running', pdbSocket.id)
     axios.post(baseUrl + '/pdb/debug', { token: pdbSocket.id, filepath: props.filePath }).then(() => {
       isDebugging.value = true
+    })
+    breakPoints.forEach((value, key) => {
+      value.forEach((lineno) => {
+        // console.log(key, lineno, `b ${props.userPath}/${key}: ${lineno}`)
+        axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket.id, cmd: `b ${props.userPath}/${key}: ${lineno}` })
+      })
     })
   })
 
@@ -150,7 +163,8 @@ onMounted(() => {
 })
 
 defineExpose({
-  initDebugger
+  initDebugger,
+  setBreakPoints
 })
 </script>
 

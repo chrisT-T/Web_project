@@ -179,7 +179,9 @@ const tDebugSideBar = ref()
 // run debugger
 function runDebugger (filePath: string) {
   console.log('coding view ' + filePath)
-  tFooter.value.setDebuggerPath('./userfile/' + filePath)
+  tFooter.value.setDebuggerPath('./userfile/' + filePath, './userfile/' + name)
+  const breakPoints = editorPanel.value?.getBreakpoints()
+  tFooter.value.setBreakPoints(breakPoints)
   tFooter.value.startDebuggerTerminal()
 }
 
