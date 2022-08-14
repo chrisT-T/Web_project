@@ -147,7 +147,6 @@ defineExpose({
 .editor-container {
   height: 100%;
   width: 100%;
-  background-color: #6D6D6D;
-;
+  background-color: #66b1ff;
 }
 </style>

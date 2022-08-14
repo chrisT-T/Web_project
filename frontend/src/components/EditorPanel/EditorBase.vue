@@ -63,7 +63,7 @@ function removedItem (e : any) {
 }
 
 const monacoEditorOption = {
-  theme: 'vs-dark',
+  theme: 'vs',
   glyphMargin: true,
   language: 'python',
   automaticLayout: true,
@@ -174,7 +174,7 @@ defineExpose({
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  background-color: #4D4D4D;
+  background-color: #66b1ff;
   width: 100%;
   height: 30px;
   color: #dddddd;
@@ -188,7 +188,7 @@ defineExpose({
 .editor-header-bar-item-separation {
   width: 1px;
   height: 30px;
-  background-color: #1E1E1E;
+  background-color: #ccccff;
 }
 
 .editor-base-container {

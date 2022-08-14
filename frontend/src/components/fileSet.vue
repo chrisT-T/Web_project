@@ -325,6 +325,9 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.custom-tree-container {
+  width: 100%;
+}
 .custom-tree-node {
   flex: 1;
   display: flex;
@@ -352,6 +355,13 @@ onMounted(async () => {
 }
 .tree-btn {
   margin: 0;
+}
+.el-dropdown {
+  width: 100%;
+  text-align: left;
+}
+.el-dropdown-link {
+  width: 100%;
 }
 .tree-root {
   flex: 1;
