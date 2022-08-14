@@ -23,6 +23,7 @@ class PdbExt(Pdb):
         res = {
             'dirname': os.path.dirname(os.path.abspath(filename)) + os.path.sep,
             'filename': os.path.basename(filename),
+            'rawfilename': filename.replace(os.getcwd(), '.', 1),
             'file_listing': ''.join(lines),
             'current_line': self.curframe.f_lineno,
             'breakpoints': self.get_file_breaks(filename),

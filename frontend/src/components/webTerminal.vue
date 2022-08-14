@@ -3,15 +3,14 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { Terminal } from 'xterm'
 import io from 'socket.io-client'
 
-const baseUrl = 'http://127.0.0.1:5000' as string
 const termDiv = ref<HTMLDivElement>()
 let term = new Terminal()
 const status = ref<string>('disconnected')
-const socket = io('http://127.0.0.1:5000/pty')
+const socket = io('ws://127.0.0.1:5000/pty')
 
 function initTerminal () {
   term = new Terminal({
@@ -19,7 +18,7 @@ function initTerminal () {
     macOptionIsMeta: true
   })
 
-  term.open(termDiv.value)
+  term.open(termDiv?.value as HTMLElement)
 
   term.writeln('This is the online terminal')
 
@@ -28,9 +27,7 @@ function initTerminal () {
   })
 
   socket.on('pty-output', (data: {'output': string, 'token': string}) => {
-    if (data.token === socket.id) {
-      term.write(data.output)
-    }
+    term.write(data.output)
   })
 
   socket.on('connect', () => {
@@ -40,6 +37,10 @@ function initTerminal () {
 
 onMounted(() => {
   initTerminal()
+})
+
+onUnmounted(() => {
+  socket.disconnect()
 })
 </script>
 

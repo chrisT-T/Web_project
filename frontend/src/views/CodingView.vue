@@ -10,12 +10,12 @@
           <el-button class="closeBtn" :icon="Fold" @click="closeAside" circle />
         </div>
         <el-aside :width="data.width">
-          <el-tabs v-model="sidebarActiveName" class="demo-tabs" tab-position="left">
+          <el-tabs v-model="sidebarActiveName" tab-position="left">
             <el-tab-pane label="File" name="first">
               <FileSet :name="name" :projectname="projectname" @debug-start="(path) => runDebugger(path)" @open-file="openFile"></FileSet>
             </el-tab-pane>
             <el-tab-pane label="Debug" name="second">
-              <DebugSideBar ref="tDebugSideBar" token="1"></DebugSideBar>
+              <DebugSideBar ref="tDebugSideBar" token="1" @update-focus-line="updateFocusLine"></DebugSideBar>
             </el-tab-pane>
           </el-tabs>
         </el-aside>
@@ -71,7 +71,7 @@ const ProjectBack = () => {
 }
 
 const data = reactive({
-  width: '200px',
+  width: '300px',
   old_width: '0px',
   isClose: false,
   originX: 200,
@@ -179,7 +179,9 @@ const tDebugSideBar = ref()
 // run debugger
 function runDebugger (filePath: string) {
   console.log('coding view ' + filePath)
-  tFooter.value.setDebuggerPath('./userfile/' + filePath)
+  tFooter.value.setDebuggerPath('./userfile/' + filePath, './userfile/' + name)
+  const breakPoints = editorPanel.value?.getBreakpoints()
+  tFooter.value.setBreakPoints(breakPoints)
   tFooter.value.startDebuggerTerminal()
 }
 
@@ -188,6 +190,13 @@ const sidebarActiveName = ref('first')
 function updateDebuggerSideBar (port: number, token: string) {
   console.log('update test', port)
   tDebugSideBar.value.updateData(port, token)
+}
+
+function updateFocusLine (lineno: number, path: string) {
+  const relPath = path.replace('./userfile/' + name + '/', '')
+  console.log(lineno, path, relPath)
+  editorPanel.value?.clearFocusLine()
+  editorPanel.value?.focusLine(relPath, lineno)
 }
 </script>
 
@@ -255,27 +264,7 @@ div {
   width: 100%;
   height: 100vh;
 }
-/* footer中颜色 */
-.demo-tabs :deep(.is-active.el-tabs__item) {
-  color: rgb(0, 204, 255);
-}
-.demo-tabs :deep(.el-tabs__item){
-  color: white;
-}
-.demo-tabs :deep(.el-tabs__item:hover){
-  color: rgb(255, 0, 0);
-}
-.demo-tabs :deep(.el-tabs__active-bar){
-  background-color: var(--el-color-primary-light-3);
-}
-
-.demo-tabs :deep(.el-tabs__item:hover) {
-    color: #b88230;
-}
-.demo-tabs :deep(.is-active.el-tabs__item) {
-    color: #3700ff
-}
-.demo-tabs :deep(.el-tabs__item) {
-    color: black;
+:deep(.el-tabs__content) {
+  width: 100%
 }
 </style>

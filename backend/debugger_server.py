@@ -8,6 +8,8 @@ import sys
 import os
 import argparse
 import time
+import atexit
+import time
 
 app = Flask(__name__, template_folder='.')
 CORS(app, resources=r'/*')
@@ -142,6 +144,15 @@ def run_server():
     '''
     socketio.run(app, host='127.0.0.1')
 
+
+@atexit.register
+def atexit_function() :
+    print('Terminating debugger')
+    for key in pdb_instance.keys():
+        print(f'send to {key}')
+        socketio.emit("pdb_terminated", { 'token': key }, namespace="/pdb")
+    time.sleep(3)
+    print(socketio)
 
 if __name__ == '__main__':
     run_server()
