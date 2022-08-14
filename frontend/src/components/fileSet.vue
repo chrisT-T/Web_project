@@ -325,6 +325,9 @@ onMounted(async () => {
 </script>
 
 <style>
+.custom-tree-container {
+  width: 100%;
+}
 .custom-tree-node {
   flex: 1;
   display: flex;
