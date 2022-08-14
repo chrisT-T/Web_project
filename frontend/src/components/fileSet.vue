@@ -352,6 +352,13 @@ onMounted(async () => {
 .tree-btn {
   margin: 0;
 }
+.el-dropdown {
+  width: 100%;
+  text-align: left;
+}
+.el-dropdown-link {
+  width: 100%;
+}
 .tree-root {
   flex: 1;
   display: flex;
