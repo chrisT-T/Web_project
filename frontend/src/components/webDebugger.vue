@@ -1,29 +1,8 @@
 <template>
-  <div>
-    <el-tabs v-model="activeName" class="demo-tabs" @tab-click="handleClick">
-      <el-tab-pane label="Config" name="first">
-        <splitpanes class="default-theme">
-          <pane>
-            <div class="debugConsole">
-              <p style="text-align: left; font-size: 20px; font-weight: bold;"> Debug Console:</p>
-              <p>{{ consoleOutput }}</p>
-              <el-input  name="command" id="command" v-model="command" @keyup.enter="send" style="position: absolute; bottom: 0"/>
-            </div>
-          </pane>
-          <pane>
-            <div v-if="isDebugging" style="display: flex;">
-              <el-icon @click="cont" title="Continue" :size="size"><CaretRight /></el-icon>
-              <el-icon @click="next" title="Step Over" :size="size"><Right /></el-icon>
-              <el-icon @click="stepInto" title="Step Into" :size="size"><Download /></el-icon>
-              <el-icon @click="stepOut" title="Step Out" :size="size"><Upload /></el-icon>
-              <el-icon @click="restart" title="Restart" :size="size"><RefreshLeft /></el-icon>
-              <el-icon @click="stop" title="Stop" :size="size"><CloseBold /></el-icon>
-            </div>
-          </pane>
-        </splitpanes>
-      </el-tab-pane>
-    </el-tabs>
-
+  <div class="debugConsole">
+    <p style="text-align: left; font-size: 20px; font-weight: bold;"> Debug Console:</p>
+    <p>{{ consoleOutput }}</p>
+    <el-input name="command" id="command" v-model="command" @keyup.enter="send" style="position: absolute; bottom: 0"/>
   </div>
 </template>
 
@@ -32,23 +11,14 @@
 import { ref, h } from 'vue'
 import io, { Socket } from 'socket.io-client'
 import axios from 'axios'
-import type { TabsPaneContext } from 'element-plus'
-import { Splitpanes, Pane } from 'splitpanes'
 // element plus msg box
 import { ElMessageBox, ElNotification } from 'element-plus'
-
-const activeName = ref('first')
-
-const handleClick = (tab: TabsPaneContext, event: Event) => {
-  console.log(tab, event)
-}
 
 const props = defineProps({
   filePath: String,
   userPath: String
 })
 
-const size = 40 as number
 let baseUrl = 'http://127.0.0.1:' as string
 const command = ref(null)
 const consoleOutput = ref<string>('')
@@ -116,10 +86,6 @@ function initDebugger (port: number) {
   })
 }
 
-function cont () {
-  axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket?.id, cmd: 'c' })
-}
-
 function send () {
   console.log('pdb command send ' + baseUrl + '/pdb/runcmd', pdbSocket?.id)
   if (isDebugging.value === true) {
@@ -129,26 +95,6 @@ function send () {
       confirmButtonText: 'OK'
     })
   }
-}
-
-function next () {
-  axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket?.id, cmd: 'n' })
-}
-
-function stepInto () {
-  axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket?.id, cmd: 's' })
-}
-
-function stepOut () {
-  axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket?.id, cmd: 'u' })
-}
-
-function stop () {
-  axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket?.id, cmd: 'q' })
-}
-
-function restart () {
-  axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket?.id, cmd: 'q' })
 }
 
 defineExpose({
@@ -162,11 +108,12 @@ defineExpose({
   @import 'splitpanes/dist/splitpanes.css';
 
   .debugConsole {
+    height: 400px;
     white-space: pre;
     text-align: left;
     overflow-y: scroll;
-    overflow-x: scroll;
-
+    background-color: var(--el-color-primary-dark-2);
+    color: white;
   }
   .stkContainer {
     text-align: left;

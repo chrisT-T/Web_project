@@ -1,32 +1,50 @@
 <template>
 <splitpanes horizontal>
-  <pane min-size="20">
+  <pane min-size="20" style="overflow-y:scroll overflow-x:hidden">
     <p class="heading">VARIABLES
       <span class="buttons">
-        <el-icon title="Collapse All" :size="iconSize" class="is-loading"><Remove /></el-icon>
+        <el-icon title="Collapse All" :size="iconSize"><Remove /></el-icon>
       </span>
     </p>
-    <el-tree :default-expand-all="true" :data="variables" style="height:100%" :props="{
-      label: 'label',
-      children: 'children',
-    }"></el-tree>
+    <p style="width:100%; margin: 5px 0px 0px 10px; text-align: left; color: grey">Locals </p>
+    <el-tree :default-expand-all="true" :data="locVar">
+      <template #default="{ node, data }">
+        <span class="tree-node">
+          <span class="var_data">{{node.data.data}}</span>: &nbsp;<span class="var_value"> {{data.value}}</span>
+        </span>
+      </template>
+    </el-tree>
+    <p style="width:100%; margin: 5px 0px 0px 10px; text-align: left; color: grey">Globals </p>
+    <el-tree :default-expand-all="true" :data="globVar">
+      <template #default="{ node, data }">
+        <span class="tree-node">
+          <span class="var_data">{{node.data.data}}</span>: &nbsp;<span class="var_value"> {{data.value}}</span>
+        </span>
+      </template>
+    </el-tree>
   </pane>
   <pane min-size="20">
     <p class="heading">WATCH
       <span class="buttons">
         <el-icon title="Add Expression" :size="iconSize" @click="addExpression"><CirclePlus /></el-icon>
-        <el-icon title="Remove All Expresions" :size="iconSize" :class="watchAvailable"><CircleClose /></el-icon>
+        <el-icon title="Remove All Expresions" :size="iconSize" :class="watchAvailable" @click="clearWatch"><CircleClose /></el-icon>
         <el-icon title="Collapse All" :size="iconSize" :class="watchAvailable"><Remove /></el-icon>
       </span>
     </p>
     <el-tree :default-expand-all="true" :data="watchData">
+      <template #default="{ node, data }">
+        <span class="tree-node">
+          <span class="var_data">{{node.data.data}}</span>: &nbsp;<span class="var_value"> {{node.data.value}}</span>
+          <el-icon style="float:right" @click="remove(node, data)"><Close /></el-icon>
+        </span>
+      </template>
     </el-tree>
     <el-input placeholder="Expression to watch"  v-model="watchToBeAdded" @blur="closeInput" @keyup.enter="addWatch" ref="watchInput" v-if="addingWatch"></el-input>
   </pane>
   <pane min-size="20">
     <p class="heading">CALL STACK </p>
     <div v-for="(item,index) in stk" :key="index">
-      <span class="stkFunc">{{item.func}}</span><span class="stkFile">{{item.file}}</span><br>
+      <span style="float: left">{{item.func}}</span><span style="float: right">{{item.file}}</span><br>
     </div>
   </pane>
 </splitpanes>
@@ -39,7 +57,9 @@ import { Splitpanes, Pane } from 'splitpanes'
 import axios from 'axios'
 
 interface Tree {
-  label: string
+  id: number
+  data: string
+  value: string
   children?: Tree[]
 }
 
@@ -54,47 +74,57 @@ const emit = defineEmits<{
 }>()
 
 const baseUrl = 'http://127.0.0.1:' as string
-const variables = ref<Tree[]>([{ label: 'locals', children: [] }, { label: 'global', children: [] }])
+const locVar = ref<Tree[]>([])
+const globVar = ref<Tree[]>([{
+  id: 1,
+  data: 'a',
+  value: 'valssssssssssssssssssssssssssssss',
+  children: []
+}])
 const stk = ref<StackItem[]>([])
 const watchList = ref<string[]>([])
-const watchData = ref<Tree[]>([])
+const watchData = ref<Tree[]>([{
+  id: 1,
+  data: 'a',
+  value: 'valssssssssssssssssssssssssssssssssss',
+  children: []
+}])
 const watchInput = ref()
 const watchToBeAdded = ref('')
 const addingWatch = ref<boolean>(false)
 const iconSize = 20
-let watchAvailable = 'disabled'
+let watchAvailable = 'disabledButton'
 function updateData (port: number, token: string) {
   console.log('update date in side bar ' + port, baseUrl + port.toString() + '/pdb/curframe')
   axios.post(baseUrl + port.toString() + '/pdb/curframe', { token })
     .then((response) => {
       try {
+        let locid = 1
+        let globid = 1
         console.log(JSON.parse(response.request.response))
         const rawLocals = JSON.parse(response.request.response).locals as string
         const rawGlobals = JSON.parse(response.request.response).globals as string
         const locals = rawLocals.split('\n')
         const globals = rawGlobals.split('\n')
-        variables.value = []
-        const loc = { label: 'locals', children: [] } as Tree
-        const glob = { label: 'global', children: [] } as Tree
+        locVar.value = []
+        globVar.value = []
         for (const i of locals) {
-          (loc.children as Tree[]).push({ label: i, children: [] })
+          const dat = i.split('=')[0]
+          const val = i.split('=')[1]
+          locVar.value.push({ id: locid++, data: dat, value: val, children: [] })
         }
         for (const i of globals) {
-          (glob.children as Tree[]).push({ label: i, children: [] })
+          const dat = i.split('=')[0]
+          const val = i.split('=')[1]
+          globVar.value.push({ id: globid++, data: dat, value: val, children: [] })
         }
-        variables.value.push(loc)
-        variables.value.push(glob)
-
         const currentLine = JSON.parse(response.request.response).current_line as number
         const rawpath = JSON.parse(response.request.response).rawfilename as string
         emit('updateFocusLine', currentLine, rawpath)
       } catch (e: TypeError) {
         console.log(e)
-        variables.value = []
-        const loc = { label: 'locals', children: [] } as Tree
-        const glob = { label: 'global', children: [] } as Tree
-        variables.value.push(loc)
-        variables.value.push(glob)
+        locVar.value = []
+        globVar.value = []
       } finally {
         console.log('finally')
       }
@@ -115,7 +145,11 @@ function updateData (port: number, token: string) {
       }
     }
   )
-  watchAvailable = ''
+  if (watchList.value.length === 0) {
+    watchAvailable = 'disabledButton'
+  } else {
+    watchAvailable = 'availableButton'
+  }
 }
 
 defineExpose({
@@ -124,18 +158,32 @@ defineExpose({
 
 function closeInput () {
   addingWatch.value = false
+  watchInput.value.clear()
 }
 // 添加 watch 对象
 function addWatch (e) {
-  alert('add Watch' + e.target.value)
+  watchList.value.push(e.target.value)
+  alert(e.target.value)
   e.target.value = ''
   closeInput()
 }
-
+// 显示添加 watch 对象的框
 async function addExpression () {
   addingWatch.value = true
   await nextTick()
   watchInput.value.focus()
+}
+// 清空 watch
+function clearWatch () {
+  watchList.value = []
+  watchData.value = []
+}
+function remove (node: Node, data: Tree) {
+  const parent = node.parent
+  const children: Tree[] = parent.data.children || parent.data
+  const index = children.findIndex((d) => d.id === data.id)
+  children.splice(index, 1)
+  dataSource.value = [...dataSource.value]
 }
 </script>
 
@@ -151,19 +199,50 @@ async function addExpression () {
   float:inline-end;
   margin:-3px 0 0;
 }
-.splitpanes .splitpanes__splitter{
-  background-color: black;
+:deep(.splitpanes__splitter){
+  background-color: var(--el-color-primary-dark-2);
+  height: 3px;
 }
 :deep(.el-tree) {
-  background-color: var(--el-color-primary-light-8);;
+  background-color: var(--el-color-primary-light-8);
 }
-.disabled {
+:deep(.el-tree-node__content) {
+  width: 100%;
+}
+:deep(.el-tabs__nav-wrap.is-left::after) {
+  background-color: brown;
+  width: 20px;
+}
+.disabledButton {
   color: rgb(192, 192, 192)
+}
+.availableButton {
+  color: black
 }
 :deep(.el-tabs__content) {
   width: 100%;
 }
 :deep(.el-tree__empty-block) {
   display: none;
+}
+.tree-node {
+  flex: 1;
+  display: flex;
+  padding-right: 8px;
+  width: 80%;
+  text-align: left;
+}
+:deep(.is-leaf) {
+  /* display: none; */
+}
+.var_data {
+  color: blueviolet;
+}
+.var_value {
+  color: green;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  width: auto;
+  white-space: nowrap;
 }
 </style>

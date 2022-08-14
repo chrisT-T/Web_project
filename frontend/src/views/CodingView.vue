@@ -21,13 +21,14 @@
         </el-aside>
         <span class="resize_col" @mousedown="handleDragStart"></span>
         <el-container>
+          <debug-buttons ref="dbgButtons" v-if="isDebugging"></debug-buttons>
           <splitpanes horizontal>
-            <pane size="80">
+            <pane size="70">
               <EditorPanel ref="editorPanel" @save-file="saveFile"></EditorPanel>
             </pane>
-            <pane size="20">
+            <pane size="30" min-size="20">
               <el-footer>
-                 <coding-footer ref="tFooter" @debugger-data-update="updateDebuggerSideBar"></coding-footer>
+                <coding-footer ref="tFooter" @debugger-data-update="updateDebuggerSideBar"></coding-footer>
               </el-footer>
             </pane>
           </splitpanes>
@@ -55,6 +56,7 @@ import { Splitpanes, Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 import DebugSideBar from '../components/DebugSideBar.vue'
 import CodingFooter from '../components/CodingFooter.vue'
+import DebugButtons from '../components/DebugButtons.vue'
 
 // 获取当前用户名
 const name = useRouter().currentRoute.value.params.username
@@ -176,6 +178,8 @@ function openFile (path: string) {
 }
 const tFooter = ref()
 const tDebugSideBar = ref()
+const dbgButtons = ref()
+const isDebugging = ref<boolean>(false)
 // run debugger
 function runDebugger (filePath: string) {
   console.log('coding view ' + filePath)
@@ -183,6 +187,10 @@ function runDebugger (filePath: string) {
   const breakPoints = editorPanel.value?.getBreakpoints()
   tFooter.value.setBreakPoints(breakPoints)
   tFooter.value.startDebuggerTerminal()
+}
+function activateButtons (port: number, token: string) {
+  isDebugging.value = true
+  dbgButtons.value.init(port, token)
 }
 
 const sidebarActiveName = ref('first')
