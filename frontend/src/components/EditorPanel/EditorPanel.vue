@@ -99,7 +99,7 @@ function getBreakpoints () {
 function clearFocusLine () {
   fileModels.value.forEach((value) => {
     const model = value.model
-    const decorations = model.getAllDecorations().filter((item) => item.options.glyphMarginClassName === common.focusLineClassName)
+    const decorations = model.getAllDecorations().filter((item) => item.options.className === common.focusLineClassName)
     model.deltaDecorations(decorations.map((item) => item.id), [])
   })
 }
