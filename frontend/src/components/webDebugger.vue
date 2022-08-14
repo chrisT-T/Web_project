@@ -29,13 +29,13 @@
 
 <script lang="ts" setup>
 
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, h } from 'vue'
 import io, { Socket } from 'socket.io-client'
 import axios from 'axios'
 import type { TabsPaneContext } from 'element-plus'
 import { Splitpanes, Pane } from 'splitpanes'
 // element plus msg box
-import { ElMessageBox } from 'element-plus'
+import { ElMessageBox, ElNotification } from 'element-plus'
 
 const activeName = ref('first')
 
@@ -96,8 +96,10 @@ function initDebugger (port: number) {
 
   pdbSocket.on('pdb_quit', () => {
     pdbSocket?.disconnect()
-    variables.value = [] as Tree[]
-    stk.value = [] as StackItem[]
+    ElNotification({
+      title: 'Debugger Quit',
+      message: h('i', { style: 'color: teal' }, `The Debugger on port ${port} has quit`)
+    })
     isDebugging.value = false
   })
 
@@ -108,6 +110,15 @@ function initDebugger (port: number) {
       console.log('consoleOutpu ', port)
       emit('debuggerDataUpdate', port, pdbSocket?.id)
     }
+  })
+
+  pdbSocket.on('pdb_terminated', () => {
+    pdbSocket?.disconnect()
+    ElNotification({
+      title: 'Debugger Terminated',
+      message: h('i', { style: 'color: teal' }, `The Debugger on port ${port} was terminated`)
+    })
+    isDebugging.value = false
   })
 }
 
@@ -144,8 +155,6 @@ function stop () {
 
 function restart () {
   axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket?.id, cmd: 'q' })
-  // axios.post (baseUrl + '/pdb/debug', { token: pdbSocket.id, filepath: filePath })
-  pdbSocket = io()
 }
 
 function fit () {

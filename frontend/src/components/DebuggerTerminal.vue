@@ -15,7 +15,7 @@ const term = new Terminal({
   cursorBlink: true,
   macOptionIsMeta: true
 })
-
+let port = 0 as number
 const emit = defineEmits <{(e: 'getPdbPort', port: number): void}>()
 
 function init () {
@@ -25,17 +25,22 @@ function init () {
   fitAddon.fit()
   term.writeln('Debugger Terminal\n')
   term.onData((data) => {
+    console.log(data)
     socket.emit('debugger_term_input', { input: data, token: socket.id })
   })
 
   socket.on('debugger_port', (data: {'port': number, 'token': string}) => {
     console.log('debugger terminal get the port' + data)
+    port = data.port
     emit('getPdbPort', data.port)
   })
 
   socket.on('debugger_term_output', (data: {'output': string, 'token': string}) => {
-    console.log(data)
     term.write(data.output)
+  })
+
+  socket.on('disconnect', () => {
+    console.log('port ' + port + ' disconnected')
   })
 }
 
