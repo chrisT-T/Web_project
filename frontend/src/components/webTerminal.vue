@@ -18,7 +18,7 @@ function initTerminal () {
     macOptionIsMeta: true
   })
 
-  term.open(termDiv.value)
+  term.open(termDiv?.value as HTMLElement)
 
   term.writeln('This is the online terminal')
 

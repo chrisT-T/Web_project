@@ -20,7 +20,7 @@ const emit = defineEmits <{(e: 'getPdbPort', port: number): void}>()
 
 function init () {
   console.log('msg from debugger Terminal')
-  term.open(debugTerm.value)
+  term.open(debugTerm.value as HTMLDivElement)
   term.loadAddon(fitAddon)
   fitAddon.fit()
   term.writeln('Debugger Terminal\n')

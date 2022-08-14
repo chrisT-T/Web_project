@@ -29,7 +29,7 @@
 
 <script lang="ts" setup>
 
-import { ref, onMounted, h } from 'vue'
+import { ref, h } from 'vue'
 import io, { Socket } from 'socket.io-client'
 import axios from 'axios'
 import type { TabsPaneContext } from 'element-plus'
@@ -43,15 +43,6 @@ const handleClick = (tab: TabsPaneContext, event: Event) => {
   console.log(tab, event)
 }
 
-interface Tree {
-  label: string
-  children?: Tree[]
-}
-interface StackItem {
-  func: string
-  file: string
-}
-
 const props = defineProps({
   filePath: String,
   userPath: String
@@ -60,9 +51,7 @@ const props = defineProps({
 const size = 40 as number
 let baseUrl = 'http://127.0.0.1:' as string
 const command = ref(null)
-const consoleOutput = ref(null)
-const stk = ref<StackItem[]>([])
-const variables = ref<Tree[]>([])
+const consoleOutput = ref<string>('')
 const isDebugging = ref<boolean>(false)
 let breakPoints = new Map<string, Array<number>>()
 let pdbSocket = null as Socket | null
@@ -81,6 +70,11 @@ function initDebugger (port: number) {
   console.log('initDebugger in webDebugger' + port)
 
   pdbSocket.on('connect', () => {
+    ElNotification({
+      title: 'Debugger Running',
+      message: h('i', { style: 'color: teal' }, `A Debugger running on port ${port}`)
+    })
+
     console.log('connect running', pdbSocket?.id)
     console.log(breakPoints)
     axios.post(baseUrl + '/pdb/debug', { token: pdbSocket?.id, filepath: props.filePath }).then(() => {
@@ -157,17 +151,6 @@ function restart () {
   axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket?.id, cmd: 'q' })
 }
 
-function fit () {
-  fitAddon.fit()
-}
-
-onMounted(() => {
-  const resize = document.getElementsByClassName('resize')
-  for (const i of resize) {
-    i.addEventListener('mouseup', fit)
-  }
-})
-
 defineExpose({
   initDebugger,
   setBreakPoints
@@ -193,8 +176,5 @@ defineExpose({
   }
   .stkFile {
     float: right;
-  }
-  .termContainer {
-
   }
 </style>
