@@ -48,10 +48,6 @@ interface StackItem {
   file: string
 }
 
-const props = defineProps({
-  token: String
-})
-
 // eslint-disable-next-line func-call-spacing
 const emit = defineEmits<{
   (e: 'updateFocusLine', lineno: number, file: string): void

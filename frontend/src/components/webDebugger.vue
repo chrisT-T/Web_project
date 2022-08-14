@@ -11,7 +11,6 @@
             </div>
           </pane>
           <pane>
-            <p style="margin-bottom: 70px; font-weight: bold;">Current Line: {{curline}}</p>
             <div v-if="isDebugging" style="display: flex;">
               <el-icon @click="cont" title="Continue" :size="size"><CaretRight /></el-icon>
               <el-icon @click="next" title="Step Over" :size="size"><Right /></el-icon>
@@ -31,15 +30,12 @@
 <script lang="ts" setup>
 
 import { ref, onMounted } from 'vue'
-import { Terminal } from 'xterm'
 import io, { Socket } from 'socket.io-client'
 import axios from 'axios'
-import { FitAddon } from 'xterm-addon-fit'
-import VariableTable from '@/components/VariableTable.vue'
-import type { TabsPaneContext, Action } from 'element-plus'
+import type { TabsPaneContext } from 'element-plus'
 import { Splitpanes, Pane } from 'splitpanes'
 // element plus msg box
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
 
 const activeName = ref('first')
 
@@ -67,7 +63,6 @@ const command = ref(null)
 const consoleOutput = ref(null)
 const stk = ref<StackItem[]>([])
 const variables = ref<Tree[]>([])
-const curline = ref<number>(1)
 const isDebugging = ref<boolean>(false)
 let breakPoints = new Map<string, Array<number>>()
 let pdbSocket = null as Socket | null
@@ -99,7 +94,7 @@ function initDebugger (port: number) {
     })
   })
 
-  pdbSocket.on('pdb_quit', (data) => {
+  pdbSocket.on('pdb_quit', () => {
     pdbSocket?.disconnect()
     variables.value = [] as Tree[]
     stk.value = [] as StackItem[]

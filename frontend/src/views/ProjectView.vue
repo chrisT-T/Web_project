@@ -90,7 +90,7 @@ import {
   InfoFilled,
   Plus
 } from '@element-plus/icons-vue'
-import { ElNotification, FormInstance } from 'element-plus'
+import { FormInstance } from 'element-plus'
 import router from '@/router'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
@@ -253,7 +253,7 @@ onMounted(async () => {
   }
   form.taskList = []
   // let num = form.data.length
-  for (var key in form.data) {
+  for (const key in form.data) {
     const taskRecord = { name: form.data[key][0], language: form.data[key][1], id: key, lastupdate: form.data[key][2] }
     form.taskList.push(taskRecord)
   }

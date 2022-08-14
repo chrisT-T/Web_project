@@ -6,7 +6,6 @@
 import { ref, onMounted } from 'vue'
 import { Terminal } from 'xterm'
 import io from 'socket.io-client'
-import axios from 'axios'
 import { FitAddon } from 'xterm-addon-fit'
 
 const socket = io('http://127.0.0.1:5000/pdb')

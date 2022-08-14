@@ -7,7 +7,6 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { Terminal } from 'xterm'
 import io from 'socket.io-client'
 
-const baseUrl = 'http://127.0.0.1:5000' as string
 const termDiv = ref<HTMLDivElement>()
 let term = new Terminal()
 const status = ref<string>('disconnected')

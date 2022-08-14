@@ -34,9 +34,8 @@
 
 <script lang="ts" setup>
 import router from '@/router'
-import { onMounted, reactive } from 'vue'
+import { reactive } from 'vue'
 import axios from 'axios'
-import { ElNotification } from 'element-plus'
 
 const data = reactive({
   username: '',
