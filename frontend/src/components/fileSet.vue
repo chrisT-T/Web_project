@@ -144,7 +144,7 @@ const handleNodeClick = (data: Tree, node: Node) => {
 
 // 在某个文件夹被重命名后，将该文件夹中的文件及文件夹的 route 更新
 function changeRoute (children: Tree[], pre: string, origin: string, newLabel: string) {
-  for (var key in children) {
+  for (const key in children) {
     children[key].route = pre + '/' + newLabel + children[key].route.slice(pre.length + 1 + origin.length)
     if (children[key].type === 'folder') {
       changeRoute(children[key].children, pre, origin, newLabel)
@@ -288,7 +288,7 @@ const dataSource = ref<Tree[]>([
 
 // 将从后端拿到的文件树的数据填充到前端的 dataSource 中去
 function fillData (children: Tree[], data: object) {
-  for (var key in data) {
+  for (const key in data) {
     const tree = { label: data[key].label, type: data[key].type, route: data[key].route, showInput: data[key].showInput, isRoot: data[key].isRoot, children: [] }
     children.push(tree)
     if (data[key].type === 'folder') {
@@ -324,7 +324,7 @@ onMounted(async () => {
 
 </script>
 
-<style>
+<style scoped>
 .custom-tree-container {
   width: 100%;
 }
@@ -335,6 +335,7 @@ onMounted(async () => {
   justify-content: space-between;
   font-size: 14px;
   padding-right: 8px;
+  width: 100%;
 }
 .el-select {
   width: 70%;

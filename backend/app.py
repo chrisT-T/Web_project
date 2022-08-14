@@ -22,8 +22,6 @@ import web_terminal
 def hello_world():
     return 'Hello World!'
 
-
-
 # 全局变量 记录当前用户文件夹
 folder_list = []
 

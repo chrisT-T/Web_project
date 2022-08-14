@@ -22,8 +22,14 @@ def forward_pty_output():
                 (data_ready, _, _) = select.select([app.config["fd"][key]], [], [], timeout_sec)
                 if data_ready:
                     output = os.read(app.config["fd"][key], max_read_bytes).decode()
-                    socketio.emit("pty-output", {"output": output, 'token': key}, namespace="/pty")
+                    socketio.emit("pty-output", {"output": output, 'token': key}, namespace="/pty", to=key)
 
+@socketio.on('disconnect', namespace='/pty')
+def disconnect() :
+    token = request.sid
+    app.config['fd'].pop(token)
+    app.config['child_pid'].pop(token)
+    print(token, 'terminal disconnected')
 
 @socketio.on("connect", namespace='/pty')
 def connect() :
