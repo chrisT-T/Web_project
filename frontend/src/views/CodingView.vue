@@ -42,7 +42,7 @@
 
 <script lang="ts" setup>
 import router from '@/router'
-import { ref, reactive, nextTick } from 'vue'
+import { ref, reactive, nextTick, h } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   Fold,
@@ -211,7 +211,14 @@ function updateFocusLine (lineno: number, path: string) {
   const relPath = path.replace('./userfile/' + name + '/', '')
   console.log(lineno, path, relPath)
   editorPanel.value?.clearFocusLine()
-  editorPanel.value?.focusLine(relPath, lineno)
+  try {
+    editorPanel.value?.focusLine(relPath, lineno)
+  } catch (e: TypeError) {
+    ElNotification({
+      title: 'Debugger Running',
+      message: h('i', { style: 'color: teal' }, 'The Debugging file does not open in Editor')
+    })
+  }
 }
 </script>
 
