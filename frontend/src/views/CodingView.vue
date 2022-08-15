@@ -21,12 +21,12 @@
         </el-aside>
         <span class="resize_col" @mousedown="handleDragStart"></span>
         <el-container>
-          <splitpanes horizontal>
+          <splitpanes class="default-theme" horizontal>
             <pane size="70">
               <EditorPanel ref="editorPanel" @save-file="saveFile"></EditorPanel>
             </pane>
             <pane>
-              <debug-buttons ref="dbgButtons" v-if="isDebugging"></debug-buttons>
+              <debug-buttons ref="dbgButtons" v-if="isDebugging" @runcmd-with-break-point="runcmdWithBreakPoint"></debug-buttons>
             </pane>
             <pane size="30" min-size="20">
               <el-footer>
@@ -182,6 +182,15 @@ const tFooter = ref()
 const tDebugSideBar = ref()
 const dbgButtons = ref()
 const isDebugging = ref<boolean>(false)
+
+function getBreakPoints (): Map<string, number[]> {
+  return editorPanel.value?.getBreakpoints() as Map<string, number[]>
+}
+
+function runcmdWithBreakPoint (cmd: string) {
+  dbgButtons.value.runcmd(cmd, getBreakPoints(), './userfile/' + name)
+}
+
 // run debugger
 function runDebugger (filePath: string) {
   console.log('coding view ' + filePath)
@@ -220,6 +229,10 @@ function updateFocusLine (lineno: number, path: string) {
     })
   }
 }
+
+defineExpose({
+  getBreakPoints
+})
 </script>
 
 <style scoped>

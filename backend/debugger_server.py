@@ -1,3 +1,4 @@
+from curses import tparm
 import random
 from pdb_ext import PdbExt
 from flask import Flask, request, jsonify
@@ -112,6 +113,20 @@ def start_debug():
     t.start()
     
     return f'{token} debugging {path}'
+
+@app.route('/pdb/clearBreakPoint', methods=['POST'])
+def clearBreakPoint():
+    data = request.get_json()
+    token = data['token']
+    pdb_instance_lock.acquire()
+    if token in pdb_instance.keys():
+        instance: PdbExt = pdb_instance[token]
+        instance.clear_all_breaks()
+        pdb_instance_lock.release()
+        return {'runflag': True}
+    else:
+        pdb_instance_lock.release()
+        return {'runflag': False}
 
 @socketio.on("connect", namespace='/pdb')
 def pdb_connect():

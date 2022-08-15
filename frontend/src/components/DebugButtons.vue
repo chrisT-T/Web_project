@@ -9,42 +9,59 @@
 </div>
 </template>
 <script lang="ts" setup>
+import { getCurrentInstance } from 'vue'
 import axios from 'axios'
 let __baseUrl = ''
 let __token = ''
 const size = 40 as number
+
+const emit = defineEmits<{(e: 'runcmdWithBreakPoint', cmd: string): void}>()
 
 function init (port: number, token: string) {
   __baseUrl = 'http://127.0.0.1:' + port.toString()
   __token = token
   console.log('buttons prepared with port: ' + port + ' token: ' + token)
 }
+
+function runcmd (cmd: string, bps: Map<string, number[]>, userPath: string) {
+  axios.post(__baseUrl + '/pdb/clearBreakPoint', { token: __token }).then(() => {
+    bps.forEach((value, key) => {
+      value.forEach((lineno) => {
+        console.log(key, lineno, `b ${userPath}/${key}: ${lineno}`)
+        axios.post(__baseUrl + '/pdb/runcmd', { token: __token, cmd: `b ${userPath}/${key}: ${lineno}` })
+      })
+    })
+    axios.post(__baseUrl + '/pdb/runcmd', { token: __token, cmd })
+  })
+}
+
 function cont () {
-  axios.post(__baseUrl + '/pdb/runcmd', { token: __token, cmd: 'c' })
+  emit('runcmdWithBreakPoint', 'c')
 }
 
 function next () {
-  axios.post(__baseUrl + '/pdb/runcmd', { token: __token, cmd: 'n' })
+  emit('runcmdWithBreakPoint', 'c')
 }
 
 function stepInto () {
-  axios.post(__baseUrl + '/pdb/runcmd', { token: __token, cmd: 's' })
+  emit('runcmdWithBreakPoint', 's')
   console.log('step into')
 }
 
 function stepOut () {
-  axios.post(__baseUrl + '/pdb/runcmd', { token: __token, cmd: 'u' })
+  emit('runcmdWithBreakPoint', 'u')
 }
 
 function stop () {
-  axios.post(__baseUrl + '/pdb/runcmd', { token: __token, cmd: 'q' })
+  emit('runcmdWithBreakPoint', 'q')
 }
 
 function restart () {
-  axios.post(__baseUrl + '/pdb/runcmd', { token: __token, cmd: 'q' })
+  emit('runcmdWithBreakPoint', 'q')
 }
 defineExpose({
-  init
+  init,
+  runcmd
 })
 </script>
 <style scoped>
