@@ -123,6 +123,9 @@ function close (index: number) {
 
 function changeFocus (index: number, line? :number) {
   const gotFileItems = getFileItems()
+  if (gotFileItems.length === 0) {
+    return
+  }
   for (let i = 0; i < gotFileItems.length; i++) {
     gotFileItems[i].focus = false
   }

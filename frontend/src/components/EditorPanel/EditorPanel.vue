@@ -13,7 +13,7 @@
 <script setup lang="ts">
 import * as common from './common'
 import EditorBase from './EditorBase.vue'
-import { provide, ref, shallowRef, defineExpose, defineEmits } from 'vue'
+import { provide, ref, shallowRef, defineExpose, defineEmits, onUnmounted } from 'vue'
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
 
 export interface FileInfo {
@@ -129,6 +129,12 @@ function focusLine (path : string, line : number) {
 // tmpAddFile('a.py', 'print("hello world test1")')
 // tmpAddFile('b.py', 'print("hello world test2")')
 // tmpAddFile('c.py', 'print("hello world test3")')
+
+onUnmounted(() => {
+  fileModels.value.forEach((value) => {
+    value.model.dispose()
+  })
+})
 
 provide('fileStatus', fileStatus)
 provide('fileItems', fileItems)
