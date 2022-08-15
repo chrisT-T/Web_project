@@ -1,7 +1,7 @@
 <template>
 <el-tabs v-model="activeName" class="demo-tabs" tab-position="left">
   <el-tab-pane label="Terminal" name="first">
-    <terminal-panel ref="terminalPanels" @get-pdb-port="initDbger"></terminal-panel>
+    <terminal-panel ref="terminalPanels" @get-pdb-port="initDbger" v-bind="$attrs"></terminal-panel>
   </el-tab-pane>
   <el-tab-pane label="Debugger" name="second">
     <web-debugger :file-path='debuggerPath' :user-path="userPath" ref="tDebugger" v-bind="$attrs"></web-debugger>

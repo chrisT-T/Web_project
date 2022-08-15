@@ -21,14 +21,16 @@
         </el-aside>
         <span class="resize_col" @mousedown="handleDragStart"></span>
         <el-container>
-          <debug-buttons ref="dbgButtons" v-if="isDebugging"></debug-buttons>
           <splitpanes horizontal>
             <pane size="70">
               <EditorPanel ref="editorPanel" @save-file="saveFile"></EditorPanel>
             </pane>
+            <pane>
+              <debug-buttons ref="dbgButtons" v-if="isDebugging"></debug-buttons>
+            </pane>
             <pane size="30" min-size="20">
               <el-footer>
-                <coding-footer ref="tFooter" @debugger-data-update="updateDebuggerSideBar"></coding-footer>
+                <coding-footer ref="tFooter" @disconnect="hideButtons" @init-button="activateButtons" @debugger-data-update="updateDebuggerSideBar"></coding-footer>
               </el-footer>
             </pane>
           </splitpanes>
@@ -179,7 +181,7 @@ function openFile (path: string) {
 const tFooter = ref()
 const tDebugSideBar = ref()
 const dbgButtons = ref()
-const isDebugging = ref<boolean>(false)
+const isDebugging = ref<boolean>(true)
 // run debugger
 function runDebugger (filePath: string) {
   console.log('coding view ' + filePath)
@@ -191,6 +193,9 @@ function runDebugger (filePath: string) {
 function activateButtons (port: number, token: string) {
   isDebugging.value = true
   dbgButtons.value.init(port, token)
+}
+function hideButtons () {
+  isDebugging.value = false
 }
 
 const sidebarActiveName = ref('first')

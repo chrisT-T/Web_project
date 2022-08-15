@@ -17,6 +17,7 @@ const size = 40 as number
 function init (port: number, token: string) {
   __baseUrl = 'http://127.0.0.1:' + port.toString()
   __token = token
+  console.log('buttons prepared with port: ' + port + ' token: ' + token)
 }
 function cont () {
   axios.post(__baseUrl + '/pdb/runcmd', { token: __token, cmd: 'c' })
@@ -28,6 +29,7 @@ function next () {
 
 function stepInto () {
   axios.post(__baseUrl + '/pdb/runcmd', { token: __token, cmd: 's' })
+  console.log('step into')
 }
 
 function stepOut () {
