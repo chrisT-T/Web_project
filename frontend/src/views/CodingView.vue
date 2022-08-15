@@ -42,7 +42,7 @@
 
 <script lang="ts" setup>
 import router from '@/router'
-import { ref, reactive } from 'vue'
+import { ref, reactive, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   Fold,
@@ -181,7 +181,7 @@ function openFile (path: string) {
 const tFooter = ref()
 const tDebugSideBar = ref()
 const dbgButtons = ref()
-const isDebugging = ref<boolean>(true)
+const isDebugging = ref<boolean>(false)
 // run debugger
 function runDebugger (filePath: string) {
   console.log('coding view ' + filePath)
@@ -190,8 +190,10 @@ function runDebugger (filePath: string) {
   tFooter.value.setBreakPoints(breakPoints)
   tFooter.value.startDebuggerTerminal()
 }
-function activateButtons (port: number, token: string) {
+
+async function activateButtons (port: number, token: string) {
   isDebugging.value = true
+  await nextTick()
   dbgButtons.value.init(port, token)
 }
 function hideButtons () {
