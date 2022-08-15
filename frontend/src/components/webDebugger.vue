@@ -26,7 +26,9 @@ const isDebugging = ref<boolean>(false)
 let breakPoints = new Map<string, Array<number>>()
 let pdbSocket = null as Socket | null
 
-const emit = defineEmits <{(e: 'debuggerDataUpdate', port: number, token: string): void}>()
+const emit = defineEmits <{(e: 'debuggerDataUpdate', port: number, token: string): void,
+  (e: 'initButton', port: number, token: string): void
+}>()
 
 function setBreakPoints (tBreakPoints: Map<string, number[]>) {
   breakPoints = tBreakPoints
@@ -44,7 +46,7 @@ function initDebugger (port: number) {
       title: 'Debugger Running',
       message: h('i', { style: 'color: teal' }, `A Debugger running on port ${port}`)
     })
-
+    emit('initButton', port, pdbSocket?.id)
     console.log('connect running', pdbSocket?.id)
     console.log(breakPoints)
     axios.post(baseUrl + '/pdb/debug', { token: pdbSocket?.id, filepath: props.filePath }).then(() => {

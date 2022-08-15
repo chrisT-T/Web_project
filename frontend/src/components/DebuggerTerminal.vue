@@ -19,7 +19,6 @@ let port = 0 as number
 // 发送端口 / 启动按钮
 // 这里格式是eslint 规定
 const emit = defineEmits<{(e: 'getPdbPort', port: number): void
-  (e: 'initButton', port: number, token: string): void
   (e: 'disconnect'): void
 }>()
 
@@ -37,7 +36,6 @@ function init () {
   socket.on('debugger_port', (data: {'port': number, 'token': string}) => {
     port = data.port
     emit('getPdbPort', data.port)
-    emit('initButton', data.port, data.token)
   })
 
   socket.on('debugger_term_output', (data: {'output': string, 'token': string}) => {
