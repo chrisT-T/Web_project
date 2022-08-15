@@ -9,15 +9,20 @@
 </div>
 </template>
 <script lang="ts" setup>
-import { getCurrentInstance } from 'vue'
 import axios from 'axios'
 let __baseUrl = ''
 let __token = ''
+let mPort = 0
 const size = 40 as number
 
-const emit = defineEmits<{(e: 'runcmdWithBreakPoint', cmd: string): void}>()
+// eslint-disable-next-line func-call-spacing
+const emit = defineEmits <{
+  (e: 'runcmdWithBreakPoint', cmd: string): void,
+  (e: 'restartDebugger', port: number): void
+}>()
 
 function init (port: number, token: string) {
+  mPort = port
   __baseUrl = 'http://127.0.0.1:' + port.toString()
   __token = token
   console.log('buttons prepared with port: ' + port + ' token: ' + token)
@@ -25,13 +30,18 @@ function init (port: number, token: string) {
 
 function runcmd (cmd: string, bps: Map<string, number[]>, userPath: string) {
   axios.post(__baseUrl + '/pdb/clearBreakPoint', { token: __token }).then(() => {
+    const tmp: any[] = []
     bps.forEach((value, key) => {
       value.forEach((lineno) => {
         console.log(key, lineno, `b ${userPath}/${key}: ${lineno}`)
-        axios.post(__baseUrl + '/pdb/runcmd', { token: __token, cmd: `b ${userPath}/${key}: ${lineno}` })
+        tmp.push(
+          axios.post(__baseUrl + '/pdb/runcmd', { token: __token, cmd: `b ${userPath}/${key}: ${lineno}` })
+        )
       })
     })
-    axios.post(__baseUrl + '/pdb/runcmd', { token: __token, cmd })
+    axios.all(tmp).then(() => {
+      axios.post(__baseUrl + '/pdb/runcmd', { token: __token, cmd })
+    })
   })
 }
 
@@ -57,7 +67,10 @@ function stop () {
 }
 
 function restart () {
-  emit('runcmdWithBreakPoint', 'q')
+  axios.post(__baseUrl + '/pdb/runcmd', { token: __token, cmd: 'q' }).then((response) => {
+    console.log(response)
+    emit('restartDebugger', mPort)
+  })
 }
 defineExpose({
   init,

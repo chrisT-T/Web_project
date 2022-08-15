@@ -26,7 +26,7 @@
               <EditorPanel ref="editorPanel" @save-file="saveFile"></EditorPanel>
             </pane>
             <pane>
-              <debug-buttons ref="dbgButtons" v-if="isDebugging" @runcmd-with-break-point="runcmdWithBreakPoint"></debug-buttons>
+              <debug-buttons ref="dbgButtons" v-if="isDebugging" @runcmd-with-break-point="runcmdWithBreakPoint" @restart-debugger="restartDebugger"></debug-buttons>
             </pane>
             <pane size="30" min-size="20">
               <el-footer>
@@ -228,6 +228,10 @@ function updateFocusLine (lineno: number, path: string) {
       message: h('i', { style: 'color: teal' }, 'The Debugging file does not open in Editor')
     })
   }
+}
+
+function restartDebugger (port: number) {
+  tFooter.value.initDbger(port, true)
 }
 
 defineExpose({

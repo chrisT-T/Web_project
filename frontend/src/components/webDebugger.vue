@@ -35,7 +35,11 @@ function setBreakPoints (tBreakPoints: Map<string, number[]>) {
   console.log(breakPoints)
 }
 
-function initDebugger (port: number) {
+function initDebugger (port: number, restart = false) {
+  if (restart === true) {
+    pdbSocket?.disconnect()
+  }
+
   baseUrl = 'http://127.0.0.1:' + port.toString()
 
   pdbSocket = io(baseUrl + '/pdb')
@@ -60,13 +64,16 @@ function initDebugger (port: number) {
     })
   })
 
-  pdbSocket.on('pdb_quit', () => {
-    pdbSocket?.disconnect()
-    ElNotification({
-      title: 'Debugger Quit',
-      message: h('i', { style: 'color: teal' }, `The Debugger on port ${port} has quit`)
-    })
-    isDebugging.value = false
+  pdbSocket.on('pdb_quit', (data) => {
+    console.log('quit ' + pdbSocket?.id + ' ' + data.token)
+    if (pdbSocket?.id === data.token) {
+      pdbSocket?.disconnect()
+      ElNotification({
+        title: 'Debugger Quit',
+        message: h('i', { style: 'color: teal' }, `The Debugger on port ${port} has quit`)
+      })
+      isDebugging.value = false
+    }
   })
 
   pdbSocket.on('pdb_output', (data: {'consoleOutput': string, 'token': string}) => {

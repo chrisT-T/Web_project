@@ -16,8 +16,8 @@ const userPath = ref<string>('')
 const activeName = ref('first')
 const tDebugger = ref()
 const terminalPanels = ref()
-function initDbger (port: number) {
-  tDebugger.value.initDebugger(port)
+function initDbger (port: number, restart = false) {
+  tDebugger.value.initDebugger(port, restart)
 }
 
 function setDebuggerPath (path: string, user: string) {
@@ -37,7 +37,8 @@ function startDebuggerTerminal () {
 defineExpose({
   setDebuggerPath,
   setBreakPoints,
-  startDebuggerTerminal
+  startDebuggerTerminal,
+  initDbger
 })
 </script>
 

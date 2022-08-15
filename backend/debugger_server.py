@@ -75,16 +75,19 @@ def get_current_frame():
     else:
         return {'runflag': False}
 
-def forward_pdb_output():
+def forward_pdb_output(token: str):
     max_read_bytes = 1024 * 20
     while True:
         socketio.sleep(0.01)
         pdb_instance_lock.acquire()
-        current_key = pdb_instance.keys()
+        flag: bool = token in pdb_instance.keys()
         pdb_instance_lock.release()
-        for key in current_key:
-            output = os.read(pdb_output_client[key], max_read_bytes).decode()
-            socketio.emit("pdb_output", {"consoleOutput": output, 'token': key}, namespace="/pdb", to=key)
+        try:
+            if flag:
+                output = os.read(pdb_output_client[token], max_read_bytes).decode()
+                socketio.emit("pdb_output", {"consoleOutput": output, 'token': token}, namespace="/pdb", to=token)
+        finally:
+            pass
 
 @app.route('/pdb/debug', methods=['POST'])
 def start_debug():
@@ -107,7 +110,7 @@ def start_debug():
         pdb_instance.pop(token)
         pdb_instance_lock.release()
         
-        socketio.emit("pdb_quit", {'token': token, 'flag': flag }, namespace="/pdb")
+        socketio.emit("pdb_quit", {'token': token, 'flag': flag }, namespace="/pdb", to=token)
         
     t = threading.Thread(target=run_pdb_process, args=(token, pdb_instance[token]), daemon=True)
     t.start()
@@ -138,7 +141,7 @@ def pdb_connect():
     pdb_input_server[token], pdb_input_client[token] = os.pipe()
     pdb_output_client[token], pdb_output_server[token] = os.pipe()
     pdb_instance[token] = PdbExt(stdin=os.fdopen(pdb_input_server[token], 'r'), stdout=os.fdopen(pdb_output_server[token], 'w'))
-    socketio.start_background_task(target=forward_pdb_output)
+    socketio.start_background_task(target=forward_pdb_output, token=token)
 
 @socketio.on("disconnect", namespace='/pdb')
 def pdb_disconnect():
@@ -154,9 +157,7 @@ def pdb_disconnect():
     pdb_instance_lock.release()
 
 def run_server():
-    '''
-    alloc a port and run a flask server on it
-    '''
+
     socketio.run(app, host='127.0.0.1')
 
 
