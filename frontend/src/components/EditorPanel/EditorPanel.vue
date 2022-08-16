@@ -65,12 +65,6 @@ function addFile (path: string, value: string) {
   baseEditor.value?.changeFocus(fileItems.value.length - 1)
 }
 
-function tmpAddFile (path :string, value :string) {
-  fileStatus.value.set(path, { modified: false, openCount: 1 })
-  fileModels.value.set(path, { model: monaco.editor.createModel(value, 'python') })
-  fileItems.value.push({ path, focus: false })
-}
-
 function saveCurrentFile () {
   const current = fileItems.value.find((item) => item.focus)
   if (current) {

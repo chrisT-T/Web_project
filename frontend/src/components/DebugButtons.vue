@@ -30,7 +30,7 @@ function init (port: number, token: string) {
 
 function runcmd (cmd: string, bps: Map<string, number[]>, userPath: string) {
   axios.post(__baseUrl + '/pdb/clearBreakPoint', { token: __token }).then(() => {
-    const tmp: any[] = []
+    const tmp = []
     bps.forEach((value, key) => {
       value.forEach((lineno) => {
         console.log(key, lineno, `b ${userPath}/${key}: ${lineno}`)

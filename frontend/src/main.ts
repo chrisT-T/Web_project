@@ -15,7 +15,7 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 
 app.use(VueAxios, axios)
 
-app.directive('focus', (el, binding) => {
+app.directive('focus', (el) => {
   el.querySelector('input').focus()
 })
 
