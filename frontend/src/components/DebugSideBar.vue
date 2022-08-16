@@ -31,7 +31,7 @@
         <el-icon title="Collapse All" :size="iconSize" :class="watchAvailable"><Remove /></el-icon>
       </span>
     </p>
-    <el-tree :default-expand-all="true" :data="watchData">
+    <el-tree :default-expand-all="true" :data="watchData" :key="watchData">
       <template #default="{ node, data }">
         <span class="tree-node">
           <span class="var_data">{{node.data.data}}</span>: &nbsp;<span class="var_value"> {{node.data.value}}</span>
@@ -96,6 +96,7 @@ const iconSize = 20
 let watchAvailable = 'disabledButton'
 function updateData (port: number, token: string) {
   console.log('update date in side bar ' + port, baseUrl + port.toString() + '/pdb/curframe')
+  // update the variables
   axios.post(baseUrl + port.toString() + '/pdb/curframe', { token })
     .then((response) => {
       try {
@@ -129,6 +130,7 @@ function updateData (port: number, token: string) {
         console.log('finally')
       }
     })
+  // update the call stack
   axios.post(baseUrl + port.toString() + '/pdb/getstack', { token }).then(
     (response) => {
       const stklist = JSON.parse(response.request.response)
@@ -148,6 +150,33 @@ function updateData (port: number, token: string) {
   if (watchList.value.length === 0) {
     watchAvailable = 'disabledButton'
   } else {
+    const tmp = [] as any[]
+    watchList.value.forEach(element => {
+      tmp.push(axios.post(baseUrl + port.toString() + '/pdb/repr', { token, repr: element }))
+    })
+    axios.all(tmp).then((resp) => {
+      watchData.value.splice(0)
+      resp.forEach((respitem, index) => {
+        console.log(respitem, respitem.data)
+        const flag = JSON.parse(respitem.request.response).runflag as boolean
+        if (flag === true) {
+          const value = JSON.parse(respitem.request.response).value
+          watchData.value.push({
+            id: index,
+            data: watchList.value[index],
+            value,
+            children: []
+          } as Tree)
+        } else {
+          watchData.value.push({
+            id: index,
+            data: watchList.value[index],
+            value: '',
+            children: []
+          } as Tree)
+        }
+      })
+    })
     watchAvailable = 'availableButton'
   }
 }
@@ -158,7 +187,6 @@ defineExpose({
 
 function closeInput () {
   addingWatch.value = false
-  watchInput.value.clear()
 }
 // 添加 watch 对象
 function addWatch (e) {

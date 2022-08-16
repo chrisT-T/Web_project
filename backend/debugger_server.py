@@ -1,3 +1,4 @@
+from crypt import methods
 from curses import tparm
 import random
 from pdb_ext import PdbExt
@@ -70,6 +71,20 @@ def get_current_frame():
     if token in pdb_instance.keys():
         instance: PdbExt = pdb_instance[token]
         res = instance.get_current_frame_data()
+        pdb_instance_lock.release()
+        return res
+    else:
+        return {'runflag': False}
+
+@app.route('/pdb/repr', methods=['POST'])
+def get_repr():
+    data = request.get_json()
+    token = data['token']
+    repr = data['repr']
+    pdb_instance_lock.acquire()
+    if token in pdb_instance.keys():
+        instance: PdbExt = pdb_instance[token]
+        res = instance.get_repr_value(repr)
         pdb_instance_lock.release()
         return res
     else:

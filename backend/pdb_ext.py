@@ -17,6 +17,12 @@ class PdbExt(Pdb):
     def get_current_function(self):
         return self.curframe.f_code.co_name
 
+    def get_repr_value(self, repr):
+        try:
+            return { 'value':  pformat(self._getval(repr)), 'runflag': True }
+        except:
+            return { 'runflag': False }
+
     def get_current_frame_data(self):
         try:
             filename = self.curframe.f_code.co_filename
