@@ -52,9 +52,10 @@
 
 <script lang="ts" setup>
 
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, h } from 'vue'
 import { Splitpanes, Pane } from 'splitpanes'
 import axios from 'axios'
+import { ElNotification } from 'element-plus'
 
 interface Tree {
   id: number
@@ -75,26 +76,22 @@ const emit = defineEmits<{
 
 const baseUrl = 'http://127.0.0.1:' as string
 const locVar = ref<Tree[]>([])
-const globVar = ref<Tree[]>([{
-  id: 1,
-  data: 'a',
-  value: 'valssssssssssssssssssssssssssssss',
-  children: []
-}])
+const globVar = ref<Tree[]>([])
 const stk = ref<StackItem[]>([])
 const watchList = ref<string[]>([])
-const watchData = ref<Tree[]>([{
-  id: 1,
-  data: 'a',
-  value: 'valssssssssssssssssssssssssssssssssss',
-  children: []
-}])
+const watchData = ref<Tree[]>([])
 const watchInput = ref()
 const watchToBeAdded = ref('')
 const addingWatch = ref<boolean>(false)
 const iconSize = 20
 let watchAvailable = 'disabledButton'
+
+let mPort = 0
+let mToken = ''
+
 function updateData (port: number, token: string) {
+  mPort = port
+  mToken = token
   console.log('update date in side bar ' + port, baseUrl + port.toString() + '/pdb/curframe')
   // update the variables
   axios.post(baseUrl + port.toString() + '/pdb/curframe', { token })
@@ -150,35 +147,39 @@ function updateData (port: number, token: string) {
   if (watchList.value.length === 0) {
     watchAvailable = 'disabledButton'
   } else {
-    const tmp = [] as any[]
-    watchList.value.forEach(element => {
-      tmp.push(axios.post(baseUrl + port.toString() + '/pdb/repr', { token, repr: element }))
-    })
-    axios.all(tmp).then((resp) => {
-      watchData.value.splice(0)
-      resp.forEach((respitem, index) => {
-        console.log(respitem, respitem.data)
-        const flag = JSON.parse(respitem.request.response).runflag as boolean
-        if (flag === true) {
-          const value = JSON.parse(respitem.request.response).value
-          watchData.value.push({
-            id: index,
-            data: watchList.value[index],
-            value,
-            children: []
-          } as Tree)
-        } else {
-          watchData.value.push({
-            id: index,
-            data: watchList.value[index],
-            value: '',
-            children: []
-          } as Tree)
-        }
-      })
-    })
+    updateWatch()
     watchAvailable = 'availableButton'
   }
+}
+
+function updateWatch () {
+  const tmp = [] as any[]
+  watchList.value.forEach(element => {
+    tmp.push(axios.post(baseUrl + mPort.toString() + '/pdb/repr', { token: mToken, repr: element }))
+  })
+  axios.all(tmp).then((resp) => {
+    watchData.value.splice(0)
+    resp.forEach((respitem, index) => {
+      console.log(respitem, respitem.data)
+      const flag = JSON.parse(respitem.request.response).runflag as boolean
+      if (flag === true) {
+        const value = JSON.parse(respitem.request.response).value
+        watchData.value.push({
+          id: index,
+          data: watchList.value[index],
+          value,
+          children: []
+        } as Tree)
+      } else {
+        watchData.value.push({
+          id: index,
+          data: watchList.value[index],
+          value: '',
+          children: []
+        } as Tree)
+      }
+    })
+  })
 }
 
 defineExpose({
@@ -191,8 +192,12 @@ function closeInput () {
 // 添加 watch 对象
 function addWatch (e) {
   watchList.value.push(e.target.value)
-  alert(e.target.value)
+  ElNotification({
+    title: 'Debugger: Watch',
+    message: h('i', { style: 'color: teal' }, `Add a new watch expression ${e.target.value}`)
+  })
   e.target.value = ''
+  updateWatch()
   closeInput()
 }
 // 显示添加 watch 对象的框
