@@ -16,7 +16,11 @@ const term = new Terminal({
   macOptionIsMeta: true
 })
 let port = 0 as number
-const emit = defineEmits <{(e: 'getPdbPort', port: number): void}>()
+// 发送端口 / 启动按钮
+// 这里格式是eslint 规定
+const emit = defineEmits<{(e: 'getPdbPort', port: number): void
+  (e: 'disconnect'): void
+}>()
 
 function init () {
   console.log('msg from debugger Terminal')
@@ -30,7 +34,6 @@ function init () {
   })
 
   socket.on('debugger_port', (data: {'port': number, 'token': string}) => {
-    console.log('debugger terminal get the port' + data)
     port = data.port
     emit('getPdbPort', data.port)
   })
@@ -41,6 +44,7 @@ function init () {
 
   socket.on('disconnect', () => {
     console.log('port ' + port + ' disconnected')
+    emit('disconnect')
   })
 }
 

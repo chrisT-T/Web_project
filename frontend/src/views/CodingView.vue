@@ -15,19 +15,22 @@
               <FileSet :name="name" :projectname="projectname" @debug-start="(path) => runDebugger(path)" @open-file="openFile"></FileSet>
             </el-tab-pane>
             <el-tab-pane label="Debug" name="second">
-              <DebugSideBar ref="tDebugSideBar" token="1" @update-focus-line="updateFocusLine"></DebugSideBar>
+              <div style="display: flex;flex-direction: column;">
+                <debug-buttons ref="dbgButtons" v-if="isDebugging" @runcmd-with-break-point="runcmdWithBreakPoint" @restart-debugger="restartDebugger"></debug-buttons>
+                <DebugSideBar ref="tDebugSideBar" token="1" @update-focus-line="updateFocusLine"></DebugSideBar>
+              </div>
             </el-tab-pane>
           </el-tabs>
         </el-aside>
         <span class="resize_col" @mousedown="handleDragStart"></span>
         <el-container>
-          <splitpanes horizontal>
-            <pane size="80">
+          <splitpanes class="default-theme" horizontal>
+            <pane size="70">
               <EditorPanel ref="editorPanel" @save-file="saveFile"></EditorPanel>
             </pane>
-            <pane size="20">
+            <pane size="30" min-size="20">
               <el-footer>
-                 <coding-footer ref="tFooter" @debugger-data-update="updateDebuggerSideBar"></coding-footer>
+                <coding-footer ref="tFooter" @disconnect="hideButtons" @init-button="activateButtons" @debugger-data-update="updateDebuggerSideBar"></coding-footer>
               </el-footer>
             </pane>
           </splitpanes>
@@ -39,7 +42,7 @@
 
 <script lang="ts" setup>
 import router from '@/router'
-import { ref, reactive } from 'vue'
+import { ref, reactive, nextTick, h } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   Fold,
@@ -55,6 +58,7 @@ import { Splitpanes, Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 import DebugSideBar from '../components/DebugSideBar.vue'
 import CodingFooter from '../components/CodingFooter.vue'
+import DebugButtons from '../components/DebugButtons.vue'
 
 // 获取当前用户名
 const name = useRouter().currentRoute.value.params.username
@@ -120,24 +124,6 @@ const handleDragStart = (event: MouseEvent) => {
     isMouseDown = false
   }
 }
-// debug区域拖拽大小
-const handleDragStartrow = (event: MouseEvent) => {
-  data.originY = event.clientY
-  console.log(data.originY)
-  let isMouseDown = true
-  data.old_height_2 = data.height_2
-  document.onmousemove = (ev:MouseEvent) => {
-    if (!isMouseDown) return false
-    const moveY = data.originY - ev.clientY
-    data.height_2 = data.old_height_2 + moveY
-    data.height = data.height_2 + 'px'
-    console.log(ev.clientY, data.originY, moveY, data.old_height, data.old_height_2)
-  }
-  document.onmouseup = (ev:MouseEvent) => {
-    if (!isMouseDown) return false
-    isMouseDown = false
-  }
-}
 
 function saveFile (path: string, value: string) {
   console.log(path, value)
@@ -176,6 +162,17 @@ function openFile (path: string) {
 }
 const tFooter = ref()
 const tDebugSideBar = ref()
+const dbgButtons = ref()
+const isDebugging = ref<boolean>(false)
+
+function getBreakPoints (): Map<string, number[]> {
+  return editorPanel.value?.getBreakpoints() as Map<string, number[]>
+}
+
+function runcmdWithBreakPoint (cmd: string) {
+  dbgButtons.value.runcmd(cmd, getBreakPoints(), './userfile/' + name)
+}
+
 // run debugger
 function runDebugger (filePath: string) {
   console.log('coding view ' + filePath)
@@ -183,6 +180,15 @@ function runDebugger (filePath: string) {
   const breakPoints = editorPanel.value?.getBreakpoints()
   tFooter.value.setBreakPoints(breakPoints)
   tFooter.value.startDebuggerTerminal()
+}
+
+async function activateButtons (port: number, token: string) {
+  isDebugging.value = true
+  await nextTick()
+  dbgButtons.value.init(port, token)
+}
+function hideButtons () {
+  isDebugging.value = false
 }
 
 const sidebarActiveName = ref('first')
@@ -196,8 +202,23 @@ function updateFocusLine (lineno: number, path: string) {
   const relPath = path.replace('./userfile/' + name + '/', '')
   console.log(lineno, path, relPath)
   editorPanel.value?.clearFocusLine()
-  editorPanel.value?.focusLine(relPath, lineno)
+  try {
+    editorPanel.value?.focusLine(relPath, lineno)
+  } catch (e: TypeError) {
+    ElNotification({
+      title: 'Debugger Running',
+      message: h('i', { style: 'color: teal' }, 'The Debugging file does not open in Editor')
+    })
+  }
 }
+
+function restartDebugger (port: number) {
+  tFooter.value.initDbger(port, true)
+}
+
+defineExpose({
+  getBreakPoints
+})
 </script>
 
 <style scoped>

@@ -18,18 +18,21 @@ class PdbExt(Pdb):
         return self.curframe.f_code.co_name
 
     def get_current_frame_data(self):
-        filename = self.curframe.f_code.co_filename
-        lines, start_line = inspect.findsource(self.curframe)
-        res = {
-            'dirname': os.path.dirname(os.path.abspath(filename)) + os.path.sep,
-            'filename': os.path.basename(filename),
-            'rawfilename': filename.replace(os.getcwd(), '.', 1),
-            'file_listing': ''.join(lines),
-            'current_line': self.curframe.f_lineno,
-            'breakpoints': self.get_file_breaks(filename),
-            'globals': self.get_globals(),
-            'locals': self.get_locals()
-        }
+        try:
+            filename = self.curframe.f_code.co_filename
+            lines, start_line = inspect.findsource(self.curframe)
+            res = {
+                'dirname': os.path.dirname(os.path.abspath(filename)) + os.path.sep,
+                'filename': os.path.basename(filename),
+                'rawfilename': filename.replace(os.getcwd(), '.', 1),
+                'file_listing': ''.join(lines),
+                'current_line': self.curframe.f_lineno,
+                'breakpoints': self.get_file_breaks(filename),
+                'globals': self.get_globals(),
+                'locals': self.get_locals()
+            }
+        except:
+            res = 'null frame data'
         return res
 
     """
