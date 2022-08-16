@@ -1,5 +1,5 @@
 <template>
-<div style="display: flex;">
+<div style="display: flex;height: auto;">
   <el-icon @click="cont" title="Continue" :size="size"><CaretRight /></el-icon>
   <el-icon @click="next" title="Step Over" :size="size"><Right /></el-icon>
   <el-icon @click="stepInto" title="Step Into" :size="size"><Download /></el-icon>

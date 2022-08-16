@@ -15,7 +15,10 @@
               <FileSet :name="name" :projectname="projectname" @debug-start="(path) => runDebugger(path)" @open-file="openFile"></FileSet>
             </el-tab-pane>
             <el-tab-pane label="Debug" name="second">
-              <DebugSideBar ref="tDebugSideBar" token="1" @update-focus-line="updateFocusLine"></DebugSideBar>
+              <div style="display: flex;flex-direction: column;">
+                <debug-buttons ref="dbgButtons" v-if="isDebugging" @runcmd-with-break-point="runcmdWithBreakPoint" @restart-debugger="restartDebugger"></debug-buttons>
+                <DebugSideBar ref="tDebugSideBar" token="1" @update-focus-line="updateFocusLine"></DebugSideBar>
+              </div>
             </el-tab-pane>
           </el-tabs>
         </el-aside>
@@ -24,9 +27,6 @@
           <splitpanes class="default-theme" horizontal>
             <pane size="70">
               <EditorPanel ref="editorPanel" @save-file="saveFile"></EditorPanel>
-            </pane>
-            <pane>
-              <debug-buttons ref="dbgButtons" v-if="isDebugging" @runcmd-with-break-point="runcmdWithBreakPoint" @restart-debugger="restartDebugger"></debug-buttons>
             </pane>
             <pane size="30" min-size="20">
               <el-footer>
@@ -118,24 +118,6 @@ const handleDragStart = (event: MouseEvent) => {
     console.log(ev.clientX, data.originX, moveX)
     data.old_width = data.width
     data.width = moveX + 'px'
-  }
-  document.onmouseup = (ev:MouseEvent) => {
-    if (!isMouseDown) return false
-    isMouseDown = false
-  }
-}
-// debug区域拖拽大小
-const handleDragStartrow = (event: MouseEvent) => {
-  data.originY = event.clientY
-  console.log(data.originY)
-  let isMouseDown = true
-  data.old_height_2 = data.height_2
-  document.onmousemove = (ev:MouseEvent) => {
-    if (!isMouseDown) return false
-    const moveY = data.originY - ev.clientY
-    data.height_2 = data.old_height_2 + moveY
-    data.height = data.height_2 + 'px'
-    console.log(ev.clientY, data.originY, moveY, data.old_height, data.old_height_2)
   }
   document.onmouseup = (ev:MouseEvent) => {
     if (!isMouseDown) return false
