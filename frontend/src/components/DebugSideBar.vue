@@ -153,7 +153,7 @@ function updateData (port: number, token: string) {
 }
 
 function updateWatch () {
-  const tmp = [] as any[]
+  const tmp = []
   watchList.value.forEach(element => {
     tmp.push(axios.post(baseUrl + mPort.toString() + '/pdb/repr', { token: mToken, repr: element }))
   })

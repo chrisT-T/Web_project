@@ -17,6 +17,7 @@
 <script lang="ts" setup>
 import { ref, defineProps, defineEmits } from 'vue'
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const props = defineProps({
   title: String,
   focus: Boolean,

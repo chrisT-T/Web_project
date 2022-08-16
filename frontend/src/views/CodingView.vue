@@ -119,7 +119,7 @@ const handleDragStart = (event: MouseEvent) => {
     data.old_width = data.width
     data.width = moveX + 'px'
   }
-  document.onmouseup = (ev:MouseEvent) => {
+  document.onmouseup = () => {
     if (!isMouseDown) return false
     isMouseDown = false
   }
