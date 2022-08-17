@@ -84,7 +84,7 @@ const watchInput = ref()
 const watchToBeAdded = ref('')
 const addingWatch = ref<boolean>(false)
 const iconSize = 20
-let watchAvailable = 'disabledButton'
+const watchAvailable = ref<string>('disabledButton')
 
 let mPort = 0
 let mToken = ''
@@ -145,10 +145,10 @@ function updateData (port: number, token: string) {
     }
   )
   if (watchList.value.length === 0) {
-    watchAvailable = 'disabledButton'
+    watchAvailable.value = 'disabledButton'
   } else {
     updateWatch()
-    watchAvailable = 'availableButton'
+    watchAvailable.value = 'availableButton'
   }
 }
 
