@@ -1,5 +1,3 @@
-from distutils.log import error
-import json
 from flask import Flask, jsonify, request
 from flask_socketio import SocketIO
 from flask_cors import CORS
@@ -22,9 +20,6 @@ import web_terminal
 def hello_world():
     return 'Hello World!'
 
-# 全局变量 记录当前用户文件夹
-folder_list = []
-
 # 注册
 @app.route('/api/signup', methods=["POST", "GET"])
 def signup():
@@ -37,9 +32,7 @@ def signup():
     if userInfo.isValid(user):
         # 成功注册
         userInfo.createNewUser(user, password)
-        userInfo.setCurUser(user)
         fileFunc.mkdir(user)
-        folder_list.clear()
 
         data = {
             'flag': True,
@@ -69,8 +62,6 @@ def login():
     # 判断用户名 密码的合法性
     # 否则重新输入用户名密码
     if userInfo.isCorrect(user, password):  
-        userInfo.setCurUser(user)  
-        folder_list.clear()
         # 成功登陆  
         data = {
             'flag': True,
@@ -88,19 +79,11 @@ def login():
 # 注销
 @app.route('/api/logout/<username>', methods = ["POST"])
 def logout(username):
-    if username != userInfo.currentUser():
-        raise error
-
-    userInfo.setCurUser('')
-    folder_list.clear()
     return "succeed logout"
 
 # 重命名项目
 @app.route('/api/renamepro/<username>', methods =["POST"])
 def renamepro(username):
-    if username != userInfo.currentUser():
-        raise error
-
     src = request.get_json()['src']
     dst = request.get_json()['dst']
     result = fileFunc.rename(src, dst)
@@ -135,9 +118,6 @@ def renamepro(username):
 # 路径从用户名开始   xiaoming/...  
 @app.route('/api/rename/<username>', methods =["POST"])
 def rename(username):
-    if username != userInfo.currentUser():
-        raise error
-
     src = request.get_json()['src']
     dst = request.get_json()['dst']
     print(src, dst)
@@ -170,9 +150,6 @@ def rename(username):
 # 删除项目
 @app.route('/api/deletepro/<username>', methods = ["POST"])
 def deletepro(username):
-    if username != userInfo.currentUser():
-        raise error
-
     src = request.get_json()['src']
     if fileFunc.deleteFolder(src):
         userInfo.deletepro(src)
@@ -192,9 +169,6 @@ def deletepro(username):
 # 删除文件(夹)
 @app.route('/api/delete/<username>', methods = ["POST"])
 def delete(username):
-    if username != userInfo.currentUser():
-        raise error
-
     src = request.get_json()['src']
     type = request.get_json()['type']
     if type == "folder":
@@ -235,9 +209,6 @@ def delete(username):
 #新建项目
 @app.route('/api/mkpro/<username>', methods = ["POST"])
 def mkpro(username):
-    if username != userInfo.currentUser():
-        raise error
-
     src = request.get_json()['src']
     language = request.get_json()['type']
     if fileFunc.mkdir(src):
@@ -258,9 +229,6 @@ def mkpro(username):
 # 新建文件夹
 @app.route('/api/mkdir/<username>', methods = ["POST"])
 def mkdir(username):
-    if username != userInfo.currentUser():
-        raise error
-
     src = request.get_json()['src']
     if fileFunc.mkdir(src):
         data = {
@@ -278,9 +246,6 @@ def mkdir(username):
 # 新建文件
 @app.route('/api/touch/<username>', methods = ["POST"])
 def touch(username):
-    if username != userInfo.currentUser():
-        raise error
-
     src = request.get_json()['src']
     print(src)
     if fileFunc.touch(src):
@@ -337,8 +302,6 @@ def download_file(username):
 # 提供项目列表
 @app.route('/api/getPro/<username>', methods = ["GET"])
 def getPro(username):
-    if username != userInfo.currentUser():
-        raise error
     ls = userInfo.showpro(username)
     obj = {
         'flag': True,
@@ -350,8 +313,6 @@ def getPro(username):
 # 提供某项目的文件树
 @app.route('/api/getFileTree/<username>/<projectname>', methods = ["GET"])
 def getFileTree(username, projectname):
-    if username != userInfo.currentUser():
-        raise error
     flag, fileTree = fileFunc.getData(username + '/' + projectname)
     if flag:
         data = {
