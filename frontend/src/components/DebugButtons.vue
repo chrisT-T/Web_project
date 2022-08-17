@@ -10,7 +10,6 @@
 </template>
 <script lang="ts" setup>
 import axios from 'axios'
-let __baseUrl = ''
 let __token = ''
 let mPort = 0
 const size = 40 as number
@@ -23,24 +22,23 @@ const emit = defineEmits <{
 
 function init (port: number, token: string) {
   mPort = port
-  __baseUrl = 'http://127.0.0.1:' + port.toString()
   __token = token
   console.log('buttons prepared with port: ' + port + ' token: ' + token)
 }
 
 function runcmd (cmd: string, bps: Map<string, number[]>, userPath: string) {
-  axios.post(__baseUrl + '/pdb/clearBreakPoint', { token: __token }).then(() => {
+  axios.post('/pdb/clearBreakPoint', { port: mPort, token: __token }).then(() => {
     const tmp = []
     bps.forEach((value, key) => {
       value.forEach((lineno) => {
         console.log(key, lineno, `b ${userPath}/${key}: ${lineno}`)
         tmp.push(
-          axios.post(__baseUrl + '/pdb/runcmd', { token: __token, cmd: `b ${userPath}/${key}: ${lineno}` })
+          axios.post('/pdb/runcmd', { port: mPort, token: __token, cmd: `b ${userPath}/${key}: ${lineno}` })
         )
       })
     })
     axios.all(tmp).then(() => {
-      axios.post(__baseUrl + '/pdb/runcmd', { token: __token, cmd })
+      axios.post('/pdb/runcmd', { port: mPort, token: __token, cmd })
     })
   })
 }
@@ -67,7 +65,7 @@ function stop () {
 }
 
 function restart () {
-  axios.post(__baseUrl + '/pdb/runcmd', { token: __token, cmd: 'q' }).then((response) => {
+  axios.post('/pdb/runcmd', { port: mPort, token: __token, cmd: 'q' }).then((response) => {
     console.log(response)
     emit('restartDebugger', mPort)
   })

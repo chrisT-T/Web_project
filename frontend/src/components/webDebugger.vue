@@ -19,12 +19,12 @@ const props = defineProps({
   userPath: String
 })
 
-let baseUrl = 'http://127.0.0.1:' as string
 const command = ref(null)
 const consoleOutput = ref<string>('')
 const isDebugging = ref<boolean>(false)
 let breakPoints = new Map<string, Array<number>>()
 let pdbSocket = null as Socket | null
+let mPort = 0
 
 const emit = defineEmits <{(e: 'debuggerDataUpdate', port: number, token: string): void,
   (e: 'initButton', port: number, token: string): void
@@ -36,13 +36,15 @@ function setBreakPoints (tBreakPoints: Map<string, number[]>) {
 }
 
 function initDebugger (port: number, restart = false) {
+  mPort = port
   if (restart === true) {
     pdbSocket?.disconnect()
   }
 
-  baseUrl = 'http://127.0.0.1:' + port.toString()
+  pdbSocket = io('/debugger') // 这里是不想 connect 的...但他们的 sid 不一样...
 
-  pdbSocket = io(baseUrl + '/pdb')
+  pdbSocket.emit('connect_to_debug_server', { port })
+
   console.log('initDebugger in webDebugger' + port)
 
   pdbSocket.on('connect', () => {
@@ -50,16 +52,16 @@ function initDebugger (port: number, restart = false) {
       title: 'Debugger Running',
       message: h('i', { style: 'color: teal' }, `A Debugger running on port ${port}`)
     })
-    emit('initButton', port, pdbSocket?.id)
+    emit('initButton', port, pdbSocket?.id as string)
     console.log('connect running', pdbSocket?.id)
     console.log(breakPoints)
-    axios.post(baseUrl + '/pdb/debug', { token: pdbSocket?.id, filepath: props.filePath }).then(() => {
+    axios.post('/pdb/debug', { port, token: pdbSocket?.id, filepath: props.filePath }).then(() => {
       isDebugging.value = true
     })
     breakPoints.forEach((value, key) => {
       value.forEach((lineno) => {
         console.log(key, lineno, `b ${props.userPath}/${key}: ${lineno}`)
-        axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket?.id, cmd: `b ${props.userPath}/${key}: ${lineno}` })
+        axios.post('/pdb/runcmd', { port, token: pdbSocket?.id, cmd: `b ${props.userPath}/${key}: ${lineno}` })
       })
     })
   })
@@ -67,7 +69,7 @@ function initDebugger (port: number, restart = false) {
   pdbSocket.on('pdb_quit', (data) => {
     console.log('quit ' + pdbSocket?.id + ' ' + data.token)
     if (pdbSocket?.id === data.token) {
-      pdbSocket?.disconnect()
+      pdbSocket?.emit('disconnect_from_debug_server', { port })
       ElNotification({
         title: 'Debugger Quit',
         message: h('i', { style: 'color: teal' }, `The Debugger on port ${port} has quit`)
@@ -86,7 +88,7 @@ function initDebugger (port: number, restart = false) {
   })
 
   pdbSocket.on('pdb_terminated', () => {
-    pdbSocket?.disconnect()
+    pdbSocket?.emit('disconnect_from_debug_server', { port })
     ElNotification({
       title: 'Debugger Terminated',
       message: h('i', { style: 'color: teal' }, `The Debugger on port ${port} was terminated`)
@@ -96,9 +98,9 @@ function initDebugger (port: number, restart = false) {
 }
 
 function send () {
-  console.log('pdb command send ' + baseUrl + '/pdb/runcmd', pdbSocket?.id)
+  console.log('pdb command send ' + '/pdb/runcmd', pdbSocket?.id)
   if (isDebugging.value === true) {
-    axios.post(baseUrl + '/pdb/runcmd', { token: pdbSocket?.id, cmd: command.value })
+    axios.post('/pdb/runcmd', { port: mPort, token: pdbSocket?.id, cmd: command.value })
   } else {
     ElMessageBox.alert('Debugger is not running', 'Debug Error', {
       confirmButtonText: 'OK'

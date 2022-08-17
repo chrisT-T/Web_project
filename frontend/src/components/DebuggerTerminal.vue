@@ -8,7 +8,7 @@ import { Terminal } from 'xterm'
 import io from 'socket.io-client'
 import { FitAddon } from 'xterm-addon-fit'
 
-const socket = io('http://127.0.0.1:5000/pdb')
+const socket = io('/pdb') // 这里是 connect 到 pdb 的 socket
 const fitAddon = new FitAddon()
 const debugTerm = ref<HTMLDivElement>()
 const term = new Terminal({
@@ -33,7 +33,7 @@ function init () {
     socket.emit('debugger_term_input', { input: data, token: socket.id })
   })
 
-  socket.on('debugger_port', (data: {'port': number, 'token': string}) => {
+  socket.on('debugger_port_allocated', (data: {'port': number, 'token': string}) => {
     port = data.port
     emit('getPdbPort', data.port)
   })

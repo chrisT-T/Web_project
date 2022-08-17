@@ -17,9 +17,9 @@ app = Flask(__name__, template_folder='.')
 CORS(app, resources=r'/*')
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-import logging
-log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)
+# import logging
+# log = logging.getLogger('werkzeug')
+# log.setLevel(logging.ERROR)
 
 pdb_input_client = {}
 pdb_input_server = {}
@@ -104,6 +104,7 @@ def forward_pdb_output(token: str):
         finally:
             pass
 
+# 将一份代码进入 debug 模式，代码的输入输出会进入 debug terminal
 @app.route('/pdb/debug', methods=['POST'])
 def start_debug():
     data = request.get_json()
@@ -146,12 +147,15 @@ def clearBreakPoint():
         pdb_instance_lock.release()
         return {'runflag': False}
 
+# 连接：新建一个 Pdb 实例，并将其（Pdb）输入输出用管道导出
 @socketio.on("connect", namespace='/pdb')
 def pdb_connect():
     token = request.sid
     print('pdb connect', token)
     if token in pdb_input_server.keys():
         return
+
+    print('create pdb instance : ', token)
 
     pdb_input_server[token], pdb_input_client[token] = os.pipe()
     pdb_output_client[token], pdb_output_server[token] = os.pipe()
@@ -172,7 +176,6 @@ def pdb_disconnect():
     pdb_instance_lock.release()
 
 def run_server():
-
     socketio.run(app, host='127.0.0.1')
 
 
