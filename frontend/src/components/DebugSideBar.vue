@@ -1,6 +1,6 @@
 <template>
 <splitpanes horizontal>
-  <pane min-size="20" style="overflow-y:scroll overflow-x:hidden">
+  <pane min-size="20" style="overflow-y:scroll; overflow-x:hidden">
     <p class="heading">VARIABLES
       <span class="buttons">
         <el-icon title="Collapse All" :size="iconSize"><Remove /></el-icon>
@@ -74,7 +74,6 @@ const emit = defineEmits<{
   (e: 'updateFocusLine', lineno: number, file: string): void
 }>()
 
-const baseUrl = 'http://127.0.0.1:' as string
 const locVar = ref<Tree[]>([])
 const globVar = ref<Tree[]>([])
 const stk = ref<StackItem[]>([])
@@ -92,9 +91,9 @@ let mToken = ''
 function updateData (port: number, token: string) {
   mPort = port
   mToken = token
-  console.log('update date in side bar ' + port, baseUrl + port.toString() + '/pdb/curframe')
+  console.log('update date in side bar /pdb/curframe')
   // update the variables
-  axios.post(baseUrl + port.toString() + '/pdb/curframe', { token })
+  axios.post('/pdb/curframe', { token, port })
     .then((response) => {
       try {
         let locid = 1
@@ -128,7 +127,7 @@ function updateData (port: number, token: string) {
       }
     })
   // update the call stack
-  axios.post(baseUrl + port.toString() + '/pdb/getstack', { token }).then(
+  axios.post('/pdb/getstack', { port, token }).then(
     (response) => {
       const stklist = JSON.parse(response.request.response)
       stk.value = []
@@ -153,10 +152,7 @@ function updateData (port: number, token: string) {
 }
 
 function updateWatch () {
-  const tmp = []
-  watchList.value.forEach(element => {
-    tmp.push(axios.post(baseUrl + mPort.toString() + '/pdb/repr', { token: mToken, repr: element }))
-  })
+  const tmp = watchList.value.map(element => { return axios.post('/pdb/repr', { port: mPort, token: mToken, repr: element }) })
   axios.all(tmp).then((resp) => {
     watchData.value.splice(0)
     resp.forEach((respitem, index) => {

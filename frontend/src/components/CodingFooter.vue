@@ -4,7 +4,7 @@
     <terminal-panel ref="terminalPanels" @get-pdb-port="initDbger" v-bind="$attrs"></terminal-panel>
   </el-tab-pane>
   <el-tab-pane label="Debugger" name="second">
-    <web-debugger :file-path='debuggerPath' :user-path="userPath" ref="tDebugger" v-bind="$attrs"></web-debugger>
+    <web-debugger :file-path='debuggerPath' :user-path="userPath" ref="tDebugger" v-bind="$attrs" @ended="emit('ended')"></web-debugger>
   </el-tab-pane>
 </el-tabs>
 </template>
@@ -16,6 +16,10 @@ const userPath = ref<string>('')
 const activeName = ref('first')
 const tDebugger = ref()
 const terminalPanels = ref()
+
+const emit = defineEmits <{(e: 'ended'): void,
+}>()
+
 function initDbger (port: number, restart = false) {
   tDebugger.value.initDebugger(port, restart)
 }
@@ -53,5 +57,18 @@ defineExpose({
 .demo-tabs :deep(.el-tabs__active-bar) {
   background-color: var(--el-color-primary-light-3);
 }
+.demo-tabs > .el-tabs__content {
+  height: 100%;
+}
 
+</style>
+
+<style>
+.el-tabs__header {
+  margin: 0px;
+}
+
+.el-tab-pane {
+  height: 100%;
+}
 </style>

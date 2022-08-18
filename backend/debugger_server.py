@@ -100,10 +100,11 @@ def forward_pdb_output(token: str):
         try:
             if flag:
                 output = os.read(pdb_output_client[token], max_read_bytes).decode()
-                socketio.emit("pdb_output", {"consoleOutput": output, 'token': token}, namespace="/pdb", to=token)
+                socketio.emit("pdb_output", {"consoleOutput": output, 'token': token}, namespace="/pdb")
         finally:
             pass
 
+# 将一份代码进入 debug 模式，代码的输入输出会进入 debug terminal
 @app.route('/pdb/debug', methods=['POST'])
 def start_debug():
     data = request.get_json()
@@ -125,7 +126,7 @@ def start_debug():
         pdb_instance.pop(token)
         pdb_instance_lock.release()
         
-        socketio.emit("pdb_quit", {'token': token, 'flag': flag }, namespace="/pdb", to=token)
+        socketio.emit("pdb_quit", {'token': token, 'flag': flag }, namespace="/pdb")
         
     t = threading.Thread(target=run_pdb_process, args=(token, pdb_instance[token]), daemon=True)
     t.start()
@@ -146,22 +147,29 @@ def clearBreakPoint():
         pdb_instance_lock.release()
         return {'runflag': False}
 
-@socketio.on("connect", namespace='/pdb')
-def pdb_connect():
-    token = request.sid
+# 连接：新建一个 Pdb 实例，并将其（Pdb）输入输出用管道导出
+@socketio.on("connect_to_pdb", namespace='/pdb')
+def pdb_connect(data):
+    token = data['token']
     print('pdb connect', token)
     if token in pdb_input_server.keys():
         return
+
+    print('create pdb instance : ', token)
 
     pdb_input_server[token], pdb_input_client[token] = os.pipe()
     pdb_output_client[token], pdb_output_server[token] = os.pipe()
     pdb_instance[token] = PdbExt(stdin=os.fdopen(pdb_input_server[token], 'r'), stdout=os.fdopen(pdb_output_server[token], 'w'))
     socketio.start_background_task(target=forward_pdb_output, token=token)
 
-@socketio.on("disconnect", namespace='/pdb')
-def pdb_disconnect():
+@socketio.on("connect", namespace='/pdb')
+def connect():
+    pass
+
+@socketio.on("disconnect_from_pdb", namespace='/pdb')
+def pdb_disconnect(data):
     time.sleep(2)
-    token = request.sid
+    token = data['token']
     pdb_instance_lock.acquire()
     if token in pdb_instance.keys():
         pdb_input_client.pop(token)
@@ -171,8 +179,11 @@ def pdb_disconnect():
         pdb_instance.pop(token)
     pdb_instance_lock.release()
 
-def run_server():
+@socketio.on("disconnect", namespace='/pdb')
+def disconnect():
+    pass
 
+def run_server():
     socketio.run(app, host='127.0.0.1')
 
 
