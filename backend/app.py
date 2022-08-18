@@ -330,5 +330,27 @@ def getFileTree(username, projectname):
         return jsonify(data)
 
 
+# 移动文件（夹）
+# 传入当前路径和指定路径
+@app.route('/api/moveFile/<username>', method = "POST")
+def moveFile(username):
+    src = request.get_json()['src']
+    dst = request.get_json()['dst']
+    if fileFunc.move(src, dst):
+        path_list = fileFunc.walk(username)
+        data = {
+            'path_list': path_list,
+            'flag': True,
+            'message': None
+        }
+        return jsonify(data)
+    else:
+        data = {
+            'flag': False,
+            'message': "Error file/folder name"
+        }
+        return jsonify(data)
+
+
 if __name__ == "__main__":
     socketio.run(app, port=5000, host='127.0.0.1')
