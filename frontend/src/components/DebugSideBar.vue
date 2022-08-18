@@ -1,6 +1,6 @@
 <template>
 <splitpanes horizontal>
-  <pane min-size="20" style="overflow-y:scroll overflow-x:hidden">
+  <pane min-size="20" style="overflow-y:scroll; overflow-x:hidden">
     <p class="heading">VARIABLES
       <span class="buttons">
         <el-icon title="Collapse All" :size="iconSize"><Remove /></el-icon>

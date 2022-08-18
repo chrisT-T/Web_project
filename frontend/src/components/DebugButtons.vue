@@ -1,5 +1,5 @@
 <template>
-<div style="display: flex;height: auto;">
+<div class="icon-bar">
   <el-icon @click="cont" title="Continue" :size="size"><CaretRight /></el-icon>
   <el-icon @click="next" title="Step Over" :size="size"><Right /></el-icon>
   <el-icon @click="stepInto" title="Step Into" :size="size"><Download /></el-icon>
@@ -12,7 +12,7 @@
 import axios from 'axios'
 let __token = ''
 let mPort = 0
-const size = 40 as number
+const size = 30 as number
 
 // eslint-disable-next-line func-call-spacing
 const emit = defineEmits <{
@@ -76,5 +76,13 @@ defineExpose({
 })
 </script>
 <style scoped>
-
+.icon-bar > .el-icon {
+  cursor: pointer;
+}
+.icon-bar {
+  display: flex;
+  width: 100%;
+  height: auto;
+  justify-content: space-between;
+}
 </style>

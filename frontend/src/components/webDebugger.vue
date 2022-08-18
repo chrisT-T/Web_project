@@ -27,7 +27,8 @@ let pdbSocket = null as Socket | null
 let mPort = 0
 
 const emit = defineEmits <{(e: 'debuggerDataUpdate', port: number, token: string): void,
-  (e: 'initButton', port: number, token: string): void
+  (e: 'initButton', port: number, token: string): void,
+  (e: 'ended'): void,
 }>()
 
 function setBreakPoints (tBreakPoints: Map<string, number[]>) {
@@ -76,6 +77,7 @@ function initDebugger (port: number, restart = false) {
         message: h('i', { style: 'color: teal' }, `The Debugger on port ${port} has quit`)
       })
       isDebugging.value = false
+      emit('ended')
     }
   })
 
@@ -95,6 +97,7 @@ function initDebugger (port: number, restart = false) {
       message: h('i', { style: 'color: teal' }, `The Debugger on port ${port} was terminated`)
     })
     isDebugging.value = false
+    emit('ended')
   })
 }
 
