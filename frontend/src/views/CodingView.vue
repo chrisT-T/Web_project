@@ -25,10 +25,10 @@
         <span class="resize_col" @mousedown="handleDragStart"></span>
         <el-container>
           <splitpanes class="default-theme" horizontal>
-            <pane size="70">
+            <pane>
               <EditorPanel ref="editorPanel" @save-file="saveFile"></EditorPanel>
             </pane>
-            <pane size="30" min-size="20">
+            <pane min-size="20">
               <el-footer>
                 <coding-footer ref="tFooter" @disconnect="hideButtons" @init-button="activateButtons" @debugger-data-update="updateDebuggerSideBar"></coding-footer>
               </el-footer>

@@ -52,9 +52,12 @@ function addFile (path: string, value: string) {
       openCount: 1
     })
   } else {
-    const status = fileStatus.value.get(path) as FileStatus
-    status.openCount++
-    fileStatus.value.set(path, status)
+    // 已经在某处打开了，就直接移动
+    changeFocusToFile(path)
+    return
+    // const status = fileStatus.value.get(path) as FileStatus
+    // status.openCount++
+    // fileStatus.value.set(path, status)
   }
   if (!fileModels.value.has(path)) {
     fileModels.value.set(path, {
