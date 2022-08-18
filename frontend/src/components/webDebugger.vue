@@ -42,12 +42,13 @@ function initDebugger (port: number, restart = false) {
   }
 
   pdbSocket = io('/debugger') // 这里是不想 connect 的...但他们的 sid 不一样...
-
-  pdbSocket.emit('connect_to_debug_server', { port })
-
-  console.log('initDebugger in webDebugger' + port)
-
   pdbSocket.on('connect', () => {
+    pdbSocket?.emit('connect_to_debug_server', { port })
+    console.log('connect to debugger server')
+  })
+  console.log(`initDebugger in webDebugger, port ${port}`)
+
+  pdbSocket.on('connect_to_debug_server_success', () => {
     ElNotification({
       title: 'Debugger Running',
       message: h('i', { style: 'color: teal' }, `A Debugger running on port ${port}`)
