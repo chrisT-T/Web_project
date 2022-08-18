@@ -81,7 +81,6 @@ def clearBreakPoint():
 def connect_to_debugger_server(data):
     token = request.sid
     port = data['port']
-    sleep(3)
     create_socketio_client_to_debug_server(port, token)
     socketio.emit('connect_to_debug_server_success', {'port': port }, namespace='/debugger')
     print('connect to new debug server on port' + str(port))
@@ -116,6 +115,10 @@ def forward_debugger_term():
 # 创建一个 socketio client，转发给 app 上的 socketio
 def create_socketio_client_to_debug_server(port: int, token: str):
     print('create_socketio_client_to_debug_server!!!')
+    while not is_port_in_use(port):
+        sleep(0.1)
+        print(f'{port} is not in use')
+        pass
     new_client = sockio.Client()
     sio_clients[port] = new_client
     new_client.connect('http://localhost:' + str(port), namespaces=['/pdb'])
