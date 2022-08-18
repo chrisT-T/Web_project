@@ -15,8 +15,7 @@
               <FileSet :name="name" :projectname="projectname" @debug-start="(path) => runDebugger(path)" @open-file="openFile"></FileSet>
             </el-tab-pane>
             <el-tab-pane label="Debug" name="second">
-              <div style="display: flex;flex-direction: column;">
-                <debug-buttons ref="dbgButtons" v-if="isDebugging" @runcmd-with-break-point="runcmdWithBreakPoint" @restart-debugger="restartDebugger"></debug-buttons>
+              <div style="display: flex;flex-direction: column;width: 100%">
                 <DebugSideBar ref="tDebugSideBar" token="1" @update-focus-line="updateFocusLine"></DebugSideBar>
               </div>
             </el-tab-pane>
@@ -24,6 +23,10 @@
         </el-aside>
         <span class="resize_col" @mousedown="handleDragStart"></span>
         <el-container>
+          <div class="dbg_panel" ref="dbgPanel">
+            <span class="dbg_panel_handle" @mousedown="dragDebugPanel" />
+            <debug-buttons ref="dbgButtons" v-if="isDebugging" @runcmd-with-break-point="runcmdWithBreakPoint" @restart-debugger="restartDebugger"></debug-buttons>
+          </div>
           <splitpanes class="default-theme" horizontal>
             <pane size="70">
               <EditorPanel ref="editorPanel" @save-file="saveFile"></EditorPanel>
@@ -191,6 +194,18 @@ function hideButtons () {
   isDebugging.value = false
 }
 
+const dbgPanel = ref()
+
+function dragDebugPanel (event : MouseEvent) {
+  const offsetX = event.clientX - dbgPanel.value.offsetLeft
+  document.onmousemove = function (eve : MouseEvent) {
+    dbgPanel.value.style.left = eve.clientX - offsetX + 'px'
+  }
+  document.onmouseup = function () {
+    document.onmousedown = null
+    document.onmousemove = null
+  }
+}
 const sidebarActiveName = ref('first')
 
 function updateDebuggerSideBar (port: number, token: string) {
@@ -264,6 +279,17 @@ div {
   /* overflow: auto; */
   display: flex;
   flex-direction: column;
+}
+.dbg_panel {
+  position: absolute;
+  height: 40px;
+  left: 800px;
+}
+.dbg_panel_handle {
+  margin-left: 6px;
+  width: 4px;
+  background-color: black;
+  cursor: col-resize
 }
 .el-aside {
   background-color: var(--el-color-primary-light-8);

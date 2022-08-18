@@ -35,7 +35,7 @@
       <template #default="{ node, data }">
         <span class="tree-node">
           <span class="var_data">{{node.data.data}}</span>: &nbsp;<span class="var_value"> {{node.data.value}}</span>
-          <el-icon style="float:right" @click="remove(node, data)"><Close /></el-icon>
+          <el-icon style="position: absolute;right: 0;" @click="remove(node, data)"><Close /></el-icon>
         </span>
       </template>
     </el-tree>
@@ -188,6 +188,7 @@ defineExpose({
 
 function closeInput () {
   addingWatch.value = false
+  watchInput.value.clear()
 }
 // 添加 watch 对象
 function addWatch (e) {
@@ -217,6 +218,8 @@ function remove (node: Node, data: Tree) {
   const index = children.findIndex((d) => d.id === data.id)
   children.splice(index, 1)
   dataSource.value = [...dataSource.value]
+  console.log(node)
+  console.log(data)
 }
 </script>
 
