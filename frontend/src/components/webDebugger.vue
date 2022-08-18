@@ -120,7 +120,7 @@ defineExpose({
   @import 'splitpanes/dist/splitpanes.css';
 
   .debugConsole {
-    height: 400px;
+    height: 100%;
     white-space: pre;
     text-align: left;
     overflow-y: scroll;

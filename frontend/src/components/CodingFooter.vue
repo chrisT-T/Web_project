@@ -53,5 +53,18 @@ defineExpose({
 .demo-tabs :deep(.el-tabs__active-bar) {
   background-color: var(--el-color-primary-light-3);
 }
+.demo-tabs > .el-tabs__content {
+  height: 100%;
+}
 
+</style>
+
+<style>
+.el-tabs__header {
+  margin: 0px;
+}
+
+.el-tab-pane {
+  height: 100%;
+}
 </style>

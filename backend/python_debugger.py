@@ -2,6 +2,7 @@ import random
 import socket
 import subprocess
 from time import sleep
+from traceback import print_tb
 from app import app, socketio
 import socketio as sockio
 from flask import request, Response, make_response
@@ -78,14 +79,16 @@ def clearBreakPoint():
 
 @socketio.on('connect_to_debug_server', namespace='/debugger')
 def connect_to_debugger_server(data):
+    token = request.sid
     port = data['port']
-    create_socketio_client_to_debug_server(port)
-    sleep(1)
+    sleep(3)
+    create_socketio_client_to_debug_server(port, token)
     socketio.emit('connect_to_debug_server_success', {'port': port }, namespace='/debugger')
     print('connect to new debug server on port' + str(port))
 
 @socketio.on('disconnect_from_debug_server', namespace='/debugger')
-def disconnect_from_debugger_server(port):
+def disconnect_from_debugger_server(data):
+    port = data['port']
     if port in sio_clients:
         sio_clients[port].disconnect()
         del sio_clients[port]
@@ -111,22 +114,26 @@ def forward_debugger_term():
                 socketio.emit("debugger_term_output", {"output": output, 'token': key}, namespace="/pdb", to=key)
 
 # 创建一个 socketio client，转发给 app 上的 socketio
-def create_socketio_client_to_debug_server(port: int):
+def create_socketio_client_to_debug_server(port: int, token: str):
     print('create_socketio_client_to_debug_server!!!')
     new_client = sockio.Client()
-    # sio_clients[port] = new_client
+    sio_clients[port] = new_client
     new_client.connect('http://localhost:' + str(port), namespaces=['/pdb'])
+    new_client.emit('connect_to_pdb', {'token': token}, namespace='/pdb')
     # socketio.emit("pdb_terminated", { 'token': key }, namespace="/pdb")
-    def terminated_handler(token):
-        socketio.emit("pdb_terminated", { "token": token, "port": port }, namespace="/debugger")
+    def terminated_handler(data):
+        print("terminated_handler")
+        socketio.emit("pdb_terminated", data, namespace="/debugger")
     new_client.on('pdb_terminated', terminated_handler, namespace='/pdb')
     # socketio.emit("pdb_output", {"consoleOutput": output, 'token': token}, namespace="/pdb", to=token)
-    def output_handler(consoleOutput, token):
-        socketio.emit("pdb_output", {"consoleOutput": consoleOutput, 'token': token}, namespace="/debugger", to=token)
+    def output_handler(data):
+        print("output_handler")
+        socketio.emit("pdb_output", data, namespace="/debugger", to=token)
     new_client.on('pdb_output', output_handler, namespace='/pdb')
     # socketio.emit("pdb_quit", {'token': token, 'flag': flag }, namespace="/pdb", to=token)
-    def quit_handler(token, flag):
-        socketio.emit("pdb_quit", {"token": token, "flag": flag}, namespace="/debugger", to=token)
+    def quit_handler(data):
+        print("quit_handler")
+        socketio.emit("pdb_quit", data, namespace="/debugger", to=token)
     new_client.on('pdb_quit', quit_handler, namespace='/pdb')
     print('create_socketio_client_to_debug_server success')
 
