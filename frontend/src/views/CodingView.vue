@@ -15,7 +15,7 @@
               <FileSet :name="name" :projectname="projectname" @debug-start="(path) => runDebugger(path)" @open-file="openFile"></FileSet>
             </el-tab-pane>
             <el-tab-pane label="Debug" name="second">
-              <div style="display: flex;flex-direction: column;width: 100%">
+              <div style="display: flex;flex-direction: column;width: 100%; margin-right: 10px;">
                 <DebugSideBar ref="tDebugSideBar" token="1" @update-focus-line="updateFocusLine"></DebugSideBar>
               </div>
             </el-tab-pane>
@@ -28,12 +28,12 @@
             <debug-buttons ref="dbgButtons" v-if="isDebugging" @runcmd-with-break-point="runcmdWithBreakPoint" @restart-debugger="restartDebugger"></debug-buttons>
           </div>
           <splitpanes class="default-theme" horizontal>
-            <pane size="70">
+            <pane>
               <EditorPanel ref="editorPanel" @save-file="saveFile"></EditorPanel>
             </pane>
-            <pane size="30" min-size="20">
+            <pane min-size="20">
               <el-footer>
-                <coding-footer ref="tFooter" @disconnect="hideButtons" @init-button="activateButtons" @debugger-data-update="updateDebuggerSideBar"></coding-footer>
+                <coding-footer ref="tFooter" @disconnect="hideButtons" @init-button="activateButtons" @debugger-data-update="updateDebuggerSideBar" @ended="cleanEditorFocus"></coding-footer>
               </el-footer>
             </pane>
           </splitpanes>
@@ -225,6 +225,10 @@ function updateFocusLine (lineno: number, path: string) {
       message: h('i', { style: 'color: teal' }, 'The Debugging file does not open in Editor')
     })
   }
+}
+
+function cleanEditorFocus () {
+  editorPanel.value?.clearFocusLine()
 }
 
 function restartDebugger (port: number) {

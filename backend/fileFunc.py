@@ -153,3 +153,26 @@ def getData(src: String):
 
         return True, level0_list
     return False, []
+
+
+# 移动文件（夹）
+def move(src: String, dst: String):
+    src = os.path.join(FILE_PATH, src) 
+    dst = os.path.join(FILE_PATH, dst) 
+
+    # 目标路径下不能有重名
+    basename = os.path.basename(src)
+    # print (basename)
+    if os.path.exists(os.path.join(dst, basename)):
+        return False
+    # 目标路径必须是文件夹
+    if not os.path.isdir(dst):
+        return False
+
+    if os.path.exists(src) and os.path.exists(dst):
+        shutil.move(src, dst)
+        return True
+    return False
+
+
+

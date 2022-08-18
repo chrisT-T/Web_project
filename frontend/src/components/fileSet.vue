@@ -36,7 +36,6 @@
           </span>
           <span class="tree-root-btn-gp" v-if="!data.showInput">
             <el-button class="tree-btn" :icon="Plus" @click="currentTree(data)" text />
-            <el-button class="tree-btn" :icon="EditPen" style="margin: 0px; padding: 0px" @click="editStart(data)" text />
           </span>
           <el-input size="small" ref="inputVal" v-if="data.showInput" :value="data.label"
             v-model="changeInput.inputStr"
@@ -370,6 +369,6 @@ onMounted(async () => {
   justify-content: space-between;
 }
 .tree-root-btn-gp {
-  margin-right: 15px;
+  margin-right: 0px;
 }
 </style>

@@ -1,8 +1,6 @@
-from lib2to3.pgen2 import token
 from app import app, socketio
 from flask import request
 import os
-import select
 import subprocess
 import pty
 
@@ -12,17 +10,14 @@ def pty_input(data):
     if app.config['fd'][token]:
         os.write(app.config['fd'][token], data['input'].encode())
 
-def forward_pty_output():
+def forward_pty_output(token: str):
     max_read_bytes = 1024 * 20
     while True:
         socketio.sleep(0.01)
-        for key in app.config['fd'].keys():
-            if app.config["fd"][key]:
-                timeout_sec = 0
-                (data_ready, _, _) = select.select([app.config["fd"][key]], [], [], timeout_sec)
-                if data_ready:
-                    output = os.read(app.config["fd"][key], max_read_bytes).decode()
-                    socketio.emit("pty-output", {"output": output, 'token': key}, namespace="/pty", to=key)
+        for token in app.config['fd'].keys():
+            if app.config["fd"][token]:
+                output = os.read(app.config["fd"][token], max_read_bytes).decode()
+                socketio.emit("pty-output", {"output": output, 'token': token}, namespace="/pty", to=token)
 
 @socketio.on('disconnect', namespace='/pty')
 def disconnect() :
@@ -45,4 +40,4 @@ def connect() :
     else:
         app.config['fd'][token] = fd
         app.config['child_pid'][token] = child_pid
-        socketio.start_background_task(target=forward_pty_output)
+        socketio.start_background_task(target=forward_pty_output, token=token)

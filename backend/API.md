@@ -174,3 +174,18 @@ def getFileTree(username, projectname):
   + url提供当前用户用户名和项目名
 + 返回值
   + 格式：json，带键值对`flag`、`message`、`fileTree`，flag为true时，message为空；flag为false时，message指出具体错误（如 文件不存在，文件名重复...）,`fileTree` 中为项目文件树
+
+
+### 移动文件（夹）
+```python
+@app.route('/api/moveFile/<username>', method = "POST")
+def moveFile(username):
+```
+
++ 参数：
+  + url提供当前用户用户名
+  + post形式传入参数`src`，表示待移动的文件（夹）；`dst`，表示目标文件（夹）
++ 返回值
+  + 格式：json，带键值对`flag`、`message`，flag为true时，message为空；flag为false时，message指出具体错误（如 文件不存在，文件名重复...）
+  + 移动成功则json还会返回`path_list`，是一个字典列表，含有该用户所有文件和文件夹路径
+

@@ -35,6 +35,21 @@ module.exports = {
         target: 'http://localhost:5000',
         ws: true,
         changeOrigin: true
+      },
+      '/pdb': {
+        target: 'http://localhost:5000',
+        ws: true,
+        changeOrigin: true
+      },
+      '/pty': {
+        target: 'http://localhost:5000',
+        ws: true,
+        changeOrigin: true
+      },
+      '/socket.io': {
+        target: 'http://localhost:5000',
+        ws: true,
+        changeOrigin: true
       }
     }
   }

@@ -10,7 +10,7 @@ import io from 'socket.io-client'
 const termDiv = ref<HTMLDivElement>()
 let term = new Terminal()
 const status = ref<string>('disconnected')
-const socket = io('ws://127.0.0.1:5000/pty')
+const socket = io('/pty')
 
 function initTerminal () {
   term = new Terminal({

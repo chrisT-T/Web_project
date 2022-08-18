@@ -1,135 +1,128 @@
 # 管理用户账户信息
-from logging import error
-from tokenize import String, group
-import pandas as pd
-from openpyxl import load_workbook
+from tokenize import String
 import os
 import datetime
-import numpy as np
+import sqlite3
 
-# 记录当前用户
-cur_user = ''
 
 # 用户名密码是否输入正确
 def isCorrect(username: String, userpassword: String):
-    if not os.path.exists("./userInfo.xlsx"):
+    if not os.path.exists('userInfo.db'):
         return False
+    conn = sqlite3.connect('userInfo.db')
+    cur = conn.cursor()
+    select_cmd = f'''
+        SELECT PWD FROM USERINFO WHERE NAME = '{username}' '''
+    cur.execute(select_cmd)
+    ls = cur.fetchall()
+    conn.commit()
+    conn.close()
+    if ls == []:
+        return False
+    if userpassword == ls[0][0]:
+        return True
     else:
-        df = pd.DataFrame(pd.read_excel('./userInfo.xlsx', sheet_name="userInfo"))
-        result = df[(df.username==username) & (df.password==str(userpassword))]
-        return not result.empty
+        return False
 
 # 该用户名是否已被注册
 def isValid(username: String):
-    if not os.path.exists("./userInfo.xlsx"):
+    if not os.path.exists('userInfo.db'):
         return True
+    conn = sqlite3.connect('userInfo.db')
+    cur = conn.cursor()
+    select_cmd = f'''
+        SELECT NAME FROM USERINFO'''
+    cur.execute(select_cmd)
+    ls = cur.fetchall()
+    modify_ls = [i[0] for i in ls]
+    conn.commit()
+    conn.close()
+    if username in modify_ls:
+        return False
     else:
-        df = pd.DataFrame(pd.read_excel('./userInfo.xlsx', sheet_name="userInfo"))
-        userList = df['username']
-        if username not in userList.values:
-            return True
-    return False
+        return True
 
 
 # 注册新用户
 def createNewUser(username: String, userpassword: String):
-    if not os.path.exists("./userInfo.xlsx"):
-        df = pd.DataFrame([{'username' : username, 'password' : userpassword}])
-        df.to_excel("./userInfo.xlsx", sheet_name="userInfo", index=False)
-        return
-    else:
-        df_old = pd.DataFrame(pd.read_excel('./userInfo.xlsx', sheet_name="userInfo"))
-        n = len(df_old.index)
-        df = pd.DataFrame([{'username' : username, 'password' : userpassword}])
-        book = load_workbook('./userInfo.xlsx')
-        group_writer = pd.ExcelWriter('./userInfo.xlsx', engine='openpyxl')
-        group_writer.book = book
-        group_writer.sheets = dict((ws.title, ws) for ws in book.worksheets)
-        df_rows = df_old.shape[0]
-        df.to_excel(group_writer, sheet_name='userInfo', startrow=df_rows+1,header=False, index=False)
-        group_writer.save()
-        return
+    conn = sqlite3.connect('userInfo.db')
+    cur = conn.cursor()
+    try:
+        create_cmd = '''
+        CREATE TABLE IF NOT EXISTS USERINFO (
+            NAME TEXT,
+            PWD TEXT
+        )'''
+        cur.execute(create_cmd)
+    except:
+        print("Create table failed")
+    insert_cmd = f'''
+        INSERT INTO USERINFO (NAME, PWD) VALUES ('{username}', '{userpassword}')'''
+    cur.execute(insert_cmd)
+    conn.commit()
+    conn.close()
 
 # 保存项目的相关信息
 def saveProject(src, language):
-    if not os.path.exists("./userInfo.xlsx"):
-        raise error
     username, proname = src.split('/')
-    book = load_workbook('./userInfo.xlsx')
-    group_writer = pd.ExcelWriter('./userInfo.xlsx', engine='openpyxl')
-    group_writer.book = book
-    group_writer.sheets = dict((ws.title, ws) for ws in book.worksheets)
     t = datetime.datetime.now()
-    if username in group_writer.sheets:
-        group_writer.close()
-        df_old = pd.DataFrame(pd.read_excel('./userInfo.xlsx', sheet_name=username))
-        df = pd.DataFrame([{'proname': proname, 'language': language, 'lastupdate': t}])
-        book = load_workbook('./userInfo.xlsx')
-        group_writer = pd.ExcelWriter('./userInfo.xlsx', engine='openpyxl')
-        group_writer.book = book
-        group_writer.sheets = dict((ws.title, ws) for ws in book.worksheets)
-        df_rows = df_old.shape[0]
-        df.to_excel(group_writer, sheet_name=username, startrow=df_rows+1,header=False, index=False)
-        group_writer.save()
-    else:
-        df = pd.DataFrame([{'proname': proname, 'language': language, 'lastupdate': t}])
-        df.to_excel(group_writer, sheet_name=username, index=False)
-        group_writer.save()
-    return t
+    conn = sqlite3.connect('userInfo.db')
+    cur = conn.cursor()
+    try:
+        create_cmd = f'''
+        CREATE TABLE IF NOT EXISTS {username} (
+            PRONAME TEXT,
+            LANGUAGE TEXT,
+            LASTUPDATE TEXT
+        )'''
+        cur.execute(create_cmd)
+    except:
+        print("Create table failed")
+    insert_cmd = f'''
+        INSERT INTO {username} (PRONAME, LANGUAGE, LASTUPDATE) VALUES ('{proname}', '{language}', '{t}')'''
+    cur.execute(insert_cmd)
+    conn.commit()
+    conn.close()
+    return str(t).split('.')[0]
 
 # 删除项目信息
 def deletepro(src):
-    if not os.path.exists("./userInfo.xlsx"):
-        raise error
     username, proname = src.split('/')
-    df = pd.DataFrame(pd.read_excel('./userInfo.xlsx', sheet_name=username))
-    df_del = df[(df.proname!=proname)]
-    book = load_workbook('./userInfo.xlsx')
-    with pd.ExcelWriter('./userInfo.xlsx', engine='openpyxl') as writer:
-        writer.book = book
-        idx = book.sheetnames.index(username)
-        book.remove(book.worksheets[idx])
-        book.create_sheet(username, idx)
-        writer.sheets = dict((ws.title, ws) for ws in book.worksheets)
-        df_del.to_excel(writer, sheet_name=username, index=False)
+    conn = sqlite3.connect('userInfo.db')
+    cur = conn.cursor()
+    delete_cmd = f'''
+        DELETE FROM {username} WHERE PRONAME = '{proname}' '''
+    cur.execute(delete_cmd)
+    conn.commit()
+    conn.close()
 
 # 更新项目名字
 def renamepro(src, dst):
-    if not os.path.exists("./userInfo.xlsx"):
-        raise error
     username, proname = src.split('/')
     _, newname = dst.split('/')
-    df = pd.DataFrame(pd.read_excel('userInfo.xlsx', sheet_name=username))
-    df_del = df[(df.proname!=proname)]
-    df_old = df[(df.proname==proname)].squeeze()
-    tmp = pd.DataFrame([{'proname': newname, 'language': df_old['language'], 'lastupdate': datetime.datetime.now()}])
-    frame = [df_del, tmp]
-    result = pd.concat(frame)
-    book = load_workbook('./userInfo.xlsx')
-    with pd.ExcelWriter('./userInfo.xlsx', engine='openpyxl') as writer:
-        writer.book = book
-        idx = book.sheetnames.index(username)
-        book.remove(book.worksheets[idx])
-        book.create_sheet(username, idx)
-        writer.sheets = dict((ws.title, ws) for ws in book.worksheets)
-        result.to_excel(writer, sheet_name=username, index=False)
+    t = datetime.datetime.now()
+    conn = sqlite3.connect('userInfo.db')
+    cur = conn.cursor()
+    update_cmd = f'''
+        UPDATE {username} SET PRONAME = '{newname}', LASTUPDATE = '{t}' WHERE PRONAME = '{proname}' '''
+    cur.execute(update_cmd)
+    conn.commit()
+    conn.close()
 
 # 返回项目列表
 def showpro(username):
-    if not os.path.exists("./userInfo.xlsx"):
-        raise error
+    conn = sqlite3.connect('userInfo.db')
+    cur = conn.cursor()
+    select_cmd = f'''
+        SELECT * FROM {username}'''
     try:
-        df = pd.DataFrame(pd.read_excel('userInfo.xlsx', sheet_name=username))
-        ls = df.values.tolist()
+        cur.execute(select_cmd)
     except:
-        ls = []
-    return ls
-
-# 设置当前用户
-def setCurUser(username: String):
-    global cur_user
-    cur_user = username
-
-# 返回当前用户
-def currentUser():
-    return cur_user
+        return []
+    ls = cur.fetchall()
+    conn.commit()
+    conn.close()
+    print(ls)
+    modify_ls = [(i[0], i[1], i[2].split('.')[0]) for i in ls]
+    print(modify_ls)
+    return modify_ls

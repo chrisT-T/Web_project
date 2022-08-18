@@ -14,18 +14,7 @@ import webTerminal from './webTerminal.vue'
 import DebuggerTerminal from './DebuggerTerminal.vue'
 let tabIndex = 2
 const editableTabsValue = ref('1')
-const editableTabs = ref([
-  {
-    title: 'Terminal',
-    name: '1',
-    content: markRaw(webTerminal)
-  },
-  {
-    title: 'Terminal',
-    name: '2',
-    content: markRaw(webTerminal)
-  }
-])
+const editableTabs = ref([])
 
 const handleTabsEdit = (targetName: string, action: 'remove' | 'add') => {
   if (action === 'add') {
