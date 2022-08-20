@@ -23,6 +23,7 @@ html, body {
   padding: 0;
   height: 100%;
 }
+
 *{  
   -webkit-touch-callout:none;  /*系统默认菜单被禁用*/   
   -webkit-user-select:none; /*webkit浏览器*/   
@@ -37,5 +38,24 @@ input{
 }
 textarea{
   -webkit-user-select:auto; /*webkit浏览器*/
+}
+
+::-webkit-scrollbar {
+    width: 5px; /* 纵向滚动条*/
+    height: 5px; /* 横向滚动条 */
+    background-color: #fff;
+}
+
+/*定义滚动条轨道 内阴影*/
+::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0);
+    background-color: #ccc;
+}
+
+/*定义滑块 内阴影*/
+::-webkit-scrollbar-thumb {
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0);
+    background-color: #000000;
+    border-radius: 10px;
 }
 </style>

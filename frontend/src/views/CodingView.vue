@@ -10,12 +10,12 @@
           <el-button class="closeBtn" :icon="Fold" @click="closeAside" circle />
         </div>
         <el-aside :width="data.width">
-          <el-tabs v-model="sidebarActiveName" tab-position="left">
+          <el-tabs v-model="sidebarActiveName" tab-position="left" class="aside-tabs">
             <el-tab-pane label="File" name="first">
               <FileSet :name="name" :projectname="projectname" @debug-start="(path) => runDebugger(path)" @open-file="openFile"></FileSet>
             </el-tab-pane>
             <el-tab-pane label="Debug" name="second">
-              <div style="display: flex;flex-direction: column;width: 100%; margin-right: 10px;">
+              <div style="display: flex;flex-direction: column;width: 100%">
                 <DebugSideBar ref="tDebugSideBar" token="1" @update-focus-line="updateFocusLine"></DebugSideBar>
               </div>
             </el-tab-pane>
@@ -283,6 +283,7 @@ div {
   /* overflow: auto; */
   display: flex;
   flex-direction: column;
+  padding: 0;
 }
 .dbg_panel {
   position: absolute;
@@ -296,7 +297,6 @@ div {
   cursor: col-resize
 }
 .el-aside {
-  background-color: var(--el-color-primary-light-8);
   overflow: auto;
 }
 .el-main {

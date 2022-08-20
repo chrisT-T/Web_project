@@ -220,11 +220,16 @@ function remove (node: Node, data: Tree) {
 </script>
 
 <style scoped>
+* {
+  font-family:Arial, Helvetica, sans-serif;
+  font-size: 14px;
+}
 .heading {
   text-align: left;
-  font-size: 15px;
-  margin: 2px;
+  font-size: 14px;
+  margin: 0;
   padding: 6px 2px 2px;
+  justify-content: center;
 }
 
 .buttons {
@@ -232,8 +237,8 @@ function remove (node: Node, data: Tree) {
   margin:-3px 0 0;
 }
 :deep(.splitpanes__splitter){
-  background-color: var(--el-color-primary-dark-2);
-  height: 3px;
+  height: 2px;
+  background-color: var(--el-border-color-light);
 }
 :deep(.el-tree) {
   background-color: var(--el-color-primary-light-8);

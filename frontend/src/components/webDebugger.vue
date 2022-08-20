@@ -2,7 +2,7 @@
   <div class="debugConsole">
     <p style="text-align: left; font-size: 20px; font-weight: bold;"> Debug Console:</p>
     <p>{{ consoleOutput }}</p>
-    <el-input name="command" id="command" v-model="command" @keyup.enter="send" style="position: absolute; bottom: 0"/>
+    <el-input class="command" name="command" id="command" v-model="command" @keyup.enter="send"/>
   </div>
 </template>
 
@@ -138,5 +138,10 @@ defineExpose({
   }
   .stkFile {
     float: right;
+  }
+  .command {
+    position: absolute;
+    bottom: 2px;
+    right: 10px;
   }
 </style>

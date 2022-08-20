@@ -18,11 +18,6 @@ const routes: Array<RouteRecordRaw> = [
     path: '/coding/:username/:projectname',
     name: 'coding',
     component: () => import('../views/CodingView.vue')
-  },
-  {
-    path: '/file',
-    name: 'file',
-    component: () => import('../components/fileSet.vue')
   }
 ]
 

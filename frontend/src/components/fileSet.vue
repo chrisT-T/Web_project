@@ -333,7 +333,6 @@ onMounted(async () => {
   align-items: center;
   justify-content: space-between;
   font-size: 14px;
-  padding-right: 8px;
   width: 100%;
 }
 .el-select {

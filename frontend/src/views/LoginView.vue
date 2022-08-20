@@ -107,6 +107,7 @@ body {
     display: flex;
     flex-direction: column;
     height: 100%;
+    min-width: 340px;
 }
 
 header{
@@ -134,6 +135,7 @@ header{
   align-items: center;
   /* flex-direction: column; */
   flex-grow: 1;
+  flex-wrap: wrap;
 }
 
 .bg_img {
