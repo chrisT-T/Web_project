@@ -332,7 +332,7 @@ def getFileTree(username, projectname):
 
 # 移动文件（夹）
 # 传入当前路径和指定路径
-@app.route('/api/moveFile/<username>', method = "POST")
+@app.route('/api/moveFile/<username>', methods = ["POST"])
 def moveFile(username):
     src = request.get_json()['src']
     dst = request.get_json()['dst']
