@@ -1,6 +1,5 @@
 <template>
 <div class="icon-bar">
->>>>>>> 028e73bba090e4f040c6e1ce5906d753e3371bcb
   <el-icon @click="cont" title="Continue" :size="size"><CaretRight /></el-icon>
   <el-icon @click="next" title="Step Over" :size="size"><Right /></el-icon>
   <el-icon @click="stepInto" title="Step Into" :size="size"><Download /></el-icon>
