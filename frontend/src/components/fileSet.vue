@@ -11,6 +11,8 @@
         <span v-if="!data.isRoot" class="custom-tree-node">
           <el-dropdown v-if="!data.showInput" trigger="contextmenu">
             <span class="el-dropdown-link" @dblclick="editStart(data)">
+              <el-icon v-if="data.type === 'folder'"><Folder /></el-icon>
+              <el-icon v-if="data.type === 'file'"><Document /></el-icon>
               {{ node.label }}
             </span>
             <template #dropdown>
@@ -18,7 +20,8 @@
                 <el-dropdown-item :icon="Plus" @click="currentTree(data)" :disabled="data.type === 'file'">Append</el-dropdown-item>
                 <el-dropdown-item :icon="DeleteFilled" @click="remove(node, data)">Delete</el-dropdown-item>
                 <el-dropdown-item :icon="EditPen" @click="editStart(data)">Change name</el-dropdown-item>
-                <el-dropdown-item :icon="EditPen" @click="debugStart(data)">Run in Debug mode</el-dropdown-item>
+                <el-dropdown-item :icon="CaretRight" @click="debugStart(data)">Run in Debug mode</el-dropdown-item>
+                <el-dropdown-item v-if="data.type === 'file' " :icon="Download" @click="download(data)">Download</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -79,7 +82,9 @@ import {
   DeleteFilled,
   DocumentAdd,
   FolderAdd,
-  EditPen
+  EditPen,
+  CaretRight,
+  Download
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import axios from 'axios'
@@ -149,6 +154,9 @@ function changeRoute (children: Tree[], pre: string, origin: string, newLabel: s
       changeRoute(children[key].children, pre, origin, newLabel)
     }
   }
+}
+const download = async (data: Tree) => {
+  await axios.get('/api/download/' + props.name, { params: { src: props.name + '/' + data.route + '/' + data.label } })
 }
 // 成功编辑并连接后端
 const editFinish = async (data:Tree) => {

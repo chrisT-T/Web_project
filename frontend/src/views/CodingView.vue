@@ -257,12 +257,7 @@ div {
   float: left;
   border-radius: 5px;
   width: 4px;
-}
-.resize_row {
-  cursor:row-resize;
-  float: left;
-  border-radius: 5px;
-  height: 4px;
+  background-color: var(--el-border-color-light);
 }
 .backBtn, .saveBtn {
   height: 30px;
@@ -293,7 +288,7 @@ div {
 .dbg_panel_handle {
   margin-left: 6px;
   width: 4px;
-  background-color: black;
+  background-color: var(--el-border-color-light);;
   cursor: col-resize
 }
 .el-aside {
