@@ -143,5 +143,6 @@ defineExpose({
     position: absolute;
     bottom: 2px;
     right: 10px;
+    padding: 0 10px;
   }
 </style>
