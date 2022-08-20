@@ -38,6 +38,7 @@ declare module '@vue/runtime-core' {
     ElTabPane: typeof import('element-plus/es')['ElTabPane']
     ElTabs: typeof import('element-plus/es')['ElTabs']
     ElTree: typeof import('element-plus/es')['ElTree']
+    ElUpload: typeof import('element-plus/es')['ElUpload']
     FileSet: typeof import('./src/components/fileSet.vue')['default']
     HeaderItem: typeof import('./src/components/EditorPanel/HeaderItem.vue')['default']
     MonacoEditor: typeof import('./src/components/EditorPanel/MonacoEditor/MonacoEditor.vue')['default']
