@@ -102,9 +102,13 @@ function createLanguageClient (transports: MessageTransports): MonacoLanguageCli
   })
 }
 
-function createUrl (hostname: string, port: number, path: string): string {
+function createUrl (hostname: string, path: string, port?: number): string {
   const protocol = location.protocol === 'https:' ? 'wss' : 'ws'
-  return normalizeUrl(`${protocol}://${hostname}:${port}${path}`)
+  if (port !== undefined) {
+    return normalizeUrl(`${protocol}://${hostname}:${port}${path}`)
+  } else {
+    return normalizeUrl(`${protocol}://${hostname}${path}`)
+  }
 }
 
 onMounted(() => {
@@ -221,7 +225,7 @@ onMounted(() => {
   MonacoServices.install()
 
   // create websocket
-  const url = createUrl('localhost', 3000, '/')
+  const url = createUrl(location.host, '/lsp')
   const webSocket = new WebSocket(url)
 
   // define the connection(websocket) to the language server

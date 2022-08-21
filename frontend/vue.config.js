@@ -50,6 +50,14 @@ module.exports = {
         target: 'http://localhost:5000',
         ws: true,
         changeOrigin: true
+      },
+      '/lsp': {
+        target: 'ws://localhost:30000',
+        ws: true,
+        changeOrigin: true,
+        pathRewrite: {
+          '^/lsp': '/'
+        }
       }
     }
   }
