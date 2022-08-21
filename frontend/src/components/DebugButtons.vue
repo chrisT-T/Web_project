@@ -85,5 +85,6 @@ defineExpose({
   width: 100%;
   height: auto;
   justify-content: space-between;
+  z-index: 999;
 }
 </style>

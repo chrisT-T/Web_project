@@ -3,19 +3,10 @@
   <pane min-size="20" style="overflow-y:scroll; overflow-x:hidden">
     <p class="heading">VARIABLES
       <span class="buttons">
-        <el-icon title="Collapse All" :size="iconSize"><Remove /></el-icon>
+        <el-icon title="Collapse All" :size="iconSize" @click="collapseVar"><Remove /></el-icon>
       </span>
     </p>
-    <p style="width:100%; margin: 5px 0px 0px 10px; text-align: left; color: grey">Locals </p>
-    <el-tree :default-expand-all="true" :data="locVar">
-      <template #default="{ node, data }">
-        <span class="tree-node">
-          <span class="var_data">{{node.data.data}}</span>: &nbsp;<span class="var_value"> {{data.value}}</span>
-        </span>
-      </template>
-    </el-tree>
-    <p style="width:100%; margin: 5px 0px 0px 10px; text-align: left; color: grey">Globals </p>
-    <el-tree :default-expand-all="true" :data="globVar">
+    <el-tree :default-expand-all="true" :data="variables" ref="varTree">
       <template #default="{ node, data }">
         <span class="tree-node">
           <span class="var_data">{{node.data.data}}</span>: &nbsp;<span class="var_value"> {{data.value}}</span>
@@ -43,7 +34,7 @@
   </pane>
   <pane min-size="20">
     <p class="heading">CALL STACK </p>
-    <div v-for="(item,index) in stk" :key="index">
+    <div v-for="(item, index) in stk" :key="index">
       <span style="float: left">{{item.func}}</span><span style="float: right">{{item.file}}</span><br>
     </div>
   </pane>
@@ -59,6 +50,7 @@ import { ElNotification } from 'element-plus'
 
 interface Tree {
   id: number
+  isRoot: boolean
   data: string
   value: string
   children?: Tree[]
@@ -74,14 +66,17 @@ const emit = defineEmits<{
   (e: 'updateFocusLine', lineno: number, file: string): void
 }>()
 
-const locVar = ref<Tree[]>([])
-const globVar = ref<Tree[]>([])
+const variables = ref<Tree[]>([
+  { id: 0, data: 'Locals', value: '', isRoot: true, children: [] },
+  { id: 1, data: 'Globals', value: '', isRoot: true, children: [] }
+])
+const varTree = ref()
+function collapseVar () {
+  for (const node of varTree.value.store.nodesMap) {
+    node.expanded = false
+  }
+}
 const stk = ref<StackItem[]>([])
-const watchList = ref<string[]>([])
-const watchData = ref<Tree[]>([])
-const watchInput = ref()
-const watchToBeAdded = ref('')
-const addingWatch = ref<boolean>(false)
 const iconSize = 20
 const watchAvailable = ref<string>('disabledButton')
 
@@ -96,32 +91,37 @@ function updateData (port: number, token: string) {
   axios.post('/pdb/curframe', { token, port })
     .then((response) => {
       try {
-        let locid = 1
-        let globid = 1
+        let id = 2
         console.log(JSON.parse(response.request.response))
         const rawLocals = JSON.parse(response.request.response).locals as string
         const rawGlobals = JSON.parse(response.request.response).globals as string
         const locals = rawLocals.split('\n')
+        console.log(locals)
         const globals = rawGlobals.split('\n')
-        locVar.value = []
-        globVar.value = []
-        for (const i of locals) {
-          const dat = i.split('=')[0]
-          const val = i.split('=')[1]
-          locVar.value.push({ id: locid++, data: dat, value: val, children: [] })
+        variables.value = [
+          { id: 0, data: 'Locals', value: '', isRoot: true, children: [] },
+          { id: 1, data: 'Globals', value: '', isRoot: true, children: [] }
+        ]
+        if (locals[0] !== '') {
+          for (const i of locals) {
+            const dat = i.split('=')[0]
+            const val = i.split('=')[1]
+            variables.value[0].children?.push({ id: id++, data: dat, value: val, isRoot: false, children: [] })
+          }
         }
-        for (const i of globals) {
-          const dat = i.split('=')[0]
-          const val = i.split('=')[1]
-          globVar.value.push({ id: globid++, data: dat, value: val, children: [] })
+        if (globals[0] !== '') {
+          for (const i of globals) {
+            const dat = i.split('=')[0]
+            const val = i.split('=')[1]
+            variables.value[1].children?.push({ id: id++, data: dat, value: val, isRoot: false, children: [] })
+          }
         }
         const currentLine = JSON.parse(response.request.response).current_line as number
         const rawpath = JSON.parse(response.request.response).rawfilename as string
         emit('updateFocusLine', currentLine, rawpath)
       } catch (e: TypeError) {
         console.log(e)
-        locVar.value = []
-        globVar.value = []
+        variables.value = []
       } finally {
         console.log('finally')
       }
@@ -151,6 +151,12 @@ function updateData (port: number, token: string) {
   }
 }
 
+const watchList = ref<string[]>([])
+const watchData = ref<Tree[]>([])
+const watchInput = ref()
+const watchToBeAdded = ref('')
+const addingWatch = ref<boolean>(false)
+
 function updateWatch () {
   const tmp = watchList.value.map(element => { return axios.post('/pdb/repr', { port: mPort, token: mToken, repr: element }) })
   axios.all(tmp).then((resp) => {
@@ -162,6 +168,7 @@ function updateWatch () {
         const value = JSON.parse(respitem.request.response).value
         watchData.value.push({
           id: index,
+          isRoot: false,
           data: watchList.value[index],
           value,
           children: []
@@ -169,6 +176,7 @@ function updateWatch () {
       } else {
         watchData.value.push({
           id: index,
+          isRoot: false,
           data: watchList.value[index],
           value: '',
           children: []
@@ -179,44 +187,57 @@ function updateWatch () {
 }
 
 defineExpose({
-  updateData
+  updateData,
+  endDebug
 })
-
+// close addwatch input
 function closeInput () {
   addingWatch.value = false
   watchInput.value.clear()
 }
-// 添加 watch 对象
+// add addwatch input value into watch
 function addWatch (e) {
   watchList.value.push(e.target.value)
   ElNotification({
     title: 'Debugger: Watch',
     message: h('i', { style: 'color: teal' }, `Add a new watch expression ${e.target.value}`)
   })
-  e.target.value = ''
+  watchAvailable.value = 'availableButton'
   updateWatch()
   closeInput()
 }
-// 显示添加 watch 对象的框
+// show addwatch input
 async function addExpression () {
   addingWatch.value = true
   await nextTick()
   watchInput.value.focus()
 }
-// 清空 watch
 function clearWatch () {
   watchList.value = []
   watchData.value = []
+  watchAvailable.value = 'disabledButton'
 }
+
 function remove (node: Node, data: Tree) {
   const parent = node.parent
   const children: Tree[] = parent.data.children || parent.data
   const index = children.findIndex((d) => d.id === data.id)
   children.splice(index, 1)
-  dataSource.value = [...dataSource.value]
-  console.log(node)
-  console.log(data)
+  watchData.value = [...watchData.value]
+  const listidx = watchList.value.findIndex((d) => d === data.data)
+  watchList.value.splice(listidx, 1)
+  console.log(watchList.value)
 }
+
+function endDebug () {
+  stk.value = []
+  variables.value = [
+    { id: 0, data: 'Locals', value: '', isRoot: true, children: [] },
+    { id: 1, data: 'Globals', value: '', isRoot: true, children: [] }
+  ]
+  clearWatch()
+}
+
 </script>
 
 <style scoped>
@@ -239,9 +260,6 @@ function remove (node: Node, data: Tree) {
 :deep(.splitpanes__splitter){
   height: 2px;
   background-color: var(--el-border-color-light);
-}
-:deep(.el-tree) {
-  background-color: var(--el-color-primary-light-8);
 }
 :deep(.el-tree-node__content) {
   width: 100%;
@@ -274,6 +292,10 @@ function remove (node: Node, data: Tree) {
 }
 .var_data {
   color: blueviolet;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  width: auto;
+  white-space: nowrap;
 }
 .var_value {
   color: green;

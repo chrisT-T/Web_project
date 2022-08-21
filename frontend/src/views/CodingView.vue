@@ -15,9 +15,7 @@
               <FileSet :name="name" :projectname="projectname" @debug-start="(path) => runDebugger(path)" @open-file="openFile"></FileSet>
             </el-tab-pane>
             <el-tab-pane label="Debug" name="second">
-              <div style="display: flex;flex-direction: column;width: 100%">
-                <DebugSideBar ref="tDebugSideBar" token="1" @update-focus-line="updateFocusLine"></DebugSideBar>
-              </div>
+              <DebugSideBar ref="tDebugSideBar" token="1" @update-focus-line="updateFocusLine"></DebugSideBar>
             </el-tab-pane>
           </el-tabs>
         </el-aside>
@@ -27,7 +25,7 @@
             <span class="dbg_panel_handle" @mousedown="dragDebugPanel" />
             <debug-buttons ref="dbgButtons" @runcmd-with-break-point="runcmdWithBreakPoint" @restart-debugger="restartDebugger" @end-debug="endDebug"></debug-buttons>
           </div>
-          <splitpanes class="default-theme" horizontal>
+          <splitpanes horizontal>
             <pane>
               <EditorPanel ref="editorPanel" @save-file="saveFile" @start-debug="(path) => runDebugger(name + '/' + path)"></EditorPanel>
             </pane>
@@ -183,6 +181,7 @@ function runDebugger (filePath: string) {
   const breakPoints = editorPanel.value?.getBreakpoints()
   tFooter.value.setBreakPoints(breakPoints)
   tFooter.value.startDebuggerTerminal()
+  sidebarActiveName.value = 'second'
 }
 
 async function activateButtons (port: number, token: string) {
@@ -237,6 +236,8 @@ function restartDebugger (port: number) {
 
 function endDebug () {
   isDebugging.value = false
+  tDebugSideBar.value.endDebug()
+  sidebarActiveName.value = 'first'
 }
 
 defineExpose({
@@ -316,8 +317,16 @@ div {
   width: 100%;
   height: 100vh;
 }
+/* Style of splitter between footer and editor */
+:deep(.splitpanes__splitter) {
+  background-color: var(--el-border-color-light);
+}
+
+/* make el-tabs fill space */
 :deep(.el-tabs__content) {
   width: 100%
 }
-:deep(.el-tabs__new-tab)
+:deep(.el-tabs__new-tab){
+  margin-right: 20px;
+}
 </style>

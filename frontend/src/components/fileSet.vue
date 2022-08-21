@@ -50,6 +50,7 @@
         </span>
       </template>
     </el-tree>
+
     <el-dialog v-model="form.dialogFormVisible">
       <el-tabs v-model="sidebarActiveName" class="dialog-tabs">
         <el-tab-pane label="Create" name="first">
@@ -321,9 +322,9 @@ function fillData (children: Tree[], data: object) {
 
 // code for debugger
 
-const debugStart = (data:Tree) => {
+const debugStart = (data: Tree) => {
   const filepath = props.name + '/' + data.route + '/' + data.label as string
-  console.log(filepath)
+  emit('openFile', data.route + '/' + data.label)
   emit('debugStart', filepath)
 }
 

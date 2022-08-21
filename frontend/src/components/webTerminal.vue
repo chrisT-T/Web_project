@@ -20,8 +20,6 @@ function initTerminal () {
 
   term.open(termDiv?.value as HTMLElement)
 
-  term.writeln('This is the online terminal')
-
   term.onData((data) => {
     socket.emit('pty-input', { input: data, token: socket.id })
   })

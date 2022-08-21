@@ -4,7 +4,7 @@
     <!-- header -->
     <div class="editor-header-bar">
       <draggable v-model="fileItems" item-key="path" group="editor-header-item" direction="vertical" :prevent-on-filter="true"
-        style="display: flex; flex-direction: row; width: 100%; font-size: 13px" @add="addedItem" @remove="removedItem">
+        style="display: flex; flex-direction: row; width: 100%; font-size: 16px" @add="addedItem" @remove="removedItem">
         <template #item="{ element, index }">
           <div style="display: flex;">
             <HeaderItem :title="element.path.split('/').pop()" :focus="element.focus" :modified="getModified(index)"
