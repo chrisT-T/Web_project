@@ -317,4 +317,5 @@ div {
 :deep(.el-tabs__content) {
   width: 100%
 }
+:deep(.el-tabs__new-tab)
 </style>
