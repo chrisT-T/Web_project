@@ -1,5 +1,5 @@
 <template>
-  <div ref="debugTerm"/>
+  <div v-loading="loading" ref="debugTerm"/>
 </template>
 
 <script lang="ts" setup>
@@ -8,6 +8,7 @@ import { Terminal } from 'xterm'
 import io from 'socket.io-client'
 import { FitAddon } from 'xterm-addon-fit'
 
+const loading = ref(true)
 const socket = io('/pdb') // 这里是 connect 到 pdb 的 socket
 const fitAddon = new FitAddon()
 const debugTerm = ref<HTMLDivElement>()
@@ -49,6 +50,7 @@ function init () {
 
   socket.on('clear_screen', () => {
     term.clear()
+    loading.value = false
   })
 }
 

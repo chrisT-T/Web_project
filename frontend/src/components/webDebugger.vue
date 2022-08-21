@@ -2,7 +2,7 @@
   <div class="debugConsole">
     <p style="text-align: left; font-size: 20px; font-weight: bold;"> Debug Console:</p>
     <p>{{ consoleOutput }}</p>
-    <el-input class="command" name="command" id="command" v-model="command" @keyup.enter="send"/>
+    <el-input class="command" name="command" id="command" v-model="command" @keyup.enter="send" placeholder="Write PDB commands here"/>
   </div>
 </template>
 

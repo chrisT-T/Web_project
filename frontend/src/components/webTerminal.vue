@@ -1,5 +1,5 @@
 <template>
-  <div ref="termDiv"></div>
+  <div v-loading="loading" ref="termDiv"></div>
 </template>
 
 <script lang="ts" setup>
@@ -11,6 +11,7 @@ const termDiv = ref<HTMLDivElement>()
 let term = new Terminal()
 const status = ref<string>('disconnected')
 const socket = io('/pty')
+const loading = ref(true)
 
 function initTerminal () {
   term = new Terminal({
@@ -25,6 +26,7 @@ function initTerminal () {
   })
 
   socket.on('pty-output', (data: {'output': string, 'token': string}) => {
+    loading.value = false
     term.write(data.output)
   })
 

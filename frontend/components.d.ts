@@ -35,6 +35,7 @@ declare module '@vue/runtime-core' {
     ElScrollbar: typeof import('element-plus/es')['ElScrollbar']
     ElSelect: typeof import('element-plus/es')['ElSelect']
     ElSpace: typeof import('element-plus/es')['ElSpace']
+    ElTable: typeof import('element-plus/es')['ElTable']
     ElTabPane: typeof import('element-plus/es')['ElTabPane']
     ElTabs: typeof import('element-plus/es')['ElTabs']
     ElTree: typeof import('element-plus/es')['ElTree']
@@ -48,5 +49,8 @@ declare module '@vue/runtime-core' {
     VariableTable: typeof import('./src/components/VariableTable.vue')['default']
     WebDebugger: typeof import('./src/components/webDebugger.vue')['default']
     WebTerminal: typeof import('./src/components/webTerminal.vue')['default']
+  }
+  export interface ComponentCustomProperties {
+    vLoading: typeof import('element-plus/es')['ElLoadingDirective']
   }
 }
