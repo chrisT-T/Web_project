@@ -11,6 +11,8 @@
         <span v-if="!data.isRoot" class="custom-tree-node">
           <el-dropdown v-if="!data.showInput" trigger="contextmenu">
             <span class="el-dropdown-link" @dblclick="editStart(data)">
+              <el-icon v-if="data.type === 'folder'"><Folder /></el-icon>
+              <el-icon v-if="data.type === 'file'"><Document /></el-icon>
               {{ node.label }}
             </span>
             <template #dropdown>
@@ -18,7 +20,8 @@
                 <el-dropdown-item :icon="Plus" @click="currentTree(data)" :disabled="data.type === 'file'">Append</el-dropdown-item>
                 <el-dropdown-item :icon="DeleteFilled" @click="remove(node, data)">Delete</el-dropdown-item>
                 <el-dropdown-item :icon="EditPen" @click="editStart(data)">Change name</el-dropdown-item>
-                <el-dropdown-item :icon="EditPen" @click="debugStart(data)">Run in Debug mode</el-dropdown-item>
+                <el-dropdown-item :icon="CaretRight" @click="debugStart(data)">Run in Debug mode</el-dropdown-item>
+                <el-dropdown-item v-if="data.type === 'file' " :icon="Download" @click="download(data)">Download</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -47,26 +50,41 @@
         </span>
       </template>
     </el-tree>
-    <el-dialog v-model="form.dialogFormVisible" title="Create new file/folder">
-      <el-form :model="form">
-        <el-form-item label="Name" :label-width="formLabelWidth">
-          <el-input v-model="form.label" autocomplete="off" />
-        </el-form-item>
-        <el-form-item label="Type" :label-width="formLabelWidth">
-          <el-select v-model="form.type" placeholder="Please select type">
-            <el-option :icon="DocumentAdd" label="Folder" value="folder" />
-            <el-option :icon="FolderAdd" label="File" value="file" />
-          </el-select>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="form.dialogFormVisible = false">Cancel</el-button>
-          <el-button type="primary" @click="form.dialogFormVisible = false; submitCheck(form.currennode, form.label, form.type)"
-            >Confirm</el-button
+    <el-dialog v-model="form.dialogFormVisible">
+      <el-tabs v-model="sidebarActiveName" class="dialog-tabs">
+        <el-tab-pane label="Create" name="first">
+          <el-form :model="form" class="pane-form">
+            <el-form-item label="Name" :label-width="formLabelWidth">
+              <el-input v-model="form.label" autocomplete="off" />
+            </el-form-item>
+            <el-form-item label="Type" :label-width="formLabelWidth">
+              <el-select v-model="form.type" placeholder="Please select type">
+                <el-option label="Folder" value="folder" ><el-icon><Folder /></el-icon> Folder</el-option>
+                <el-option label="File" value="file" ><el-icon><Document /></el-icon> File</el-option>
+              </el-select>
+            </el-form-item>
+            <span class="dialog-footer">
+              <el-button @click="form.dialogFormVisible = false">Cancel</el-button>
+              <el-button type="primary" @click="form.dialogFormVisible = false; submitCheck(form.currennode, form.label, form.type)"
+                >Confirm</el-button
+              >
+            </span>
+          </el-form>
+        </el-tab-pane>
+        <el-tab-pane label="Upload" name="second">
+          <el-upload
+            class="upload-demo"
+            drag
+            action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
+            multiple
           >
-        </span>
-      </template>
+            <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+            <div class="el-upload__text">
+            Drop file here or <em>click to upload</em>
+            </div>
+          </el-upload>
+        </el-tab-pane>
+      </el-tabs>
     </el-dialog>
 </div>
 </template>
@@ -79,11 +97,15 @@ import {
   DeleteFilled,
   DocumentAdd,
   FolderAdd,
-  EditPen
+  EditPen,
+  CaretRight,
+  Download,
+  UploadFilled
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import axios from 'axios'
 
+const sidebarActiveName = ref('first')
 const formLabelWidth = '140px'
 const props = defineProps({
   name: String,
@@ -149,6 +171,9 @@ function changeRoute (children: Tree[], pre: string, origin: string, newLabel: s
       changeRoute(children[key].children, pre, origin, newLabel)
     }
   }
+}
+const download = async (data: Tree) => {
+  console.log('download ' + data.label)
 }
 // 成功编辑并连接后端
 const editFinish = async (data:Tree) => {
@@ -369,5 +394,8 @@ onMounted(async () => {
 }
 .tree-root-btn-gp {
   margin-right: 0px;
+}
+.upload-demo, .pane-form {
+  margin-top: 20px;
 }
 </style>
