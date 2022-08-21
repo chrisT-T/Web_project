@@ -46,6 +46,10 @@ function init () {
     console.log('port ' + port + ' disconnected')
     emit('disconnect')
   })
+
+  socket.on('clear_screen', () => {
+    term.clear()
+  })
 }
 
 onMounted(() => {

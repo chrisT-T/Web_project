@@ -11,7 +11,6 @@ import os
 import argparse
 import time
 import atexit
-import time
 
 app = Flask(__name__, template_folder='.')
 CORS(app, resources=r'/*')
@@ -130,7 +129,6 @@ def start_debug():
         
     t = threading.Thread(target=run_pdb_process, args=(token, pdb_instance[token]), daemon=True)
     t.start()
-    
     return f'{token} debugging {path}'
 
 @app.route('/pdb/clearBreakPoint', methods=['POST'])
@@ -145,17 +143,15 @@ def clearBreakPoint():
         return {'runflag': True}
     else:
         pdb_instance_lock.release()
-        return {'runflag': False}
+        return {'runflag': False }
 
 # 连接：新建一个 Pdb 实例，并将其（Pdb）输入输出用管道导出
 @socketio.on("connect_to_pdb", namespace='/pdb')
 def pdb_connect(data):
     token = data['token']
-    print('pdb connect', token)
+    socketio.emit('clear_screen', { 'token': token }, namespace="/pdb", to=request.sid)
     if token in pdb_input_server.keys():
         return
-
-    print('create pdb instance : ', token)
 
     pdb_input_server[token], pdb_input_client[token] = os.pipe()
     pdb_output_client[token], pdb_output_server[token] = os.pipe()
@@ -166,10 +162,13 @@ def pdb_connect(data):
 def connect():
     pass
 
+@app.route('/pdb/backdoor')
+def debug_backdoor() :
+    socketio.stop()
+
 @socketio.on("disconnect_from_pdb", namespace='/pdb')
-def pdb_disconnect(data):
-    time.sleep(2)
-    token = data['token']
+def pdb_disconnect():
+    token = request.sid
     pdb_instance_lock.acquire()
     if token in pdb_instance.keys():
         pdb_input_client.pop(token)
@@ -183,18 +182,8 @@ def pdb_disconnect(data):
 def disconnect():
     pass
 
-def run_server():
-    socketio.run(app, host='127.0.0.1')
-
-
 @atexit.register
 def atexit_function() :
-    print('Terminating debugger')
     for key in pdb_instance.keys():
-        print(f'send to {key}')
         socketio.emit("pdb_terminated", { 'token': key }, namespace="/pdb")
-    time.sleep(3)
-    print(socketio)
-
-if __name__ == '__main__':
-    run_server()
+    time.sleep(0.2)

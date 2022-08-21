@@ -1,3 +1,4 @@
+from argparse import Namespace
 import random
 import socket
 import subprocess
@@ -14,7 +15,16 @@ import os
 
 debugger_terminal_fd = {}
 
+'''
+    get the terminal token by port
+'''
+debugger_terminal_token = {}
+
 sio_clients = {}
+
+@app.route('/pdb/backdoor')
+def debug_backdoor() :
+    return str(sio_clients.keys())
 
 # 以下各个函数都是在往新建的 debug server 转发
 @app.route('/pdb/getstack', methods=['POST'])
@@ -90,7 +100,7 @@ def connect_to_debugger_server(data):
 def disconnect_from_debugger_server(data):
     port = data['port']
     if port in sio_clients:
-        sio_clients[port].disconnect()
+        sio_clients[port].emit('disconnect_from_pdb', namespace='/pdb')
         del sio_clients[port]
 
 @socketio.on('connect', namespace='/debugger')
@@ -102,16 +112,19 @@ def connect():
     print('disconnect debugger')
 
 # 轮询，将 debugger terminal 的输出发送给 client
-def forward_debugger_term():
+def forward_debugger_term(key: str):
     max_read_bytes = 1024 * 20
     while True:
         socketio.sleep(0.01)
-        for key in debugger_terminal_fd.keys():
-            timeout_sec = 0
-            (data_ready, _, _) = select.select([debugger_terminal_fd[key]], [], [], timeout_sec)
-            if data_ready:
-                output = os.read(debugger_terminal_fd[key], max_read_bytes).decode()
-                socketio.emit("debugger_term_output", {"output": output, 'token': key}, namespace="/pdb", to=key)
+        try:
+            if key in debugger_terminal_fd.keys():
+                timeout_sec = 0
+                (data_ready, _, _) = select.select([debugger_terminal_fd[key]], [], [], timeout_sec)
+                if data_ready:
+                    output = os.read(debugger_terminal_fd[key], max_read_bytes).decode()
+                    socketio.emit("debugger_term_output", {"output": output, 'token': key}, namespace="/pdb", to=key)
+        except:
+            pass
 
 # 创建一个 socketio client，转发给 app 上的 socketio
 def create_socketio_client_to_debug_server(port: int, token: str) -> boolean:
@@ -143,6 +156,11 @@ def create_socketio_client_to_debug_server(port: int, token: str) -> boolean:
         print("quit_handler")
         socketio.emit("pdb_quit", data, namespace="/debugger", to=token)
     new_client.on('pdb_quit', quit_handler, namespace='/pdb')
+
+    def clear_screen_handler(data):
+        socketio.emit('clear_screen', namespace="/pdb", to=debugger_terminal_token[port])
+    new_client.on('clear_screen', clear_screen_handler, namespace='/pdb')
+
     print('create_socketio_client_to_debug_server success')
     return True
 
@@ -154,6 +172,17 @@ def pdb_terminal_input(data):
     if token in debugger_terminal_fd.keys():
         os.write(debugger_terminal_fd[token], data['input'].encode())
 
+@app.route('/pdb/inputbyport', methods=['POST'])
+def debugger_term_input_by_port():
+    data = request.get_json()
+    port = data['port']
+    cmd = data['cmd']
+    token = debugger_terminal_token[port]
+    if token in debugger_terminal_fd.keys():
+        os.write(debugger_terminal_fd[token], cmd.encode())
+        return make_response('success', 200)
+    else:
+        return make_response('no terminal cooresponds to the port', 500)
 
 
 # 当有新的 session id 的时候，新建一个 Flask + Pdb 的进程，同时在子线程中新建一个 bash
@@ -171,12 +200,15 @@ def debugger_connect():
     else:
         # parent process
         debugger_terminal_fd[token] = fd
-        socketio.start_background_task(target=forward_debugger_term)
+        socketio.start_background_task(target=forward_debugger_term, key=token)
         print('create new debug server')
         port = random.randint(10000, 30000)
         while is_port_in_use(port):
             port = random.randint(10000, 30000)
         print(f'port is {port}')
+
+        debugger_terminal_token[port] = token
+        
         os.write(fd, 'export FLASK_APP=debugger_server\n'.encode())
         os.write(fd, f'flask run -p {port}\n'.encode())
         socketio.emit('debugger_port_allocated', {"port": port, 'token': token}, namespace='/pdb', to=token)
