@@ -377,7 +377,7 @@ def uploadFile(username):
 
 
 # 下载文件
-@app.route('/downloadFile/<username>', methods = ["GET", "POST"])
+@app.route('/api/downloadFile/<username>', methods = ["GET", "POST"])
 def downloadFile(username):
     # 获取文件名
     # 从用户名一级开始

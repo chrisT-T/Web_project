@@ -173,6 +173,20 @@ function changeRoute (children: Tree[], pre: string, origin: string, newLabel: s
 }
 const download = async (data: Tree) => {
   console.log('download ' + data.label)
+  await axios.post('/api/downloadFile/' + props.name, { file_name: props.name + '/' + data.route + '/' + data.label })
+    .then(res => {
+      const blob = new Blob([res.data])
+      const link = document.createElement('a')
+      link.download = data.label
+      link.style.display = 'none'
+      link.href = URL.createObjectURL(blob)
+      document.body.appendChild(link)
+      link.click()
+      URL.revokeObjectURL(link.href)
+      document.body.removeChild(link)
+    }).catch(function (error) {
+      console.log(error)
+    })
 }
 // 成功编辑并连接后端
 const editFinish = async (data:Tree) => {
