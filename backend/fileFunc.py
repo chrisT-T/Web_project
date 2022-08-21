@@ -1,10 +1,12 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
+from fileinput import filename
 import os, shutil
 import re
 from tokenize import String
 from pathlib import Path
 from typing import List
+from urllib import request
 
 # 文件根目录
 FILE_PATH = "userfile/"
@@ -73,10 +75,7 @@ def deleteFile(src: String):
         print ("the file does not exist")
         return False
     
-
-# 问题： 目前只支持文本文件
-# 上传文件
-def upload(src: String, text: String):
+def save(src: String, text: String):
     src = os.path.join(FILE_PATH, src)
     if os.path.exists(src):
         try:
@@ -89,6 +88,17 @@ def upload(src: String, text: String):
     else:
         print ("the file does not exist")
         return False
+
+def upload(src: String, request_data):
+
+    file_content = request_data['file']
+    file_name = request_data['file'].filename
+    file_path = src + file_name
+    if (os.path.exists(file_path)):
+        return { 'msg': 'File exists' }
+    else:
+        file_content.save(file_path)
+        return { 'msg': 'Upload Success' }
 
 # 下载文件
 def download(src: String):

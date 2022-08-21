@@ -39,6 +39,7 @@
           </span>
           <span class="tree-root-btn-gp" v-if="!data.showInput">
             <el-button class="tree-btn" :icon="Plus" @click="currentTree(data)" text />
+            <el-button class="tree-btn" :icon="Refresh" @click="updateFileTree" text />
           </span>
           <el-input size="small" ref="inputVal" v-if="data.showInput" :value="data.label"
             v-model="changeInput.inputStr"
@@ -76,7 +77,7 @@
           <el-upload
             class="upload-demo"
             drag
-            action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
+            :action="'/api/upload/' + props.name + '/' + props.projectname"
             multiple
           >
             <el-icon class="el-icon--upload"><upload-filled /></el-icon>
@@ -95,6 +96,7 @@ import { onMounted, ref, reactive } from 'vue'
 import Node from 'element-plus/es/components/tree/src/model/node'
 import {
   Plus,
+  Refresh,
   DeleteFilled,
   EditPen,
   CaretRight,
@@ -253,7 +255,6 @@ const submitCheck = async (data: Tree, labelNew: string, typeNew: string) => {
     alert('Name or type is missing')
   } else {
     if (typeNew === 'file') {
-      labelNew = labelNew + '.py'
       console.log(labelNew)
       console.log(data.route)
       await axios.post('/api/touch/' + props.name, { src: props.name + '/' + data.route + '/' + data.label + '/' + labelNew })
@@ -343,7 +344,7 @@ const debugStart = (data: Tree) => {
 }
 
 // 每次加载页面时从后端拿文件树
-onMounted(async () => {
+async function updateFileTree () {
   await axios.get('/api/getFileTree/' + props.name + '/' + props.projectname)
     .then(res => {
       form.flag = res.data.flag
@@ -356,7 +357,12 @@ onMounted(async () => {
     alert(form.message)
     return
   }// b/folder1/a.py
+  dataSource.value[0].children = []
   fillData(dataSource.value[0].children, form.data)
+}
+
+onMounted(async () => {
+  updateFileTree()
 })
 
 </script>

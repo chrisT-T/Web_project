@@ -264,11 +264,11 @@ def touch(username):
 
 # 保存文件
 # 前端向后端上传文件
-@app.route('/api/upload/<username>', methods = ["POST"])
-def upload_file(username):
+@app.route('/api/save/<username>', methods = ["POST"])
+def save_file(username):
     src = request.get_json()['src']
     text = request.get_json()['text']
-    if fileFunc.upload(username + '/' + src, text):
+    if fileFunc.save(username + '/' + src, text):
         data = {
             'flag': True,
             'message': None
@@ -280,6 +280,17 @@ def upload_file(username):
             'message': "The file does not exist"
         }
         return jsonify(data)
+
+@app.route('/api/upload/<username>/<projname>', methods = ["POST"])
+def upload_file(username, projname):
+
+    request_data = {
+        'file': request.files.get('file'),
+        'file_info': dict(request.form)
+    }
+
+    res = fileFunc.upload(f'./userfile/{username}/{projname}/', request_data)
+    return jsonify(res)
 
 # 加载文件
 # 前端从后端下载文件

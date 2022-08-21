@@ -128,7 +128,7 @@ const handleDragStart = (event: MouseEvent) => {
 
 function saveFile (path: string, value: string) {
   console.log(path, value)
-  axios.post(`/api/upload/${name}`, {
+  axios.post(`/api/save/${name}`, {
     src: path,
     text: value
   }).then((res) => {
