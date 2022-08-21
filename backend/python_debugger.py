@@ -3,6 +3,7 @@ import socket
 import subprocess
 from time import sleep
 from traceback import print_tb
+from xmlrpc.client import boolean
 from app import app, socketio
 import socketio as sockio
 from flask import request, Response, make_response
@@ -81,9 +82,9 @@ def clearBreakPoint():
 def connect_to_debugger_server(data):
     token = request.sid
     port = data['port']
-    create_socketio_client_to_debug_server(port, token)
-    socketio.emit('connect_to_debug_server_success', {'port': port }, namespace='/debugger')
-    print('connect to new debug server on port' + str(port))
+    if create_socketio_client_to_debug_server(port, token):
+        socketio.emit('connect_to_debug_server_success', {'port': port }, namespace='/debugger', to=request.sid)
+        print('connect to new debug server on port' + str(port))
 
 @socketio.on('disconnect_from_debug_server', namespace='/debugger')
 def disconnect_from_debugger_server(data):
@@ -113,11 +114,15 @@ def forward_debugger_term():
                 socketio.emit("debugger_term_output", {"output": output, 'token': key}, namespace="/pdb", to=key)
 
 # 创建一个 socketio client，转发给 app 上的 socketio
-def create_socketio_client_to_debug_server(port: int, token: str):
+def create_socketio_client_to_debug_server(port: int, token: str) -> boolean:
     print('create_socketio_client_to_debug_server!!!')
-    while not is_port_in_use(port):
+    tmp = 0
+    while (not is_port_in_use(port)):
         sleep(0.1)
-        print(f'{port} is not in use')
+        tmp += 0.1
+        if tmp > 8:
+            print(f'{port}: {token} connect forward exit')
+            return False
         pass
     new_client = sockio.Client()
     sio_clients[port] = new_client
@@ -126,7 +131,7 @@ def create_socketio_client_to_debug_server(port: int, token: str):
     # socketio.emit("pdb_terminated", { 'token': key }, namespace="/pdb")
     def terminated_handler(data):
         print("terminated_handler")
-        socketio.emit("pdb_terminated", data, namespace="/debugger")
+        socketio.emit("pdb_terminated", data, namespace="/debugger", to=token)
     new_client.on('pdb_terminated', terminated_handler, namespace='/pdb')
     # socketio.emit("pdb_output", {"consoleOutput": output, 'token': token}, namespace="/pdb", to=token)
     def output_handler(data):
@@ -139,6 +144,7 @@ def create_socketio_client_to_debug_server(port: int, token: str):
         socketio.emit("pdb_quit", data, namespace="/debugger", to=token)
     new_client.on('pdb_quit', quit_handler, namespace='/pdb')
     print('create_socketio_client_to_debug_server success')
+    return True
 
 # debugger terminal 的文字输入                
 @socketio.on('debugger_term_input', namespace='/pdb')
