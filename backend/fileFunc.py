@@ -174,5 +174,15 @@ def move(src: String, dst: String):
         return True
     return False
 
+# 将相对路径拼接为后端实际路径
+def joinPath(src: String, filename:String):
+    path = os.path.join(FILE_PATH, src, filename)
+    return path
 
-
+# 返回文件在后端的实际路径
+def phyPath(path: String):
+    path = os.path.join(FILE_PATH, path)
+    if os.path.exists(path):
+        return True, path
+    else:
+        return False, None

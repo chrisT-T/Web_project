@@ -1,4 +1,5 @@
-from flask import Flask, jsonify, request
+import logging
+from flask import Flask, jsonify, request, send_file
 from flask_socketio import SocketIO
 from flask_cors import CORS
 import fileFunc, userInfo
@@ -261,6 +262,7 @@ def touch(username):
         }
         return jsonify(data)
 
+# 保存文件
 # 前端向后端上传文件
 @app.route('/api/upload/<username>', methods = ["POST"])
 def upload_file(username):
@@ -279,6 +281,7 @@ def upload_file(username):
         }
         return jsonify(data)
 
+# 加载文件
 # 前端从后端下载文件
 # 前端以get形式提供文件路径   xiaoming/file.txt
 @app.route('/api/download/<username>', methods = ["GET"])
@@ -348,6 +351,45 @@ def moveFile(username):
         data = {
             'flag': False,
             'message': "Error file/folder name"
+        }
+        return jsonify(data)
+
+
+# 上传文件
+# 提供文件和目标存储文件夹
+@app.route('/api/uploadFile/<username>', methods = ["GET", "POST"])
+def uploadFile(username):
+    fileObj = request.files.get('file')
+    src = request.get_json()['src']
+    filename = fileObj.filename
+    upload_path = fileFunc.joinPath(src, filename)
+    data = {
+        'flag': False,
+        'code': 500,
+        'msg': "Failed to upload"
+    }
+    try:
+        fileObj.save(upload_path)
+        data.update({'flag': True, 'code': 200, 'msg': "Succeed uploading"})
+    except FileNotFoundError as e:
+        logging.log('error', e)
+    return jsonify(data)
+
+
+# 下载文件
+@app.route('/downloadFile/<username>', methods = ["GET", "POST"])
+def downloadFile(username):
+    # 获取文件名
+    # 从用户名一级开始
+    file_name = request.json.get('fileName')
+    flag, path = fileFunc.phyPath(file_name)
+    if flag:
+        # attachment_filename="down.txt", as_attachment=True 附件
+        return send_file(path, attachment_filename=file_name, as_attachment=True)
+    else:
+        data = {
+            "code": 404,
+            "info": "file no found!"
         }
         return jsonify(data)
 
