@@ -7,5 +7,6 @@ RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --no-cache-dir -r re
 
 COPY . /app
 
-CMD ["python", "-m", "flask", "run", "--host=0.0.0.0"]
+CMD [ "/bin/bash", "start.sh"]
 EXPOSE 5000
+EXPOSE 30000

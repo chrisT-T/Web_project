@@ -14,6 +14,15 @@ services:
     restart: "always"
     ports:
       - "5000:5000"
+      - "30000:30000"
+    volumes:
+      - userfile:/app/userfile
+      - userinfo:/app/userInfo
+
+volumes:
+  userfile:
+  userinfo:
+
   # watchtower: # autoupdate image
   #   image: containrrr/watchtower
   #   volumes:

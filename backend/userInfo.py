@@ -4,12 +4,20 @@ import os
 import datetime
 import sqlite3
 
+database_path = './userInfo/userInfo.db'
+
+# 如果不存在文件夹，要新建一下
+def createFolder(src):
+    if not os.path.exists(src):
+        os.makedirs(src)
+
+createFolder('./userInfo')
 
 # 用户名密码是否输入正确
 def isCorrect(username: String, userpassword: String):
-    if not os.path.exists('userInfo.db'):
+    if not os.path.exists(database_path):
         return False
-    conn = sqlite3.connect('userInfo.db')
+    conn = sqlite3.connect(database_path)
     cur = conn.cursor()
     select_cmd = f'''
         SELECT PWD FROM USERINFO WHERE NAME = '{username}' '''
@@ -26,9 +34,9 @@ def isCorrect(username: String, userpassword: String):
 
 # 该用户名是否已被注册
 def isValid(username: String):
-    if not os.path.exists('userInfo.db'):
+    if not os.path.exists(database_path):
         return True
-    conn = sqlite3.connect('userInfo.db')
+    conn = sqlite3.connect(database_path)
     cur = conn.cursor()
     select_cmd = f'''
         SELECT NAME FROM USERINFO'''
@@ -45,7 +53,7 @@ def isValid(username: String):
 
 # 注册新用户
 def createNewUser(username: String, userpassword: String):
-    conn = sqlite3.connect('userInfo.db')
+    conn = sqlite3.connect(database_path)
     cur = conn.cursor()
     try:
         create_cmd = '''
@@ -66,7 +74,7 @@ def createNewUser(username: String, userpassword: String):
 def saveProject(src, language):
     username, proname = src.split('/')
     t = datetime.datetime.now()
-    conn = sqlite3.connect('userInfo.db')
+    conn = sqlite3.connect(database_path)
     cur = conn.cursor()
     try:
         create_cmd = f'''
@@ -88,7 +96,7 @@ def saveProject(src, language):
 # 删除项目信息
 def deletepro(src):
     username, proname = src.split('/')
-    conn = sqlite3.connect('userInfo.db')
+    conn = sqlite3.connect(database_path)
     cur = conn.cursor()
     delete_cmd = f'''
         DELETE FROM {username} WHERE PRONAME = '{proname}' '''
@@ -101,7 +109,7 @@ def renamepro(src, dst):
     username, proname = src.split('/')
     _, newname = dst.split('/')
     t = datetime.datetime.now()
-    conn = sqlite3.connect('userInfo.db')
+    conn = sqlite3.connect(database_path)
     cur = conn.cursor()
     update_cmd = f'''
         UPDATE {username} SET PRONAME = '{newname}', LASTUPDATE = '{t}' WHERE PRONAME = '{proname}' '''
@@ -111,7 +119,7 @@ def renamepro(src, dst):
 
 # 返回项目列表
 def showpro(username):
-    conn = sqlite3.connect('userInfo.db')
+    conn = sqlite3.connect(database_path)
     cur = conn.cursor()
     select_cmd = f'''
         SELECT * FROM {username}'''
