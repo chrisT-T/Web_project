@@ -23,13 +23,13 @@
         </el-aside>
         <span class="resize_col" @mousedown="handleDragStart"></span>
         <el-container>
-          <div class="dbg_panel" ref="dbgPanel">
+          <div class="dbg_panel" v-if="isDebugging" ref="dbgPanel">
             <span class="dbg_panel_handle" @mousedown="dragDebugPanel" />
-            <debug-buttons ref="dbgButtons" v-if="isDebugging" @runcmd-with-break-point="runcmdWithBreakPoint" @restart-debugger="restartDebugger"></debug-buttons>
+            <debug-buttons ref="dbgButtons" @runcmd-with-break-point="runcmdWithBreakPoint" @restart-debugger="restartDebugger" @end-debug="endDebug"></debug-buttons>
           </div>
           <splitpanes class="default-theme" horizontal>
             <pane>
-              <EditorPanel ref="editorPanel" @save-file="saveFile"></EditorPanel>
+              <EditorPanel ref="editorPanel" @save-file="saveFile" @start-debug="(path) => runDebugger(name + '/' + path)"></EditorPanel>
             </pane>
             <pane min-size="20">
               <el-footer>
@@ -233,6 +233,10 @@ function cleanEditorFocus () {
 
 function restartDebugger (port: number) {
   tFooter.value.initDbger(port, true)
+}
+
+function endDebug () {
+  isDebugging.value = false
 }
 
 defineExpose({

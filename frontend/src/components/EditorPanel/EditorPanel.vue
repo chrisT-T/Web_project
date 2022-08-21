@@ -1,6 +1,6 @@
 <template>
   <div class="editor-container">
-    <EditorBase  ref="baseEditor" @save-file="saveCurrentFile"> </EditorBase>
+    <EditorBase  ref="baseEditor" @save-file="saveCurrentFile" @start-debug="startDebug"> </EditorBase>
 
     <!-- <p>{{ fileItems }}</p>
     <p>{{ fileStatus }}</p> -->
@@ -33,6 +33,7 @@ export interface FileModel {
 // eslint-disable-next-line func-call-spacing
 const emit = defineEmits<{
   (e : 'saveFile', path: string, value: string) : void,
+  (e : 'startDebug', path: string) : void,
 }>()
 
 const baseEditor = ref<InstanceType<typeof EditorBase> | null>(null)
@@ -121,6 +122,11 @@ function focusLine (path : string, line : number) {
   }
   model.model.deltaDecorations([], [decoration])
   changeFocusToFile(path, line)
+}
+
+function startDebug (file: string) {
+  console.log('editor panel' + file)
+  emit('startDebug', file)
 }
 
 // tmpAddFile('a.py', 'print("hello world test1")')

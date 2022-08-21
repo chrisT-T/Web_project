@@ -13,6 +13,7 @@
           </div>
         </template>
       </draggable>
+      <el-icon v-if="Object.keys(fileItems).length > 0" class="debug-button" :size="29" title="Run in Debug mode" @click="startDebug"><EditPen /></el-icon>
     </div>
     <!-- editor -->
     <div class="editor-content">
@@ -42,6 +43,7 @@ const emit = defineEmits<{
   (e : 'deleteEditor') : void,
   (e : 'changeCursorFocus') : void,
   (e : 'saveFile', path :string) : void,
+  (e : 'startDebug', path :string) : void,
 }>()
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -166,6 +168,10 @@ function modifyCurrent () {
   file.modified = true
 }
 
+function startDebug () {
+  const index = getCurrentFocus()
+  emit('startDebug', getPath(index))
+}
 defineExpose({
   changeFocus
 })
@@ -197,6 +203,11 @@ defineExpose({
 .editor-base-container {
   height: 100%;
   width: 100%;
+}
+
+.debug-button {
+  background-color: var(--el-color-primary-dark-2);
+
 }
 
 .editor-content {

@@ -17,7 +17,8 @@ const size = 30 as number
 // eslint-disable-next-line func-call-spacing
 const emit = defineEmits <{
   (e: 'runcmdWithBreakPoint', cmd: string): void,
-  (e: 'restartDebugger', port: number): void
+  (e: 'restartDebugger', port: number): void,
+  (e: 'endDebug'): void
 }>()
 
 function init (port: number, token: string) {
@@ -53,7 +54,6 @@ function next () {
 
 function stepInto () {
   emit('runcmdWithBreakPoint', 's')
-  console.log('step into')
 }
 
 function stepOut () {
@@ -62,6 +62,7 @@ function stepOut () {
 
 function stop () {
   emit('runcmdWithBreakPoint', 'q')
+  emit('endDebug')
 }
 
 function restart () {
