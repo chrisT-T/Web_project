@@ -18,9 +18,6 @@ const props = defineProps({
 </script>
 
 <style scoped>
-* {
-  color: white;
-}
 .variable_table {
   display: block;
   width: 200px;

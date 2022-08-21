@@ -4,7 +4,7 @@
     <!-- header -->
     <div class="editor-header-bar">
       <draggable v-model="fileItems" item-key="path" group="editor-header-item" direction="vertical" :prevent-on-filter="true"
-        style="display: flex; flex-direction: row; width: 100%;" @add="addedItem" @remove="removedItem">
+        style="display: flex; flex-direction: row; width: 100%; font-size: 13px" @add="addedItem" @remove="removedItem">
         <template #item="{ element, index }">
           <div style="display: flex;">
             <HeaderItem :title="element.path.split('/').pop()" :focus="element.focus" :modified="getModified(index)"
@@ -13,7 +13,7 @@
           </div>
         </template>
       </draggable>
-      <el-icon v-if="Object.keys(fileItems).length > 0" class="debug-button" :size="29" title="Run in Debug mode" @click="startDebug"><EditPen /></el-icon>
+      <el-button :icon="CaretRight" v-if="Object.keys(fileItems).length > 0" class="debug-button" title="Run in Debug mode" @click="startDebug" circle />
     </div>
     <!-- editor -->
     <div class="editor-content">
@@ -33,6 +33,9 @@ import MonacoEditor from './MonacoEditor/MonacoEditor.vue'
 import * as monaco from 'monaco-editor'
 import { Ref, onMounted, shallowRef, inject, defineEmits, defineExpose } from 'vue'
 import { FileStatus, FileInfo, FileModel } from './EditorPanel.vue'
+import {
+  CaretRight
+} from '@element-plus/icons-vue'
 
 const fileStatus = inject('fileStatus') as Ref<Map<string, FileStatus>>
 const fileModels = inject('fileModels') as Ref<Map<string, FileModel>>
@@ -183,9 +186,8 @@ defineExpose({
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  background-color: #66b1ff;
   width: 100%;
-  height: 30px;
+  height: 25px;
   color: #dddddd;
 }
 
@@ -206,8 +208,7 @@ defineExpose({
 }
 
 .debug-button {
-  background-color: var(--el-color-primary-dark-2);
-
+  margin-right: 10px;
 }
 
 .editor-content {
