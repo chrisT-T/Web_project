@@ -24,7 +24,7 @@
       <el-main>
         <el-scrollbar v-if="form.taskList.length > 0">
             <div v-for="( item, index ) in form.taskList" :key="item.id" class="scrollbar-demo-item">
-                <div class="detail_info" >
+                <div class="detail_info" v-if="item.language === 'python'">
                   <el-link type="info" :underline="false">{{ item.language }}</el-link>
                   <el-link class="name-link" type="primary" :underline="false" :icon="InfoFilled" @click="ProjectDetail(item.name)" v-if="!form.taskList[index].showInp">{{item.name}}</el-link>
                   <el-input class="changeInp" size="large" ref="inputVal" v-if="form.taskList[index].showInp" :value="item.name"
@@ -51,7 +51,7 @@
       </el-main>
     </el-container>
   </el-container>
-    <el-dialog v-model="dialogFormVisible" title="Create new task" custom-class="createDialog">
+    <el-dialog v-model="dialogFormVisible" title="Create new task">
       <el-form
         ref="formRef"
         :model="form"
@@ -281,6 +281,10 @@ onMounted(async () => {
 }
 .ProjectCnt {
   margin-top: 6px;
+  overflow: hidden;
+}
+.ProjectCnt span {
+  overflow: hidden;
 }
 .ProjectCnt span {
   font-size: 30px;
@@ -292,6 +296,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   background-color: var(--el-color-primary-light-9);
+  padding-top: 20px;
 }
 .layout-container-demo .el-menu {
   border-right: none;
@@ -338,6 +343,9 @@ onMounted(async () => {
 .detail_info {
   overflow: hidden;
   white-space: nowrap;
+  background: url(../assets/Pythonlogo.svg) no-repeat left;
+  padding-left: 20px;
+  margin-left: 10px;
 }
 .noTask {
   height: 50%;

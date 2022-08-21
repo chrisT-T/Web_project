@@ -95,8 +95,6 @@ import Node from 'element-plus/es/components/tree/src/model/node'
 import {
   Plus,
   DeleteFilled,
-  DocumentAdd,
-  FolderAdd,
   EditPen,
   CaretRight,
   Download,

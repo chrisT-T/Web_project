@@ -127,8 +127,6 @@ defineExpose({
     white-space: pre;
     text-align: left;
     overflow-y: scroll;
-    background-color: var(--el-color-primary-dark-2);
-    color: white;
   }
   .stkContainer {
     text-align: left;

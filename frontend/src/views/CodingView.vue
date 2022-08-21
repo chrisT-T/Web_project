@@ -278,9 +278,10 @@ div {
 .el-footer {
   width: 100%;
   height: 100%;
-  background-color: var(--el-color-primary-dark-2);
+  /* background-color: var(--el-color-primary-dark-2); */
   /* overflow: auto; */
   display: flex;
+  /*background-color: var(--el-color-white);*/
   flex-direction: column;
   padding: 0;
 }
@@ -288,6 +289,7 @@ div {
   position: absolute;
   height: 40px;
   left: 800px;
+  background-color: transparent;
 }
 .dbg_panel_handle {
   margin-left: 6px;
