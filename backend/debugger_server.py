@@ -37,6 +37,8 @@ def getStack():
         res = jsonify(pdb_instance[token].get_current_stack())
         pdb_instance_lock.release()
         return res
+    else:
+        return {'runFlag': 'Token doesnot exist'}
 
 @app.route('/pdb/getfunc', methods=['POST'])
 def getFunc():

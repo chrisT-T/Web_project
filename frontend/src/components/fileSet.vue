@@ -175,7 +175,7 @@ function changeRoute (children: Tree[], pre: string, origin: string, newLabel: s
 }
 const download = async (data: Tree) => {
   console.log('download ' + data.label)
-  await axios.post('/api/downloadFile/' + props.name, { file_name: props.name + '/' + data.route + '/' + data.label })
+  await axios.post('/api/downloadFile/' + props.name, { fileName: props.name + '/' + data.route + '/' + data.label })
     .then(res => {
       const blob = new Blob([res.data])
       const link = document.createElement('a')
