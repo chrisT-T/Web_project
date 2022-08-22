@@ -25,6 +25,7 @@
         <el-scrollbar v-if="form.taskList.length > 0">
             <div v-for="( item, index ) in form.taskList" :key="item.id" class="scrollbar-demo-item">
                 <div class="detail_info" v-if="item.language === 'python'">
+                <!-- 根据拓展语言添加 -->
                   <el-link type="info" :underline="false">{{ item.language }}</el-link>
                   <el-link class="name-link" type="primary" :underline="false" :icon="InfoFilled" @click="ProjectDetail(item.name)" v-if="!form.taskList[index].showInp">{{item.name}}</el-link>
                   <el-input class="changeInp" size="large" ref="inputVal" v-if="form.taskList[index].showInp" :value="item.name"
@@ -114,6 +115,7 @@ const options = [
   {
     value: 'python',
     label: 'python'
+    // 根据拓展语言添加
   }
 ]
 
