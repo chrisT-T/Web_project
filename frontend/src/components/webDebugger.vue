@@ -77,7 +77,7 @@ function initDebugger (port: number, restart = false) {
         message: h('i', { style: 'color: teal' }, `The Debugger on port ${port} has quit`)
       })
       isDebugging.value = false
-      axios.post('/pdb/inputbyport', { port, cmd: '\x03' })
+      // axios.post('/pdb/inputbyport', { port, cmd: '\x03' })
       emit('ended')
     }
   })
