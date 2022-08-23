@@ -77,7 +77,7 @@
           <el-upload
             class="upload-demo"
             drag
-            :action="'/api/upload/' + props.name + '/' + form.currennode.route + '/' + form.currennode.label"
+            :action="getUploadPath()"
             multiple
           >
             <el-icon class="el-icon--upload"><upload-filled /></el-icon>
@@ -333,6 +333,13 @@ function fillData (children: Tree[], data: object) {
       fillData(tree.children, data[key].children)
     }
   }
+}
+
+function getUploadPath () {
+  if (form.currennode.route.toString() === '') {
+    return `/api/upload/${props.name}/${form.currennode.label}/`
+  }
+  return '/api/upload/' + props.name + '/' + form.currennode.route + '/' + form.currennode.label
 }
 
 // code for debugger

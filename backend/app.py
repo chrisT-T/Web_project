@@ -281,9 +281,17 @@ def save_file(username):
         }
         return jsonify(data)
 
+@app.route('/api/upload/<username>/<projname>/', methods = ["POST"])
+def upload_file_root(username, projname):
+    request_data = {
+        'file': request.files.get('file'),
+        'file_info': dict(request.form)
+    }
+    res = fileFunc.upload(f'./userfile/{username}/{projname}/', request_data)
+    return jsonify(res)
+
 @app.route('/api/upload/<username>/<projname>/<path:path>', methods = ["POST"])
 def upload_file(username, projname, path):
-
     request_data = {
         'file': request.files.get('file'),
         'file_info': dict(request.form)
