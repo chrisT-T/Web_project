@@ -213,10 +213,11 @@ function updateDebuggerSideBar (port: number, token: string) {
 }
 
 function updateFocusLine (lineno: number, path: string) {
-  const relPath = path.replace('./userfile/' + name + '/', '')
+  const relPath = path.replace('./userfile/' + name + '/', '/')
   console.log(lineno, path, relPath)
   editorPanel.value?.clearFocusLine()
   try {
+    console.log('path', relPath, 'lineno', lineno)
     editorPanel.value?.focusLine(relPath, lineno)
   } catch (e: TypeError) {
     ElNotification({

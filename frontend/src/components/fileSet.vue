@@ -257,7 +257,7 @@ const submitCheck = async (data: Tree, labelNew: string, typeNew: string) => {
     if (typeNew === 'file') {
       console.log(labelNew)
       console.log(data.route)
-      await axios.post('/api/touch/' + props.name, { src: props.name + '/' + data.route + '/' + data.label + '/' + labelNew })
+      await axios.post('/api/touch/' + props.name, { src: props.name + '/' + data.route + (data.route !== '' ? '/' : '') + data.label + '/' + labelNew })
         .then(res => {
           form.flag = res.data.flag
           form.message = res.data.message
@@ -269,7 +269,7 @@ const submitCheck = async (data: Tree, labelNew: string, typeNew: string) => {
         return
       }
     } else {
-      await axios.post('/api/mkdir/' + props.name, { src: props.name + '/' + data.route + '/' + data.label + '/' + labelNew })
+      await axios.post('/api/mkdir/' + props.name, { src: props.name + '/' + data.route + (data.route !== '' ? '/' : '') + data.label + '/' + labelNew })
         .then(res => {
           form.flag = res.data.flag
           form.message = res.data.message
@@ -281,7 +281,7 @@ const submitCheck = async (data: Tree, labelNew: string, typeNew: string) => {
         return
       }
     }
-    const newChild = { id: id++, label: labelNew, type: typeNew, route: data.route + '/' + data.label, showInput: false, children: [] }
+    const newChild = { id: id++, label: labelNew, type: typeNew, route: data.route + (data.route !== '' ? '/' : '') + data.label, showInput: false, children: [] }
     console.log(newChild)
     if (!data.children) {
       data.children = []
