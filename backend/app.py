@@ -395,7 +395,7 @@ def downloadFile(username):
     flag, path = fileFunc.phyPath(file_name)
     if flag:
         # attachment_filename="down.txt", as_attachment=True 附件
-        return send_file(path, attachment_filename=file_name, as_attachment=True)
+        return send_file(path,  download_name=file_name, as_attachment=True)
     else:
         data = {
             "code": 404,
