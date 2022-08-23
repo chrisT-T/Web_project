@@ -18,7 +18,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 
 import logging
 log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)
+log.setLevel(logging.FATAL)
 
 pdb_input_client = {}
 pdb_input_server = {}
