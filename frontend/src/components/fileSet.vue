@@ -77,7 +77,7 @@
           <el-upload
             class="upload-demo"
             drag
-            :action="'/api/upload/' + props.name + '/' + props.projectname"
+            :action="'/api/upload/' + props.name + '/' + form.currennode.route + '/' + form.currennode.label"
             multiple
           >
             <el-icon class="el-icon--upload"><upload-filled /></el-icon>
